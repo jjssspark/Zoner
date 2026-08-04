@@ -1,0 +1,295 @@
+.screen {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
+
+.screen .div {
+  background-color: #ffffff;
+  height: 2245px;
+  position: relative;
+  width: 1440px;
+}
+
+.screen .frame {
+  background-color: #dbdbdb;
+  height: 539px;
+  left: 0;
+  position: absolute;
+  top: 219px;
+  width: 1440px;
+}
+
+.screen .overlap {
+  height: 539px;
+  left: 46px;
+  position: relative;
+  width: 1394px;
+}
+
+.screen .overlap-group {
+  height: 539px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 1394px;
+}
+
+.screen .image {
+  height: 539px;
+  left: 420px;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  width: 974px;
+}
+
+.screen .focus-smarter-learn {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 50px;
+  font-weight: 900;
+  height: 256px;
+  left: 0;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  top: 75px;
+  width: 521px;
+  animation: blink 5s infinite;
+}
+
+.screen .START-wrapper {
+  background-color: #ffffff;
+  height: 97px;
+  left: 0;
+  position: absolute;
+  top: 399px;
+  width: 360px;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.screen .text-wrapper {
+  color: #000000;
+  background-color: #ffffff;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 97px;
+  left: 0px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 0px;
+  width: 360px;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.screen .text-wrapper:hover {
+  background-color: #f0f0f0;
+}
+
+.screen .text-wrapper-U {
+  color: #000000;
+  background-color: #ffffff;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 97px;
+  left: 0px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 0px;
+  width: 360px;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.screen .text-wrapper-U:hover {
+  background-color: #f0f0f0;
+}
+
+.screen .overlap-2 {
+  height: 550px;
+  left: 0;
+  position: absolute;
+  top: 1012px;
+  width: 1440px;
+}
+
+.screen .rectangle {
+  background-color: #ffffff;
+  height: 44px;
+  left: 0;
+  position: absolute;
+  top: 72px;
+  width: 1440px;
+}
+
+.screen .img {
+  height: 517px;
+  left: 479px;
+  object-fit: cover;
+  position: absolute;
+  top: 33px;
+  width: 517px;
+}
+
+.screen .image-2 {
+  height: 515px;
+  left: 0;
+  position: absolute;
+  top: 34px;
+  width: 480px;
+}
+
+.screen .image-3 {
+  height: 516px;
+  left: 993px;
+  position: absolute;
+  top: 33px;
+  width: 447px;
+}
+
+.screen .rectangle-2 {
+  background-color: #ffffff;
+  height: 122px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 1440px;
+}
+
+.screen .text-wrapper-2 {
+  color: #000000;
+  font-family: 'Inknut Antiqua-Regular', Helvetica;
+  font-size: 35px;
+  font-weight: 400;
+  left: 21px;
+  letter-spacing: 0.7px;
+  line-height: 64px;
+  position: absolute;
+  top: 14px;
+  white-space: nowrap;
+  width: 472px;
+}
+
+.screen .p {
+  color: #000000;
+  font-family: 'Inknut Antiqua-Regular', Helvetica;
+  font-size: 35px;
+  font-weight: 400;
+  left: 32px;
+  letter-spacing: 0.7px;
+  line-height: 64px;
+  position: absolute;
+  top: 1622px;
+  white-space: nowrap;
+  width: 472px;
+}
+
+.screen .text-wrapper-3 {
+  color: #00000026;
+  font-family: 'Inknut Antiqua-Regular', Helvetica;
+  font-size: 300px;
+  font-weight: 900;
+  left: 0;
+  letter-spacing: 6px;
+  line-height: 64px;
+  position: absolute;
+  top: 2036px;
+  width: 1364px;
+  animation: blink 10s infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.screen .ZONER-wrapper {
+  background-color: #000000;
+  height: 99px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.screen .ZONER {
+  color: #ffffff;
+  background-color: #000000;
+  border: none;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 50px;
+  font-weight: 700;
+  height: 56px;
+  left: 19px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 19px;
+  white-space: nowrap;
+  width: 323px;
+}
+
+.screen .USER-GUIDE-wrapper {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #000000;
+  height: 97px;
+  left: 360px;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.screen .PRICING-wrapper {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #000000;
+  height: 97px;
+  left: 720px;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.screen .PRICING {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 56px;
+  left: 19px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 30px;
+  width: 323px;
+}
+
+.screen .FAQ-wrapper {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #000000;
+  height: 97px;
+  left: 1080px;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}

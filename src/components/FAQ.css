@@ -1,0 +1,329 @@
+.F-screen {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
+
+.F-screen .div {
+  background-color: #ffffff;
+  height: 1024px;
+  position: relative;
+  width: 1440px;
+}
+
+.F-screen .text-wrapper {
+  color: #00000026;
+  font-family: 'Inknut Antiqua-Regular', Helvetica;
+  font-size: 300px;
+  font-weight: 900;
+  left: 0;
+  letter-spacing: 6px;
+  line-height: 64px;
+  position: absolute;
+  top: 1000px;
+  width: 1364px;
+  animation: blink 10s infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.F-screen .text-wrapper-2 {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 84px;
+  left: 554px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 178px;
+  width: 333px;
+}
+
+.F-screen .frame {
+  background-color: #ffffff;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-color: #000000;
+  border-right-style: solid;
+  border-right-width: 1px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border: 1px solid #000000;
+  height: 496px;
+  left: 0;
+  position: absolute;
+  top: 306px;
+  width: 480px;
+}
+
+.F-screen .p {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 376px;
+  left: 0;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 180px;
+  width: 480px;
+}
+
+.F-screen .span {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.F-screen .text-wrapper-3 {
+  font-size: 25px;
+}
+
+.F-screen .AI-wrapper {
+  background-color: #ffffff;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-color: #000000;
+  border-right-style: solid;
+  border-right-width: 1px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border: 1px solid #000000;
+  height: 496px;
+  left: 480px;
+  position: absolute;
+  top: 306px;
+  width: 480px;
+}
+
+.F-screen .div-wrapper {
+  background-color: #ffffff;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-color: #000000;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border: 1px solid #000000;
+  height: 496px;
+  left: 960px;
+  position: absolute;
+  top: 306px;
+  width: 480px;
+}
+
+.F-screen .ZONER-wrapper {
+  background-color: #000000;
+  height: 99px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.F-screen .ZONER {
+  color: #ffffff;
+  background-color: #000000;
+  border: none;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 50px;
+  font-weight: 700;
+  height: 56px;
+  left: 19px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 19px;
+  white-space: nowrap;
+  width: 323px;
+}
+
+.F-screen .USER-GUIDE-wrapper {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #000000;
+  height: 97px;
+  left: 360px;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.F-screen .text-wrapper-4 {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 56px;
+  left: 19px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 19px;
+  width: 323px;
+}
+
+.F-screen .PRICING-wrapper {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #000000;
+  height: 97px;
+  left: 720px;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.F-screen .PRICING {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 56px;
+  left: 19px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 20px;
+  width: 323px;
+}
+
+.F-screen .FAQ-wrapper {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #000000;
+  height: 97px;
+  left: 1080px;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.F-screen .text-wrapper-U {
+  color: #000000;
+  background-color: #ffffff;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 97px;
+  left: 0px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 0px;
+  width: 360px;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.F-screen .text-wrapper-U:hover {
+  background-color: #f0f0f0;
+}
+
+@keyframes slideFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  opacity: 0;
+  animation: slideFadeIn 0.6s ease forwards;
+}
+
+.fade-in:nth-of-type(1) {
+  animation-delay: 0.2s;
+}
+
+.fade-in:nth-of-type(2) {
+  animation-delay: 0.4s;
+}
+
+.fade-in:nth-of-type(3) {
+  animation-delay: 0.6s;
+}
+
+.frame.hovered {
+  background-color: #444444; /* 회색 배경 */
+}
+
+.frame .hovered-text {
+  color: white; /* 글씨 색 흰색 */
+  font-weight: 400;
+  font-size: 20px;
+  padding: 20px;
+  line-height: 1.6;
+  top: 120px;
+  margin-left: -20px;
+}
+
+.frame {
+  background-color: white;
+  color: black;
+  transition: background-color 1s ease, color 1s ease; /* ✅ 부드럽게 변환 */
+}
+
+.AI-wrapper.hovered {
+  background-color: #444444; /* 회색 배경 */
+}
+
+.AI-wrapper .hovered-text {
+  color: white; /* 글씨 색 흰색 */
+  font-weight: 400;
+  font-size: 20px;
+  padding: 20px;
+  line-height: 1.6;
+  top: 120px;
+  margin-left: -20px;
+}
+
+.AI-wrapper {
+  background-color: white;
+  color: black;
+  transition: background-color 1s ease, color 1s ease; /* ✅ 부드럽게 변환 */
+}
+
+.div-wrapper.hovered {
+  background-color: #444444; /* 회색 배경 */
+}
+
+.div-wrapper .hovered-text {
+  color: white; /* 글씨 색 흰색 */
+  font-weight: 400;
+  font-size: 20px;
+  padding: 20px;
+  line-height: 1.6;
+  top: 120px;
+  margin-left: -20px;
+}
+
+.div-wrapper {
+  background-color: white;
+  color: black;
+  transition: background-color 1s ease, color 1s ease; /* ✅ 부드럽게 변환 */
+}

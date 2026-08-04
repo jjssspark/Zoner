@@ -1,0 +1,249 @@
+.S-screen {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
+
+.S-screen .S-div {
+  background-color: #ffffff;
+  height: 1026px;
+  position: relative;
+  width: 1440px;
+}
+
+.S-screen .frame {
+  background-color: #ffffff;
+  height: 962px;
+  left: 249px;
+  position: absolute;
+  top: 63px;
+  width: 1191px;
+}
+
+.S-screen .text-wrapper {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 20px;
+  font-weight: 700;
+  height: 40px;
+  left: 29px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  top: 29px;
+  width: 527px;
+}
+
+.S-screen .rectangle {
+  background-color: #d7dfff;
+  border-radius: 36px;
+  height: 258px;
+  left: 23px;
+  position: absolute;
+  top: 102px;
+  width: 366px;
+  border: none;
+}
+
+.S-screen .rectangle-2 {
+  background-color: #d7dfff;
+  border-radius: 36px;
+  height: 258px;
+  left: 405px;
+  position: absolute;
+  top: 102px;
+  width: 366px;
+}
+
+.S-screen .rectangle-3 {
+  background-color: #d7dfff;
+  border-radius: 36px;
+  height: 258px;
+  left: 787px;
+  position: absolute;
+  top: 102px;
+  width: 366px;
+}
+
+.S-screen .rectangle-4 {
+  background-color: #d7dfff;
+  border-radius: 36px;
+  height: 258px;
+  left: 23px;
+  position: absolute;
+  top: 397px;
+  width: 366px;
+}
+
+.S-screen .rectangle-5 {
+  background-color: #d7dfff;
+  border-radius: 36px;
+  height: 258px;
+  left: 405px;
+  position: absolute;
+  top: 397px;
+  width: 366px;
+}
+
+.S-screen .rectangle-6 {
+  background-color: #d7dfff;
+  border-radius: 36px;
+  height: 258px;
+  left: 787px;
+  position: absolute;
+  top: 397px;
+  width: 366px;
+}
+
+.S-screen .rectangle-7 {
+  background-color: #d7dfff;
+  border-radius: 36px;
+  height: 258px;
+  left: 23px;
+  position: absolute;
+  top: 692px;
+  width: 366px;
+}
+
+.S-screen .rectangle-8 {
+  background-color: #d7dfff;
+  border-radius: 36px;
+  height: 258px;
+  left: 405px;
+  position: absolute;
+  top: 692px;
+  width: 366px;
+}
+
+.S-screen .rectangle-9 {
+  background-color: #d7dfff;
+  border-radius: 36px;
+  height: 258px;
+  left: 787px;
+  position: absolute;
+  top: 692px;
+  width: 366px;
+}
+
+.S-screen .h-ome-wrapper {
+  background-color: #d6d6d6;
+  height: 161px;
+  left: 0;
+  position: absolute;
+  top: 61px;
+  width: 248px;
+}
+
+.S-screen .text-wrapper-3 {
+  color: #000000;
+  background-color: #d6d6d6;
+  border: none;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 20px;
+  font-weight: 700;
+  height: 71px;
+  left: 39px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 44px;
+  width: 171px;
+}
+
+.S-screen .frame-5 {
+  background-color: #d6d6d6;
+  height: 161px;
+  left: 0;
+  position: absolute;
+  top: 222px;
+  width: 248px;
+}
+
+.S-screen .frame-6 {
+  background-color: #d6d6d6;
+  height: 160px;
+  left: 0;
+  position: absolute;
+  top: 383px;
+  width: 248px;
+}
+
+.S-screen .frame-7 {
+  background-color: #d6d6d6;
+  height: 161px;
+  left: 0;
+  position: absolute;
+  top: 543px;
+  width: 248px;
+}
+
+.S-screen .frame-8 {
+  background-color: #d6d6d6;
+  height: 161px;
+  left: 0;
+  position: absolute;
+  top: 704px;
+  width: 248px;
+}
+
+.S-screen .frame-9 {
+  background-color: #d6d6d6;
+  height: 161px;
+  left: 0;
+  position: absolute;
+  top: 865px;
+  width: 248px;
+}
+
+.S-screen .user-name-wrapper {
+  background-color: #000000;
+  height: 61px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 1309px;
+}
+
+.S-screen .user-name {
+  color: #ffffff;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 20px;
+  font-weight: 700;
+  height: 26px;
+  left: 603px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 16px;
+}
+
+.S-screen .logout-wrapper {
+  background-color: #ffffff;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-color: #000000;
+  height: 61px;
+  left: 1309px;
+  position: absolute;
+  top: -1px;
+  width: 131px;
+}
+
+.S-screen .logout {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 20px;
+  font-weight: 700;
+  height: 37px;
+  left: 10px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 18px;
+  width: 112px;
+}

@@ -1,0 +1,237 @@
+.U-screen {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
+
+.U-screen .U-div {
+  background-color: #ffffff;
+  height: 2245px;
+  position: relative;
+  width: 1440px;
+}
+
+.U-screen .image {
+  height: 563px;
+  left: 564px;
+  object-fit: cover;
+  position: absolute;
+  top: 210px;
+  width: 876px;
+}
+
+.U-screen .p {
+  color: #000000;
+  font-family: 'Inknut Antiqua-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 400;
+  height: 373px;
+  left: 47px;
+  letter-spacing: 0;
+  line-height: 30px;
+  position: absolute;
+  top: 305px;
+  width: 486px;
+}
+
+.U-screen .text-wrapper {
+  font-weight: 700;
+}
+
+.U-screen .span {
+  font-family: 'Inknut Antiqua-Regular', Helvetica;
+}
+
+.U-screen .text-wrapper-2 {
+  font-family: 'Inknut Antiqua-Regular', Helvetica;
+  line-height: 40px;
+}
+
+.U-screen .text-wrapper-3 {
+  font-family: 'Inknut Antiqua-Regular', Helvetica;
+  font-size: 20px;
+  line-height: 40px;
+}
+
+.U-screen .text-wrapper-U {
+  color: #000000;
+  background-color: #ffffff;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 97px;
+  left: 0px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 0px;
+  width: 360px;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.U-screen .text-wrapper-U:hover {
+  background-color: #f0f0f0;
+}
+
+.U-screen .div-2 {
+  color: #000000;
+  font-family: 'Inknut Antiqua-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 400;
+  height: 373px;
+  left: 915px;
+  letter-spacing: 0;
+  line-height: 30px;
+  position: absolute;
+  top: 1039px;
+  width: 486px;
+}
+
+.U-screen .AI-AI-AI {
+  color: #000000;
+  font-family: 'Inknut Antiqua-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 400;
+  height: 373px;
+  left: 47px;
+  letter-spacing: 0;
+  line-height: 30px;
+  position: absolute;
+  top: 1789px;
+  width: 486px;
+}
+
+.U-screen .text-wrapper-4 {
+  color: #00000026;
+  font-family: 'Inknut Antiqua-Regular', Helvetica;
+  font-size: 300px;
+  font-weight: 900;
+  left: 0;
+  letter-spacing: 6px;
+  line-height: 64px;
+  position: absolute;
+  top: 2600px;
+  width: 1364px;
+  animation: blink 10s infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.U-screen .ZONER-wrapper {
+  background-color: #000000;
+  height: 99px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.U-screen .ZONER {
+  color: #ffffff;
+  background-color: #000000;
+  border: none;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 50px;
+  font-weight: 700;
+  height: 56px;
+  left: 19px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 19px;
+  white-space: nowrap;
+  width: 323px;
+}
+.U-screen .USER-GUIDE-wrapper {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #000000;
+  height: 97px;
+  left: 360px;
+  position: absolute;
+  top: 30;
+  width: 360px;
+}
+
+.U-screen .text-wrapper-5 {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 56px;
+  left: 19px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 19px;
+  width: 323px;
+}
+
+.U-screen .PRICING-wrapper {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #000000;
+  height: 97px;
+  left: 720px;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.U-screen .PRICING {
+  color: #000000;
+  font-family: 'Inika-Bold', Helvetica;
+  font-size: 30px;
+  font-weight: 700;
+  height: 56px;
+  left: 19px;
+  letter-spacing: 0;
+  line-height: normal;
+  position: absolute;
+  text-align: center;
+  top: 30px;
+  width: 323px;
+}
+
+.U-screen .FAQ-wrapper {
+  background-color: #ffffff;
+  border: 1px solid;
+  border-color: #000000;
+  height: 97px;
+  left: 1080px;
+  position: absolute;
+  top: 0;
+  width: 360px;
+}
+
+.U-screen .img {
+  height: 538px;
+  left: 0;
+  object-fit: cover;
+  position: absolute;
+  top: 964px;
+  width: 829px;
+}
+
+.U-screen .image-2 {
+  height: 526px;
+  left: 629px;
+  object-fit: cover;
+  position: absolute;
+  top: 1709px;
+  width: 811px;
+}
