@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 import './Mypage.css';
@@ -15,6 +15,7 @@ const RECOMMENDED = ['요금제 업그레이드', '개인 설정', '프로모션
 
 export const Mypage = () => {
   const navigate = useNavigate();
+  const pageRef = useRef(null);
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -66,12 +67,27 @@ export const Mypage = () => {
     navigate('/');
   };
 
+  useEffect(() => {
+    const el = pageRef.current;
+    if (!el) return undefined;
+
+    const handlePointerMove = (e) => {
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      el.style.setProperty('--spotlight-x', `${x}%`);
+      el.style.setProperty('--spotlight-y', `${y}%`);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    return () => window.removeEventListener('pointermove', handlePointerMove);
+  }, []);
+
   if (isLoading) {
-    return <div className="mypage" />;
+    return <div className="mypage" ref={pageRef} />;
   }
 
   return (
-    <div className="mypage">
+    <div className="mypage" ref={pageRef}>
       <header className="mypage__topbar">
         <div className="mypage__identity">
           <h1 className="mypage__user">
@@ -118,14 +134,28 @@ export const Mypage = () => {
           aria-labelledby="recent-records-heading"
           className="record-section"
         >
-          <h2 id="recent-records-heading" className="record-section__title">
-            최근 기록
-          </h2>
-          <p className="record-section__desc">
-            {learningVideos.length > 0
-              ? `최근 학습 녹화 기록 열람 가능(${learningVideos.length}개)`
-              : '업로드된 학습 녹화가 없습니다.'}
-          </p>
+          <div className="record-section__header">
+            <div>
+              <h2 id="recent-records-heading" className="record-section__title">
+                최근 기록
+              </h2>
+              <p className="record-section__desc">
+                {learningVideos.length > 0
+                  ? `최근 학습 녹화 기록 열람 가능(${learningVideos.length}개)`
+                  : '업로드된 학습 녹화가 없습니다.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="record-section__link"
+              onClick={() => navigate('/save')}
+            >
+              <span>전체 기록 보기</span>
+              <span className="record-section__arrow" aria-hidden="true">
+                →
+              </span>
+            </button>
+          </div>
           <div className="record-grid">
             {learningVideos.length > 0 ? (
               learningVideos.map((video, index) => (
@@ -143,14 +173,28 @@ export const Mypage = () => {
           aria-labelledby="recent-reports-heading"
           className="record-section"
         >
-          <h2 id="recent-reports-heading" className="record-section__title">
-            최근 리포트
-          </h2>
-          <p className="record-section__desc">
-            {reportVideos.length > 0
-              ? `최근 학습 리포트 열람 가능(${reportVideos.length}개)`
-              : '업로드된 리포트가 없습니다.'}
-          </p>
+          <div className="record-section__header">
+            <div>
+              <h2 id="recent-reports-heading" className="record-section__title">
+                최근 리포트
+              </h2>
+              <p className="record-section__desc">
+                {reportVideos.length > 0
+                  ? `최근 학습 리포트 열람 가능(${reportVideos.length}개)`
+                  : '업로드된 리포트가 없습니다.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="record-section__link"
+              onClick={() => navigate('/save_report')}
+            >
+              <span>전체 리포트 보기</span>
+              <span className="record-section__arrow" aria-hidden="true">
+                →
+              </span>
+            </button>
+          </div>
           <div className="record-grid">
             {reportVideos.length > 0 ? (
               reportVideos.map((video, index) => (
