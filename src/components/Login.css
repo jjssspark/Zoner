@@ -101,3 +101,8 @@
   font-size: inherit;
   padding: 0;
 }
+
+.login-card__signup-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
