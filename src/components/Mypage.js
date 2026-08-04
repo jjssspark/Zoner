@@ -4,11 +4,11 @@ import supabase from '../lib/supabaseClient';
 import './Mypage.css';
 
 const QUICK_ACTIONS = [
-  { label: 'AI 채팅', path: '/ai-chat' },
-  { label: '학습 시작', path: '/start-learning' },
-  { label: '학습 기록', path: '/save' },
-  { label: '학습 리포트', path: '/save_report' },
-  { label: '휴지통', path: '/trash' },
+  { label: 'AI 채팅', path: '/ai-chat', icon: '◈' },
+  { label: '학습 시작', path: '/start-learning', icon: '▶' },
+  { label: '학습 기록', path: '/save', icon: '◉' },
+  { label: '학습 리포트', path: '/save_report', icon: '▦' },
+  { label: '휴지통', path: '/trash', icon: '⌦' },
 ];
 
 const RECOMMENDED = ['요금제 업그레이드', '개인 설정', '프로모션'];
@@ -73,7 +73,13 @@ export const Mypage = () => {
   return (
     <div className="mypage">
       <header className="mypage__topbar">
-        <h1 className="mypage__user">{userName}</h1>
+        <div className="mypage__identity">
+          <h1 className="mypage__user">
+            {userName}
+            <span className="mypage__status-dot" aria-hidden="true" />
+          </h1>
+          <span className="mypage__badge">AI 학습 보조</span>
+        </div>
         <div className="mypage__topbar-actions">
           <button
             type="button"
@@ -94,7 +100,18 @@ export const Mypage = () => {
 
       <main className="mypage__main">
         <section className="focus-gauge" aria-label="이번 주 집중도">
-          <p className="focus-gauge__empty">아직 집중도 데이터가 없습니다.</p>
+          <div className="focus-gauge__scanner" aria-hidden="true">
+            <span className="focus-gauge__scanner-ring" />
+            <span className="focus-gauge__scanner-core" />
+          </div>
+          <div>
+            <p className="focus-gauge__empty-title">
+              AI 학습 도우미가 대기 중입니다
+            </p>
+            <p className="focus-gauge__empty-desc">
+              학습을 시작하면 AI가 집중도를 분석해서 여기에 보여드려요.
+            </p>
+          </div>
         </section>
 
         <section
@@ -162,7 +179,10 @@ export const Mypage = () => {
                 className="quick-action"
                 onClick={() => navigate(action.path)}
               >
-                {action.label}
+                <span className="quick-action__icon" aria-hidden="true">
+                  {action.icon}
+                </span>
+                <span className="quick-action__label">{action.label}</span>
               </button>
             ))}
           </div>
