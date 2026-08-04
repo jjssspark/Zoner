@@ -16,6 +16,8 @@
 .mypage__user {
   font-family: var(--font-display);
   font-weight: 700;
+  font-size: var(--text-base);
+  margin: 0;
 }
 
 .mypage__topbar-actions {
