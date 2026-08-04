@@ -1,6 +1,7 @@
 // src/App.js
 
 /* eslint-disable react/jsx-pascal-case */
+import './styles/tokens.css';
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
