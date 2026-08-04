@@ -21,9 +21,74 @@
 
 | ID | 날짜 | 문제 | 상태 |
 |---|---|---|---|
+| TS-002 | 2026-08-05 | React StrictMode 이중 렌더링으로 웹캠 play()가 인터럽트되어 dev 오버레이 에러 발생 | 해결 |
+| TS-001 | 2026-08-05 | Supabase SQL Editor(Monaco)에서 여러 줄 SQL 붙여넣기 시 괄호 자동완성으로 SQL이 깨짐 | 해결(우회) |
 
 ---
 
 ## 기록
 
 <!-- 여기부터 순서대로 이어 붙인다 -->
+
+### TS-001: Supabase SQL Editor(Monaco)에서 여러 줄 SQL 붙여넣기 시 괄호 자동완성으로 SQL이 깨짐
+
+**날짜**: 2026-08-05
+**상태**: 해결(우회)
+
+**문제**
+`study_sessions` 테이블 마이그레이션 SQL을 여러 줄로 포맷팅해서 SQL Editor에 타이핑(브라우저 자동화로 키 입력 시뮬레이션)하니, 화면상 들여쓰기가 줄마다 계속 누적되고 맨 끝에 짝이 안 맞는 `)`가 남았다.
+
+**재현 조건**
+Monaco 기반 에디터(Supabase SQL Editor)에 `create table foo (\n  ...,\n);` 처럼 여는 괄호 뒤에 줄바꿈이 들어가는 여러 줄 SQL을 시뮬레이션 키 입력으로 타이핑할 때.
+
+**원인**
+- 표면: 결과 화면에 orphan `)`와 과도한 들여쓰기가 보임
+- 근본(확인함): Monaco는 `(` 입력 시 자동으로 `)`를 같이 삽입한다. 그 상태에서 Enter를 치면 자동 삽입됐던 `)`가 새 줄로 밀려 내려가며 원래 자리를 벗어난다. 이후 내가 SQL 텍스트에 명시적으로 넣은 `)`가 그 자리에 또 들어가면서 괄호가 중복/미아 상태가 된다.
+
+**시도했지만 안 된 것**
+- 원본 포맷(줄바꿈 포함 multi-line SQL)을 그대로 재시도 — 같은 문제 재발
+- 클릭 좌표를 바꿔 재포커스 후 재시도 — 포커스 문제가 아니었으므로 무의미
+
+**해결**
+SQL을 괄호 안에서는 줄바꿈하지 않는 한 줄짜리 statement로 평탄화(flatten)해서 입력. Enter는 statement와 statement 사이(모든 괄호가 닫힌 지점)에서만 사용. 이후 zoom 스크린샷으로 괄호 짝을 문자 단위로 대조 후 Run.
+
+**검증**
+`select * from study_sessions;` (에러 없이 0 rows), `select policyname from pg_policies where tablename = 'study_sessions';` (정책 2개 확인)로 최종 스키마가 의도대로 생성됐음을 확인.
+
+**추후 방안**
+SQL Editor에 여러 줄 SQL을 자동화로 입력해야 할 때는 처음부터 괄호 내부 줄바꿈 없는 평탄화 포맷을 기본으로 사용한다.
+
+**배운 점**
+Monaco류 코드 에디터에 시뮬레이션 키 입력으로 텍스트를 넣을 때는 "붙여넣기"가 아니라 "타이핑"으로 처리되어 자동완성/자동괄호 기능이 그대로 개입한다는 걸 전제해야 한다.
+
+---
+
+### TS-002: React StrictMode 이중 렌더링으로 웹캠 play()가 인터럽트되어 dev 오버레이 에러 발생
+
+**날짜**: 2026-08-05
+**상태**: 해결
+
+**문제**
+`/start-learning`에서 카메라 권한을 허용한 직후 "Uncaught runtime errors: The play() request was interrupted by a new load request." 에러 오버레이가 화면 전체를 덮었다. 오버레이 뒤로는 웹캠 미리보기·타이머·집중도 상태 텍스트가 실제로 정상 동작하고 있는 게 보였다.
+
+**재현 조건**
+CRA 개발 서버(`npm start`)에서 `getUserMedia`로 스트림을 얻은 뒤 `<video>.play()`를 호출하는 컴포넌트를 마운트할 때. 프로덕션 빌드에서는 발생하지 않음(StrictMode의 이중 effect 호출은 개발 모드 전용).
+
+**원인**
+- 표면: `play()` Promise가 reject되고, 그 reject를 catch하지 않아 unhandled rejection으로 CRA 개발 오버레이에 표시됨
+- 근본(확인함): `src/index.js`가 `<React.StrictMode>`로 앱을 감싸고 있어, 개발 모드에서 `useEffect`가 mount→cleanup→mount 순으로 두 번 실행된다. 첫 mount에서 얻은 스트림으로 `play()`를 호출한 직후 StrictMode가 즉시 cleanup(스트림 정지)과 재mount(새 스트림 획득)를 실행하면서 첫 `play()` 요청이 인터럽트되어 reject된다. 두 번째 mount의 `play()`는 정상적으로 성공하므로 기능 자체는 문제없이 동작한다.
+
+**시도했지만 안 된 것**
+별도 시도 없음 — 스크린샷에서 웹캠·타이머·상태 텍스트가 정상 동작 중인 걸 보고, 에러 메시지 문구("interrupted by a new load request")만으로 StrictMode 이중 호출 패턴임을 바로 특정함.
+
+**해결**
+`await videoRef.current.play()`를 try/catch로 감싸 인터럽트 에러를 무시. StrictMode를 끄는 방식은 채택하지 않음(개발/프로덕션 동작 차이가 커지는 더 큰 변경이라 범위 최소화 원칙에 어긋남).
+
+**검증**
+같은 페이지를 재접속해 카메라 권한을 다시 허용했을 때 에러 오버레이 없이 미리보기·타이머·"집중 중" 상태 텍스트가 바로 뜨는 것을 확인. "종료" 클릭 후 Supabase에 세션 row가 정상 저장되는 것까지 확인.
+
+**추후 방안**
+카메라/미디어 스트림, WebSocket 연결처럼 부수효과가 큰 리소스를 다루는 컴포넌트를 새로 만들 때는 StrictMode의 이중 effect 호출을 염두에 두고 프로미스 기반 부수효과(`play()` 등)를 처음부터 try/catch로 감싼다.
+
+**배운 점**
+개발 모드에서만 보이는 에러 오버레이라고 해서 무시하면 안 되지만, 기능이 실제로는 정상 동작하고 있다면 "에러처럼 보이는 것"과 "실제로 깨진 것"을 화면 상태로 먼저 구분한 뒤 원인을 좁히는 게 빠르다.
