@@ -13,8 +13,6 @@ import Mypage from './components/Mypage';
 import StartLearning from './components/StartLearning';
 import Save from './components/Save';
 import Read from './components/Read';
-import Report_a from './components/Report_a';
-import Save_report from './components/Save_report';
 import Trash from './components/Trash';
 import Trashread from './components/Trashread';
 import SignUp from './components/SignUp';
@@ -33,8 +31,6 @@ function App() {
         <Route path="/start-learning" element={<StartLearning />} />
         <Route path="/save" element={<Save />} />
         <Route path="/read" element={<Read />} />
-        <Route path="/report_a" element={<Report_a />} />
-        <Route path="/save_report" element={<Save_report />} />
         <Route path="/trash" element={<Trash />} />
         <Route path="/trashread" element={<Trashread />} />
         <Route path="/signup" element={<SignUp />} />
