@@ -1,11 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './SignUp.css';
+
+const FOCUSABLE_SELECTOR =
+  'button, input, [href], select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const SignUp = ({ closeSignUpModal, setUserData }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const modalRef = useRef(null);
+  const closeButtonRef = useRef(null);
+
+  useEffect(() => {
+    const previouslyFocusedElement = document.activeElement;
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeSignUpModal();
+        return;
+      }
+
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          FOCUSABLE_SELECTOR
+        );
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previouslyFocusedElement?.focus();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -33,17 +77,26 @@ const SignUp = ({ closeSignUpModal, setUserData }) => {
 
   return (
     <div className="signup-overlay">
-      <div className="signup-card">
+      <div
+        className="signup-card"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="signup-modal-title"
+      >
         <button
           type="button"
           className="signup-card__close"
           aria-label="닫기"
           onClick={closeSignUpModal}
+          ref={closeButtonRef}
         >
           &times;
         </button>
 
-        <h2 className="signup-card__title">회원가입</h2>
+        <h2 id="signup-modal-title" className="signup-card__title">
+          회원가입
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <label className="signup-card__label" htmlFor="signup-name">

@@ -1,4 +1,8 @@
-* {
+.home, .home *,
+.login, .login *,
+.mypage, .mypage *,
+.signup-overlay, .signup-overlay *,
+.navbar, .navbar * {
   box-sizing: border-box;
 }
 

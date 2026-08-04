@@ -5,7 +5,8 @@
   --navy-800: oklch(24% 0.02 260);
   --navy-700: oklch(30% 0.02 260);
   --navy-600: oklch(38% 0.02 260);
-  --navy-400: oklch(60% 0.02 260);
+  --navy-550: oklch(48% 0.02 260);
+  --navy-400: oklch(68% 0.02 260);
   --navy-200: oklch(85% 0.01 260);
   --navy-50: oklch(97% 0.005 260);
 
@@ -15,13 +16,14 @@
   --cyan-500: oklch(68% 0.15 200);
 
   /* primitive - status */
-  --red-500: oklch(60% 0.2 25);
+  --red-500: oklch(66% 0.2 25);
 
   /* semantic */
   --color-bg: var(--navy-950);
   --color-surface: var(--navy-900);
   --color-surface-alt: var(--navy-800);
   --color-border: var(--navy-700);
+  --color-border-strong: var(--navy-550);
   --color-text: var(--navy-50);
   --color-text-muted: var(--navy-400);
   --color-accent: var(--cyan-400);

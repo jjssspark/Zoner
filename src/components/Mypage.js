@@ -31,7 +31,7 @@ export const Mypage = () => {
   return (
     <div className="mypage">
       <header className="mypage__topbar">
-        <span className="mypage__user">{userName}</span>
+        <h1 className="mypage__user">{userName}</h1>
         <div className="mypage__topbar-actions">
           <button
             type="button"
