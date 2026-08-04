@@ -7,7 +7,6 @@ const QUICK_ACTIONS = [
   { label: 'AI 채팅', path: '/ai-chat', icon: '◈' },
   { label: '학습 시작', path: '/start-learning', icon: '▶' },
   { label: '학습 기록', path: '/save', icon: '◉' },
-  { label: '학습 리포트', path: '/save_report', icon: '▦' },
   { label: '휴지통', path: '/trash', icon: '⌦' },
 ];
 
@@ -19,16 +18,7 @@ export const Mypage = () => {
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  const [learningVideos, setLearningVideos] = useState([]);
-  const [reportVideos, setReportVideos] = useState([]);
-
-  const addLearningVideo = (video) => {
-    setLearningVideos([...learningVideos, video]);
-  };
-
-  const addReportVideo = (video) => {
-    setReportVideos([...reportVideos, video]);
-  };
+  const [recentSessions, setRecentSessions] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -49,8 +39,16 @@ export const Mypage = () => {
         .eq('id', user.id)
         .single();
 
+      const { data: sessions } = await supabase
+        .from('study_sessions')
+        .select('id, started_at, focus_score')
+        .eq('user_id', user.id)
+        .order('started_at', { ascending: false })
+        .limit(3);
+
       if (isMounted) {
         setUserName(profile ? profile.name : 'Guest');
+        setRecentSessions(sessions || []);
         setIsLoading(false);
       }
     };
@@ -140,9 +138,9 @@ export const Mypage = () => {
                 최근 기록
               </h2>
               <p className="record-section__desc">
-                {learningVideos.length > 0
-                  ? `최근 학습 녹화 기록 열람 가능(${learningVideos.length}개)`
-                  : '업로드된 학습 녹화가 없습니다.'}
+                {recentSessions.length > 0
+                  ? `최근 학습 세션 ${recentSessions.length}개`
+                  : '아직 학습 세션이 없습니다.'}
               </p>
             </div>
             <button
@@ -157,53 +155,20 @@ export const Mypage = () => {
             </button>
           </div>
           <div className="record-grid">
-            {learningVideos.length > 0 ? (
-              learningVideos.map((video, index) => (
-                <div key={index} className="record-card">
-                  {video}
-                </div>
+            {recentSessions.length > 0 ? (
+              recentSessions.map((session) => (
+                <button
+                  key={session.id}
+                  type="button"
+                  className="record-card"
+                  onClick={() => navigate(`/read?session=${session.id}`)}
+                >
+                  {new Date(session.started_at).toLocaleDateString('ko-KR')} ·{' '}
+                  {session.focus_score}%
+                </button>
               ))
             ) : (
-              <p className="record-grid__empty">학습 영상이 없습니다.</p>
-            )}
-          </div>
-        </section>
-
-        <section
-          aria-labelledby="recent-reports-heading"
-          className="record-section"
-        >
-          <div className="record-section__header">
-            <div>
-              <h2 id="recent-reports-heading" className="record-section__title">
-                최근 리포트
-              </h2>
-              <p className="record-section__desc">
-                {reportVideos.length > 0
-                  ? `최근 학습 리포트 열람 가능(${reportVideos.length}개)`
-                  : '업로드된 리포트가 없습니다.'}
-              </p>
-            </div>
-            <button
-              type="button"
-              className="record-section__link"
-              onClick={() => navigate('/save_report')}
-            >
-              <span>전체 리포트 보기</span>
-              <span className="record-section__arrow" aria-hidden="true">
-                →
-              </span>
-            </button>
-          </div>
-          <div className="record-grid">
-            {reportVideos.length > 0 ? (
-              reportVideos.map((video, index) => (
-                <div key={index} className="record-card">
-                  {video}
-                </div>
-              ))
-            ) : (
-              <p className="record-grid__empty">리포트 영상이 없습니다.</p>
+              <p className="record-grid__empty">학습 세션이 없습니다.</p>
             )}
           </div>
         </section>
