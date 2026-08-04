@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import supabase from '../lib/supabaseClient';
 import './Mypage.css';
 
 const QUICK_ACTIONS = [
@@ -14,8 +15,8 @@ const RECOMMENDED = ['요금제 업그레이드', '개인 설정', '프로모션
 
 export const Mypage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const userName = location.state ? location.state.name : 'Guest';
+  const [userName, setUserName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   const [learningVideos, setLearningVideos] = useState([]);
   const [reportVideos, setReportVideos] = useState([]);
@@ -27,6 +28,47 @@ export const Mypage = () => {
   const addReportVideo = (video) => {
     setReportVideos([...reportVideos, video]);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+
+      if (isMounted) {
+        setUserName(profile ? profile.name : 'Guest');
+        setIsLoading(false);
+      }
+    };
+
+    loadUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  if (isLoading) {
+    return <div className="mypage" />;
+  }
 
   return (
     <div className="mypage">
@@ -43,7 +85,7 @@ export const Mypage = () => {
           <button
             type="button"
             className="mypage__logout"
-            onClick={() => navigate('/')}
+            onClick={handleLogout}
           >
             LOGOUT
           </button>
