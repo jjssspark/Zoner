@@ -94,15 +94,7 @@ export const Mypage = () => {
 
       <main className="mypage__main">
         <section className="focus-gauge" aria-label="이번 주 집중도">
-          <div className="focus-gauge__ring" style={{ '--focus-percent': 82 }}>
-            <span className="focus-gauge__value">82%</span>
-          </div>
-          <div>
-            <p className="focus-gauge__label">이번 주 평균 집중도</p>
-            <p className="focus-gauge__desc">
-              지난주보다 6%p 올랐어요. 좋은 흐름을 유지하고 있어요.
-            </p>
-          </div>
+          <p className="focus-gauge__empty">아직 집중도 데이터가 없습니다.</p>
         </section>
 
         <section

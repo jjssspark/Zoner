@@ -66,41 +66,7 @@
   flex-wrap: wrap;
 }
 
-.focus-gauge__ring {
-  --focus-percent: 0;
-  width: 120px;
-  height: 120px;
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: conic-gradient(
-    var(--color-accent) calc(var(--focus-percent) * 1%),
-    var(--color-surface-alt) 0
-  );
-}
-
-.focus-gauge__value {
-  width: 92px;
-  height: 92px;
-  border-radius: var(--radius-full);
-  background-color: var(--color-surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 800;
-  color: var(--color-accent);
-}
-
-.focus-gauge__label {
-  font-weight: 700;
-  margin: 0 0 var(--space-1);
-}
-
-.focus-gauge__desc {
+.focus-gauge__empty {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   margin: 0;
