@@ -2,28 +2,35 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './NavBar';
 import SignUp from './SignUp';
+import supabase from '../lib/supabaseClient';
 import './Login.css';
 
 export const Login = () => {
   const navigate = useNavigate();
-  const [id, setId] = useState('');
-  const [pw, setPw] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
 
-  const [userData, setUserData] = useState({
-    id: '',
-    password: '',
-    name: '',
-  });
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (id === userData.id && pw === userData.password) {
-      navigate('/mypage', { state: { name: userData.name } });
-    } else {
-      setErrorMessage('아이디 또는 비밀번호가 틀렸습니다.');
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      setErrorMessage('이메일 또는 비밀번호가 올바르지 않습니다.');
+      return;
     }
+
+    navigate('/mypage');
   };
 
   const openSignUpModal = () => {
@@ -42,16 +49,16 @@ export const Login = () => {
         <form className="login-card" onSubmit={handleLogin}>
           <h1 className="login-card__title">로그인</h1>
 
-          <label className="login-card__label" htmlFor="login-id">
-            아이디
+          <label className="login-card__label" htmlFor="login-email">
+            이메일
           </label>
           <input
-            id="login-id"
+            id="login-email"
             className="login-card__input"
-            type="text"
-            autoComplete="username"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           <label className="login-card__label" htmlFor="login-pw">
@@ -62,8 +69,8 @@ export const Login = () => {
             className="login-card__input"
             type="password"
             autoComplete="current-password"
-            value={pw}
-            onChange={(e) => setPw(e.target.value)}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
 
           {errorMessage && (
@@ -72,8 +79,12 @@ export const Login = () => {
             </p>
           )}
 
-          <button type="submit" className="login-card__submit">
-            로그인하기
+          <button
+            type="submit"
+            className="login-card__submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? '로그인 중...' : '로그인하기'}
           </button>
 
           <p className="login-card__signup">
@@ -89,12 +100,7 @@ export const Login = () => {
         </form>
       </main>
 
-      {isSignUpModalOpen && (
-        <SignUp
-          closeSignUpModal={closeSignUpModal}
-          setUserData={setUserData}
-        />
-      )}
+      {isSignUpModalOpen && <SignUp closeSignUpModal={closeSignUpModal} />}
     </div>
   );
 };
