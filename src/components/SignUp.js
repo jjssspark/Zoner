@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import supabase from '../lib/supabaseClient';
 import './SignUp.css';
 
 const FOCUSABLE_SELECTOR =
   'button, input, [href], select, textarea, [tabindex]:not([tabindex="-1"])';
 
-const SignUp = ({ closeSignUpModal, setUserData }) => {
+const SignUp = ({ closeSignUpModal }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -51,7 +53,7 @@ const SignUp = ({ closeSignUpModal, setUserData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!name || !email || !password || !confirmPassword) {
@@ -64,14 +66,35 @@ const SignUp = ({ closeSignUpModal, setUserData }) => {
       return;
     }
 
-    alert('회원가입이 완료되었습니다. 다시 로그인해주세요.');
+    setIsSubmitting(true);
 
-    setUserData({
-      id: email,
-      password: password,
-      name: name,
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
     });
 
+    if (error) {
+      setIsSubmitting(false);
+      if (error.message.includes('already registered')) {
+        alert('이미 가입된 이메일입니다.');
+      } else {
+        alert('일시적인 오류입니다. 잠시 후 다시 시도해주세요.');
+      }
+      return;
+    }
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({ id: data.user.id, name });
+
+    setIsSubmitting(false);
+
+    if (profileError) {
+      alert('일시적인 오류입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+
+    alert('회원가입이 완료되었습니다. 다시 로그인해주세요.');
     closeSignUpModal();
   };
 
@@ -147,8 +170,12 @@ const SignUp = ({ closeSignUpModal, setUserData }) => {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
 
-          <button type="submit" className="signup-card__submit">
-            회원가입
+          <button
+            type="submit"
+            className="signup-card__submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? '처리 중...' : '회원가입'}
           </button>
         </form>
 
