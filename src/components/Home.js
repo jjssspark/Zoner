@@ -1,82 +1,83 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import NavBar from './NavBar';
 import image1 from './image-1.png';
 import image2 from './image-2.png';
 import image3 from './image-3.png';
 import image4 from './image-4.png';
-import { useNavigate } from 'react-router-dom';
 import './Home.css';
+
+const FEATURES = [
+  {
+    icon: '◉',
+    title: '집중도 분석',
+    desc: 'AI가 학습 영상을 분석해 집중 구간과 흐트러진 구간을 실시간으로 짚어줍니다.',
+  },
+  {
+    icon: '✧',
+    title: 'AI 리포트',
+    desc: '학습이 끝나면 요약 리포트를 자동으로 생성해 다음 학습 계획을 도와줍니다.',
+  },
+  {
+    icon: '⏱',
+    title: '학습 기록',
+    desc: '모든 학습 세션을 저장하고 언제든 다시 돌아볼 수 있습니다.',
+  },
+];
 
 export const Home = () => {
   const navigate = useNavigate();
+
   return (
-    <div className="screen">
-      <div className="div">
-        <div className="frame">
-          <div className="overlap">
-            <div className="overlap-group">
-              <img className="image" alt="Image" src={image1} />
+    <div className="home">
+      <NavBar />
 
-              <div className="focus-smarter-learn">
-                Focus Smarter, <br />
-                learn Better
-              </div>
-            </div>
-
-            <div className="START-wrapper">
-              <button
-                className="text-wrapper"
-                onClick={() => navigate('/login')}
-              >
-                Start
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="overlap-2">
-          <div className="rectangle" />
-
-          <img className="img" alt="Image" src={image3} />
-
-          <img className="image-2" alt="Image" src={image2} />
-
-          <img className="image-3" alt="Image" src={image4} />
-
-          <div className="rectangle-2" />
-
-          <div className="text-wrapper-2">Our Vision</div>
-        </div>
-
-        <p className="p">Zoner : 학습에 혁신을 더하다</p>
-
-        <div className="text-wrapper-3">ZONER</div>
-
-        <div className="ZONER-wrapper">
-          <button className="ZONER">Zoner</button>
-        </div>
-
-        <div className="USER-GUIDE-wrapper">
-          <button className="text-wrapper-U" onClick={() => navigate('/guide')}>
-            User Guide
-          </button>
-        </div>
-
-        <div className="PRICING-wrapper">
+      <section className="home__hero">
+        <div className="home__hero-text">
+          <p className="home__eyebrow">Zoner : 학습에 혁신을 더하다</p>
+          <h1 className="home__headline">
+            Focus Smarter, <br />
+            Learn Better
+          </h1>
           <button
-            className="text-wrapper-U"
-            onClick={() => navigate('/pricing')}
+            type="button"
+            className="home__cta"
+            onClick={() => navigate('/login')}
           >
-            Pricing
+            시작하기
           </button>
         </div>
+        <img className="home__hero-image" alt="" src={image1} />
+      </section>
 
-        <div className="FAQ-wrapper">
-          <button className="text-wrapper-U" onClick={() => navigate('/faq')}>
-            Faq
-          </button>
+      <section className="home__features" aria-label="주요 기능">
+        {FEATURES.map((feature) => (
+          <article key={feature.title} className="feature-card">
+            <span className="feature-card__icon" aria-hidden="true">
+              {feature.icon}
+            </span>
+            <h2 className="feature-card__title">{feature.title}</h2>
+            <p className="feature-card__desc">{feature.desc}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="home__vision" aria-labelledby="vision-heading">
+        <h2 id="vision-heading" className="home__vision-title">
+          Our Vision
+        </h2>
+        <div className="home__vision-gallery">
+          <img alt="" src={image2} />
+          <img alt="" src={image3} />
+          <img alt="" src={image4} />
         </div>
-      </div>
+      </section>
+
+      <p className="home__watermark" aria-hidden="true">
+        ZONER
+      </p>
     </div>
   );
 };
+
 export default Home;
