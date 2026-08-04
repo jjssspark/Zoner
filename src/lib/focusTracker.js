@@ -64,3 +64,53 @@ export function aggregateSession(ticks, startedAt, endedAt) {
 
   return { durationSeconds, focusScore, timeline };
 }
+
+let cachedFaceLandmarkerPromise = null;
+
+export async function loadFaceLandmarker() {
+  if (cachedFaceLandmarkerPromise) {
+    return cachedFaceLandmarkerPromise;
+  }
+
+  cachedFaceLandmarkerPromise = (async () => {
+    const { FaceLandmarker, FilesetResolver } = await import(
+      '@mediapipe/tasks-vision'
+    );
+
+    const vision = await FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'
+    );
+
+    return FaceLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath:
+          'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+        delegate: 'GPU',
+      },
+      runningMode: 'VIDEO',
+      outputFacialTransformationMatrixes: true,
+      numFaces: 1,
+    });
+  })();
+
+  return cachedFaceLandmarkerPromise;
+}
+
+export function createFocusTracker({
+  videoEl,
+  faceLandmarker,
+  intervalMs = 5000,
+  onTick,
+}) {
+  const timerId = window.setInterval(() => {
+    const result = faceLandmarker.detectForVideo(videoEl, performance.now());
+    const focused = computeTickFocused(result);
+    onTick({ timestampMs: Date.now(), focused });
+  }, intervalMs);
+
+  return {
+    stop() {
+      window.clearInterval(timerId);
+    },
+  };
+}

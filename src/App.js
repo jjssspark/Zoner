@@ -10,6 +10,7 @@ import Pricing from './components/Pricing';
 import FAQ from './components/FAQ';
 import Login from './components/Login';
 import Mypage from './components/Mypage';
+import StartLearning from './components/StartLearning';
 import Save from './components/Save';
 import Read from './components/Read';
 import Report_a from './components/Report_a';
@@ -29,6 +30,7 @@ function App() {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/login" element={<Login />} />
         <Route path="/mypage" element={<Mypage />} />
+        <Route path="/start-learning" element={<StartLearning />} />
         <Route path="/save" element={<Save />} />
         <Route path="/read" element={<Read />} />
         <Route path="/report_a" element={<Report_a />} />
