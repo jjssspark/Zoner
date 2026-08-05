@@ -102,6 +102,12 @@ Deno.serve(async (req) => {
       .reverse()
       .map((m) => ({ role: m.role, content: m.content }));
 
+    // Anthropic Messages API는 첫 메시지가 role 'user'여야 한다.
+    // 20건 윈도우가 assistant 행에서 시작하는 경우를 잘라낸다.
+    while (messages.length > 0 && messages[0].role !== 'user') {
+      messages.shift();
+    }
+
     const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {

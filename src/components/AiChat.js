@@ -34,10 +34,11 @@ export const AiChat = () => {
         .from('chat_messages')
         .select('id, role, content, created_at')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (isMounted) {
-        setMessages(data || []);
+        setMessages((data || []).slice().reverse());
         setIsLoading(false);
       }
     };
@@ -103,7 +104,9 @@ export const AiChat = () => {
       }
       setErrorMessage(error.message || '답변을 받지 못했어요.');
       setFailedMessage(content);
-      setMessages((prev) => prev.slice(0, -1));
+      // 낙관적으로 추가한 user 버블 + 빈 assistant 버블을 함께 제거한다.
+      // 하나만 제거하면 재시도 시 같은 user 메시지가 중복 표시된다.
+      setMessages((prev) => prev.slice(0, -2));
     } finally {
       setIsSending(false);
     }
