@@ -40,7 +40,7 @@ export const Mypage = () => {
         .single();
 
       const { data: sessions } = await supabase
-        .from('study_sessions')
+        .from('active_study_sessions')
         .select('id, started_at, focus_score')
         .eq('user_id', user.id)
         .order('started_at', { ascending: false })
