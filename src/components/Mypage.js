@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
+import ScoreRing, { focusLevel } from './ui/ScoreRing';
+import Skeleton from './ui/Skeleton';
 import './Mypage.css';
 
 const QUICK_ACTIONS = [
@@ -81,8 +83,26 @@ export const Mypage = () => {
   }, []);
 
   if (isLoading) {
-    return <div className="mypage" ref={pageRef} />;
+    return (
+      <div className="mypage" ref={pageRef}>
+        <main className="mypage__main">
+          <Skeleton variant="metric" count={1} />
+          <Skeleton variant="card" count={3} />
+        </main>
+      </div>
+    );
   }
+
+  const hasSessions = recentSessions.length > 0;
+  const summaryScore = hasSessions
+    ? Math.round(
+        recentSessions.reduce((sum, session) => sum + session.focus_score, 0) /
+          recentSessions.length
+      )
+    : 0;
+  const maxScore = hasSessions
+    ? Math.max(...recentSessions.map((session) => session.focus_score))
+    : 0;
 
   return (
     <div className="mypage" ref={pageRef}>
@@ -120,19 +140,45 @@ export const Mypage = () => {
       </header>
 
       <main className="mypage__main">
-        <section className="focus-gauge" aria-label="이번 주 집중도">
-          <div className="focus-gauge__scanner" aria-hidden="true">
-            <span className="focus-gauge__scanner-ring" />
-            <span className="focus-gauge__scanner-core" />
-          </div>
-          <div>
-            <p className="focus-gauge__empty-title">
-              AI 학습 도우미가 대기 중입니다
-            </p>
-            <p className="focus-gauge__empty-desc">
-              학습을 시작하면 AI가 집중도를 분석해서 여기에 보여드려요.
-            </p>
-          </div>
+        <section
+          className="focus-gauge"
+          aria-labelledby="focus-summary-heading"
+        >
+          <h2 id="focus-summary-heading" className="sr-only">
+            집중도 요약
+          </h2>
+          {hasSessions ? (
+            <div className="focus-gauge__summary">
+              <ScoreRing value={summaryScore} size="lg" label="평균 집중도" />
+              <dl className="focus-gauge__stats">
+                <div>
+                  <dt>세션</dt>
+                  <dd className="focus-gauge__stat-value">
+                    {recentSessions.length}
+                  </dd>
+                </div>
+                <div>
+                  <dt>최고 점수</dt>
+                  <dd className="focus-gauge__stat-value">{maxScore}%</dd>
+                </div>
+              </dl>
+            </div>
+          ) : (
+            <>
+              <div className="focus-gauge__scanner" aria-hidden="true">
+                <span className="focus-gauge__scanner-ring" />
+                <span className="focus-gauge__scanner-core" />
+              </div>
+              <div>
+                <p className="focus-gauge__empty-title">
+                  AI 학습 도우미가 대기 중입니다
+                </p>
+                <p className="focus-gauge__empty-desc">
+                  학습을 시작하면 AI가 집중도를 분석해서 여기에 보여드려요.
+                </p>
+              </div>
+            </>
+          )}
         </section>
 
         <section
@@ -170,8 +216,16 @@ export const Mypage = () => {
                   className="record-card"
                   onClick={() => navigate(`/read?session=${session.id}`)}
                 >
-                  {new Date(session.started_at).toLocaleDateString('ko-KR')} ·{' '}
-                  {session.focus_score}%
+                  <span className="record-card__date">
+                    {new Date(session.started_at).toLocaleDateString('ko-KR')}
+                  </span>
+                  <span
+                    className={`record-card__score record-card__score--${focusLevel(
+                      session.focus_score
+                    )}`}
+                  >
+                    {session.focus_score}%
+                  </span>
                 </button>
               ))
             ) : (
@@ -187,7 +241,7 @@ export const Mypage = () => {
           <h2 id="quick-actions-heading" className="record-section__title">
             빠른 실행
           </h2>
-          <div className="quick-actions__grid">
+          <div className="quick-actions__list">
             {QUICK_ACTIONS.map((action) => (
               <button
                 key={action.path}
