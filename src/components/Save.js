@@ -1,6 +1,8 @@
+// src/components/Save.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
+import { softDeleteSession } from '../lib/trash';
 import './Save.css';
 
 const formatDate = (iso) => {
@@ -22,6 +24,7 @@ export const Save = () => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -37,7 +40,7 @@ export const Save = () => {
       }
 
       const { data } = await supabase
-        .from('study_sessions')
+        .from('active_study_sessions')
         .select('id, started_at, duration_seconds, focus_score')
         .eq('user_id', user.id)
         .order('started_at', { ascending: false });
@@ -54,6 +57,22 @@ export const Save = () => {
       isMounted = false;
     };
   }, [navigate]);
+
+  const handleDelete = async (session) => {
+    setDeleteError(null);
+    setSessions((prev) => prev.filter((s) => s.id !== session.id));
+
+    try {
+      await softDeleteSession(session.id);
+    } catch (error) {
+      setSessions((prev) =>
+        [...prev, session].sort(
+          (a, b) => new Date(b.started_at) - new Date(a.started_at)
+        )
+      );
+      setDeleteError('삭제에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
 
   if (isLoading) {
     return <div className="save-page" />;
@@ -73,15 +92,21 @@ export const Save = () => {
       </header>
 
       <main className="save-page__main">
+        {deleteError && (
+          <p className="save-page__error" role="alert">
+            {deleteError}
+          </p>
+        )}
+
         {sessions.length === 0 ? (
           <p className="save-page__empty">아직 학습 세션이 없습니다.</p>
         ) : (
           <ul className="session-list">
             {sessions.map((session) => (
-              <li key={session.id}>
+              <li key={session.id} className="session-card">
                 <button
                   type="button"
-                  className="session-card"
+                  className="session-card__link"
                   onClick={() => navigate(`/read?session=${session.id}`)}
                 >
                   <span className="session-card__date">
@@ -93,6 +118,14 @@ export const Save = () => {
                   <span className="session-card__score">
                     {session.focus_score}%
                   </span>
+                </button>
+                <button
+                  type="button"
+                  className="session-card__delete"
+                  aria-label="세션 삭제"
+                  onClick={() => handleDelete(session)}
+                >
+                  삭제
                 </button>
               </li>
             ))}

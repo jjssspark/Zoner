@@ -39,6 +39,43 @@
   outline-offset: 2px;
 }
 
+.session-report__topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.session-report__delete {
+  background: none;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.session-report__delete:hover {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.session-report__delete:focus-visible {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+.session-report__delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.session-report__error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-4);
+}
+
 .session-report__main {
   max-width: 720px;
   margin: 0 auto;

@@ -1,6 +1,8 @@
+// src/components/Read.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
+import { softDeleteSession } from '../lib/trash';
 import './SessionReport.css';
 
 const formatDate = (iso) => {
@@ -17,6 +19,8 @@ export const Read = () => {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -40,7 +44,7 @@ export const Read = () => {
       }
 
       const { data } = await supabase
-        .from('study_sessions')
+        .from('active_study_sessions')
         .select('id, started_at, duration_seconds, focus_score, timeline')
         .eq('id', sessionId)
         .eq('user_id', user.id)
@@ -63,6 +67,19 @@ export const Read = () => {
     };
   }, [navigate, sessionId]);
 
+  const handleDelete = async () => {
+    setDeleteError(null);
+    setIsDeleting(true);
+
+    try {
+      await softDeleteSession(session.id);
+      navigate('/save');
+    } catch (error) {
+      setDeleteError('삭제에 실패했습니다. 다시 시도해주세요.');
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="session-report" />;
   }
@@ -71,13 +88,25 @@ export const Read = () => {
     <div className="session-report">
       <header className="session-report__topbar">
         <h1 className="session-report__title">학습 리포트</h1>
-        <button
-          type="button"
-          className="session-report__home"
-          onClick={() => navigate('/save')}
-        >
-          목록으로
-        </button>
+        <div className="session-report__topbar-actions">
+          {session && (
+            <button
+              type="button"
+              className="session-report__delete"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? '삭제 중...' : '삭제'}
+            </button>
+          )}
+          <button
+            type="button"
+            className="session-report__home"
+            onClick={() => navigate('/save')}
+          >
+            목록으로
+          </button>
+        </div>
       </header>
 
       <main className="session-report__main">
@@ -87,6 +116,12 @@ export const Read = () => {
           </p>
         ) : (
           <>
+            {deleteError && (
+              <p className="session-report__error" role="alert">
+                {deleteError}
+              </p>
+            )}
+
             <p className="session-report__date">
               {formatDate(session.started_at)}
             </p>
