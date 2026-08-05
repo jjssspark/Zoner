@@ -36,9 +36,11 @@ export async function sendChatMessage({ supabaseUrl, accessToken, content, onDel
   if (!response.ok) {
     if (response.status === 429) {
       const data = await response.json().catch(() => ({}));
-      throw new Error(
+      const error = new Error(
         data.error || '오늘 사용 가능한 메시지 횟수를 다 썼어요. 내일 다시 이용해주세요.'
       );
+      error.isDailyLimit = true;
+      throw error;
     }
     throw new Error('답변을 받지 못했어요.');
   }

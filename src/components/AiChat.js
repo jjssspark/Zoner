@@ -14,6 +14,7 @@ export const AiChat = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [limitReached, setLimitReached] = useState(false);
   const [failedMessage, setFailedMessage] = useState(null);
+  const [announcement, setAnnouncement] = useState('');
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -56,18 +57,20 @@ export const AiChat = () => {
     const content = (contentOverride ?? input).trim();
     if (!isValidMessage(content) || isSending) return;
 
+    setIsSending(true);
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
     if (!session) {
+      setIsSending(false);
       navigate('/login');
       return;
     }
 
     setErrorMessage(null);
     setFailedMessage(null);
-    setIsSending(true);
     setInput('');
 
     const userMessage = { id: `local-user-${Date.now()}`, role: 'user', content };
@@ -92,8 +95,9 @@ export const AiChat = () => {
           });
         },
       });
+      setAnnouncement('AI 응답이 도착했습니다.');
     } catch (error) {
-      if (error.message.includes('오늘 사용 가능한')) {
+      if (error.isDailyLimit) {
         setLimitReached(true);
       }
       setErrorMessage(error.message || '답변을 받지 못했어요.');
@@ -131,7 +135,10 @@ export const AiChat = () => {
       </header>
 
       <main className="ai-chat-page__main">
-        <div className="ai-chat-list" aria-live="polite">
+        <div aria-live="polite" className="sr-only">
+          {announcement}
+        </div>
+        <div className="ai-chat-list">
           {messages.length === 0 ? (
             <p className="ai-chat-list__empty">학습에 대해 궁금한 걸 물어보세요.</p>
           ) : (

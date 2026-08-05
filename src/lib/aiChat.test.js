@@ -121,6 +121,29 @@ describe('sendChatMessage', () => {
     ).rejects.toThrow('오늘 사용 가능한 메시지 횟수를 다 썼어요. 내일 다시 이용해주세요.');
   });
 
+  test('429 응답이면 에러 객체에 isDailyLimit 플래그가 설정된다', async () => {
+    const response = {
+      ok: false,
+      status: 429,
+      json: () => Promise.resolve({ error: '오늘 사용 가능한 메시지 횟수를 다 썼어요. 내일 다시 이용해주세요.' }),
+    };
+    global.fetch = jest.fn().mockResolvedValue(response);
+
+    let caughtError;
+    try {
+      await sendChatMessage({
+        supabaseUrl: 'https://example.supabase.co',
+        accessToken: 'token123',
+        content: '안녕',
+        onDelta: () => {},
+      });
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError.isDailyLimit).toBe(true);
+  });
+
   test('그 외 오류 응답이면 일반 오류 메시지로 reject한다', async () => {
     const response = { ok: false, status: 502, json: () => Promise.resolve({}) };
     global.fetch = jest.fn().mockResolvedValue(response);
