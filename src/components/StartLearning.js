@@ -152,7 +152,7 @@ export const StartLearning = () => {
     setStatus(STATUS.SAVING);
 
     const endedAt = new Date().toISOString();
-    const { focusScore, timeline } = aggregateSession(
+    const { focusScore, timeline, focusBreakdown } = aggregateSession(
       ticksRef.current,
       startedAtRef.current,
       endedAt
@@ -176,6 +176,7 @@ export const StartLearning = () => {
           duration_seconds: Math.round(accumulatedMsRef.current / 1000),
           focus_score: focusScore,
           timeline,
+          focus_breakdown: focusBreakdown,
         })
         .select('id')
         .single();
