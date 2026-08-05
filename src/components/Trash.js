@@ -71,13 +71,22 @@ export const Trash = () => {
     <div className="trash-page">
       <header className="trash-page__topbar">
         <h1 className="trash-page__title">휴지통</h1>
-        <button
-          type="button"
-          className="trash-page__home"
-          onClick={() => navigate('/mypage')}
-        >
-          HOME
-        </button>
+        <div className="trash-page__topbar-actions">
+          <button
+            type="button"
+            className="trash-page__back"
+            onClick={() => navigate(-1)}
+          >
+            뒤로가기
+          </button>
+          <button
+            type="button"
+            className="trash-page__home"
+            onClick={() => navigate('/mypage')}
+          >
+            HOME
+          </button>
+        </div>
       </header>
 
       <main className="trash-page__main">

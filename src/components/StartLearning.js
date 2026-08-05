@@ -147,13 +147,22 @@ export const StartLearning = () => {
     <div className="start-learning">
       <header className="start-learning__topbar">
         <h1 className="start-learning__title">학습 시작</h1>
-        <button
-          type="button"
-          className="start-learning__home"
-          onClick={() => navigate('/mypage')}
-        >
-          HOME
-        </button>
+        <div className="start-learning__topbar-actions">
+          <button
+            type="button"
+            className="start-learning__back"
+            onClick={() => navigate(-1)}
+          >
+            뒤로가기
+          </button>
+          <button
+            type="button"
+            className="start-learning__home"
+            onClick={() => navigate('/mypage')}
+          >
+            HOME
+          </button>
+        </div>
       </header>
 
       <main className="start-learning__main">

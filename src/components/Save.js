@@ -82,13 +82,18 @@ export const Save = () => {
     <div className="save-page">
       <header className="save-page__topbar">
         <h1 className="save-page__title">학습 기록</h1>
-        <button
-          type="button"
-          className="save-page__home"
-          onClick={() => navigate('/mypage')}
-        >
-          HOME
-        </button>
+        <div className="save-page__topbar-actions">
+          <button type="button" className="save-page__back" onClick={() => navigate(-1)}>
+            뒤로가기
+          </button>
+          <button
+            type="button"
+            className="save-page__home"
+            onClick={() => navigate('/mypage')}
+          >
+            HOME
+          </button>
+        </div>
       </header>
 
       <main className="save-page__main">

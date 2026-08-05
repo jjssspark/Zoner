@@ -98,6 +98,13 @@ export const Mypage = () => {
           <button
             type="button"
             className="mypage__topbar-link"
+            onClick={() => navigate(-1)}
+          >
+            뒤로가기
+          </button>
+          <button
+            type="button"
+            className="mypage__topbar-link"
             onClick={() => navigate('/')}
           >
             HOME

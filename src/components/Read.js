@@ -90,6 +90,13 @@ export const Read = () => {
       <header className="session-report__topbar">
         <h1 className="session-report__title">학습 리포트</h1>
         <div className="session-report__topbar-actions">
+          <button
+            type="button"
+            className="session-report__back"
+            onClick={() => navigate(-1)}
+          >
+            뒤로가기
+          </button>
           {session && (
             <button
               type="button"

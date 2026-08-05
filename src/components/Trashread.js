@@ -109,13 +109,22 @@ export const Trashread = () => {
     <div className="trash-detail">
       <header className="trash-detail__topbar">
         <h1 className="trash-detail__title">삭제한 항목</h1>
-        <button
-          type="button"
-          className="trash-detail__home"
-          onClick={() => navigate('/trash')}
-        >
-          휴지통으로
-        </button>
+        <div className="trash-detail__topbar-actions">
+          <button
+            type="button"
+            className="trash-detail__back"
+            onClick={() => navigate(-1)}
+          >
+            뒤로가기
+          </button>
+          <button
+            type="button"
+            className="trash-detail__home"
+            onClick={() => navigate('/trash')}
+          >
+            휴지통으로
+          </button>
+        </div>
       </header>
 
       <main className="trash-detail__main">
