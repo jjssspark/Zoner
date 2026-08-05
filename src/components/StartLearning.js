@@ -113,6 +113,14 @@ export const StartLearning = () => {
     });
   };
 
+  const stopTicking = () => {
+    if (trackerRef.current) {
+      trackerRef.current.stop();
+      trackerRef.current = null;
+    }
+    window.clearInterval(elapsedTimerIdRef.current);
+  };
+
   const handleStart = () => {
     startedAtRef.current = new Date().toISOString();
     setStatus(STATUS.RUNNING);
@@ -120,11 +128,7 @@ export const StartLearning = () => {
   };
 
   const handlePause = () => {
-    if (trackerRef.current) {
-      trackerRef.current.stop();
-      trackerRef.current = null;
-    }
-    window.clearInterval(elapsedTimerIdRef.current);
+    stopTicking();
     setStatus(STATUS.PAUSED);
   };
 
@@ -134,11 +138,7 @@ export const StartLearning = () => {
   };
 
   const handleStop = async () => {
-    if (trackerRef.current) {
-      trackerRef.current.stop();
-      trackerRef.current = null;
-    }
-    window.clearInterval(elapsedTimerIdRef.current);
+    stopTicking();
 
     setStatus(STATUS.SAVING);
 
