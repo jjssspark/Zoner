@@ -66,9 +66,9 @@
 }
 
 .session-card__link {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 5.5rem 3.5rem;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-4);
   flex: 1;
   background-color: var(--color-surface);
@@ -117,9 +117,16 @@
   color: var(--color-text-muted);
 }
 
+.session-card__duration {
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
 .session-card__score {
   font-weight: 700;
   color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .save-page__error {
