@@ -36,144 +36,167 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: CORS_HEADERS });
   }
 
-  const authHeader = req.headers.get('Authorization') || '';
-  const jwt = authHeader.replace('Bearer ', '');
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-  const { data: userData, error: userError } = await supabase.auth.getUser(jwt);
-  if (userError || !userData?.user) {
-    return jsonResponse({ error: '인증이 필요합니다.' }, 401);
-  }
-  const userId = userData.user.id;
-
-  let body: { content?: unknown };
   try {
-    body = await req.json();
-  } catch {
-    return jsonResponse({ error: '잘못된 요청입니다.' }, 400);
-  }
+    const authHeader = req.headers.get('Authorization') || '';
+    const jwt = authHeader.replace('Bearer ', '');
 
-  const content = typeof body.content === 'string' ? body.content.trim() : '';
-  if (content.length === 0 || content.length > MAX_MESSAGE_LENGTH) {
-    return jsonResponse({ error: '메시지 길이가 올바르지 않습니다.' }, 400);
-  }
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  const { count, error: countError } = await supabase
-    .from('chat_messages')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('role', 'user')
-    .gte('created_at', startOfTodayKST());
+    const { data: userData, error: userError } = await supabase.auth.getUser(jwt);
+    if (userError || !userData?.user) {
+      return jsonResponse({ error: '인증이 필요합니다.' }, 401);
+    }
+    const userId = userData.user.id;
 
-  if (countError) {
-    return jsonResponse({ error: '요청을 처리하지 못했습니다.' }, 500);
-  }
+    let body: { content?: unknown };
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: '잘못된 요청입니다.' }, 400);
+    }
 
-  if ((count ?? 0) >= DAILY_MESSAGE_LIMIT) {
-    return jsonResponse(
-      { error: '오늘 사용 가능한 메시지 횟수를 다 썼어요. 내일 다시 이용해주세요.' },
-      429
-    );
-  }
+    const content = typeof body.content === 'string' ? body.content.trim() : '';
+    if (content.length === 0 || content.length > MAX_MESSAGE_LENGTH) {
+      return jsonResponse({ error: '메시지 길이가 올바르지 않습니다.' }, 400);
+    }
 
-  const { error: insertUserError } = await supabase
-    .from('chat_messages')
-    .insert({ user_id: userId, role: 'user', content });
+    const { count, error: countError } = await supabase
+      .from('chat_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('role', 'user')
+      .gte('created_at', startOfTodayKST());
 
-  if (insertUserError) {
-    return jsonResponse({ error: '요청을 처리하지 못했습니다.' }, 500);
-  }
+    if (countError) {
+      return jsonResponse({ error: '요청을 처리하지 못했습니다.' }, 500);
+    }
 
-  const { data: history, error: historyError } = await supabase
-    .from('chat_messages')
-    .select('role, content')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(20);
+    if ((count ?? 0) >= DAILY_MESSAGE_LIMIT) {
+      return jsonResponse(
+        { error: '오늘 사용 가능한 메시지 횟수를 다 썼어요. 내일 다시 이용해주세요.' },
+        429
+      );
+    }
 
-  if (historyError) {
-    return jsonResponse({ error: '요청을 처리하지 못했습니다.' }, 500);
-  }
+    const { error: insertUserError } = await supabase
+      .from('chat_messages')
+      .insert({ user_id: userId, role: 'user', content });
 
-  const messages = (history ?? [])
-    .slice()
-    .reverse()
-    .map((m) => ({ role: m.role, content: m.content }));
+    if (insertUserError) {
+      return jsonResponse({ error: '요청을 처리하지 못했습니다.' }, 500);
+    }
 
-  const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages,
-      stream: true,
-    }),
-  });
+    const { data: history, error: historyError } = await supabase
+      .from('chat_messages')
+      .select('role, content')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20);
 
-  if (!anthropicResponse.ok || !anthropicResponse.body) {
-    return jsonResponse({ error: 'AI 응답을 받지 못했습니다.' }, 502);
-  }
+    if (historyError) {
+      return jsonResponse({ error: '요청을 처리하지 못했습니다.' }, 500);
+    }
 
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-  let fullText = '';
+    const messages = (history ?? [])
+      .slice()
+      .reverse()
+      .map((m) => ({ role: m.role, content: m.content }));
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      const reader = anthropicResponse.body!.getReader();
-      let buffer = '';
+    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1024,
+        system: SYSTEM_PROMPT,
+        messages,
+        stream: true,
+      }),
+    });
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop() ?? '';
+    if (!anthropicResponse.ok || !anthropicResponse.body) {
+      return jsonResponse({ error: 'AI 응답을 받지 못했습니다.' }, 502);
+    }
 
-        for (const line of lines) {
-          const dataLine = line.split('\n').find((l) => l.startsWith('data: '));
-          if (!dataLine) continue;
-          const payload = dataLine.slice(6).trim();
-          if (payload === '[DONE]') continue;
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let assistantStreamError = false;
 
-          let event: any;
-          try {
-            event = JSON.parse(payload);
-          } catch {
-            continue;
-          }
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = anthropicResponse.body!.getReader();
+        let buffer = '';
 
-          if (event.type === 'content_block_delta' && event.delta?.text) {
-            fullText += event.delta.text;
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`)
-            );
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() ?? '';
+
+          for (const line of lines) {
+            const dataLine = line.split('\n').find((l) => l.startsWith('data: '));
+            if (!dataLine) continue;
+            const payload = dataLine.slice(6).trim();
+            if (payload === '[DONE]') continue;
+
+            let event: any;
+            try {
+              event = JSON.parse(payload);
+            } catch {
+              continue;
+            }
+
+            if (event.type === 'error') {
+              assistantStreamError = true;
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ error: event.error?.message || '알 수 없는 오류가 발생했습니다.' })}\n\n`
+                )
+              );
+              controller.close();
+              return;
+            }
+
+            if (event.type === 'content_block_delta' && event.delta?.text) {
+              fullText += event.delta.text;
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`)
+              );
+            }
           }
         }
-      }
 
-      await supabase
-        .from('chat_messages')
-        .insert({ user_id: userId, role: 'assistant', content: fullText });
+        if (!assistantStreamError && fullText.length > 0) {
+          const { error: insertAssistantError } = await supabase
+            .from('chat_messages')
+            .insert({ user_id: userId, role: 'assistant', content: fullText });
 
-      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-      controller.close();
-    },
-  });
+          if (insertAssistantError) {
+            console.error('Failed to save assistant message:', insertAssistantError);
+          }
+        }
 
-  return new Response(stream, {
-    headers: {
-      ...CORS_HEADERS,
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-    },
-  });
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        ...CORS_HEADERS,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      },
+    });
+  } catch (error) {
+    console.error('Unexpected error in ai-chat handler:', error);
+    return jsonResponse({ error: '요청을 처리하지 못했습니다.' }, 500);
+  }
 });
