@@ -1,0 +1,25 @@
+.sparkline {
+  display: block;
+  overflow: visible;
+}
+
+.sparkline__line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sparkline--high .sparkline__line {
+  stroke: var(--color-focus-high);
+}
+.sparkline--mid .sparkline__line {
+  stroke: var(--color-focus-mid);
+}
+.sparkline--low .sparkline__line {
+  stroke: var(--color-focus-low);
+}
+.sparkline--poor .sparkline__line {
+  stroke: var(--color-focus-poor);
+}
