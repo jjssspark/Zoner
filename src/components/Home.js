@@ -33,8 +33,14 @@ function useRevealOnScroll() {
   const ref = useRef(null);
 
   useEffect(() => {
-    const targets = ref.current?.querySelectorAll('[data-reveal]');
+    const container = ref.current;
+    const targets = container?.querySelectorAll('[data-reveal]');
     if (!targets || targets.length === 0) return undefined;
+
+    // Only hide content once JS has proven it can run and found something to
+    // reveal — otherwise a failed observer would leave the page permanently
+    // blank. See task-8-report.md for the incident this fixes.
+    container.classList.add('reveal-enabled');
 
     const observer = new IntersectionObserver(
       (entries) => {
