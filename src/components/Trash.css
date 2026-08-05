@@ -83,7 +83,7 @@
   padding: var(--space-4);
   cursor: pointer;
   text-align: left;
-  opacity: 0.85;
+  opacity: 0.92;
   transition: opacity var(--duration-fast) var(--ease-out-expo),
     border-color var(--duration-normal) var(--ease-out-expo),
     transform var(--duration-normal) var(--ease-out-expo);
