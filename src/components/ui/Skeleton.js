@@ -1,10 +1,14 @@
 import React from 'react';
 import './Skeleton.css';
 
-export function Skeleton({ variant = 'text', count = 1 }) {
+export function Skeleton({ variant = 'text', count = 1, announce = true }) {
   return (
-    <div className="skeleton" role="status" aria-busy="true">
-      <span className="skeleton__sr">불러오는 중</span>
+    <div
+      className="skeleton"
+      role={announce ? 'status' : undefined}
+      aria-busy={announce ? 'true' : undefined}
+    >
+      {announce && <span className="skeleton__sr">불러오는 중</span>}
       {Array.from({ length: count }, (_, i) => (
         <div
           key={i}

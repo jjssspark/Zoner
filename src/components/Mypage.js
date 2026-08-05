@@ -21,7 +21,7 @@ function MypageTopbar({ userName, onBack, onHome, onLogout }) {
     <header className="mypage__topbar">
       <div className="mypage__identity">
         <h1 className="mypage__user">
-          {userName}
+          {userName || '내 정보'}
           <span className="mypage__status-dot" aria-hidden="true" />
         </h1>
         <span className="mypage__badge">AI 학습 보조</span>
@@ -120,7 +120,7 @@ export const Mypage = () => {
         />
         <main className="mypage__main">
           <Skeleton variant="metric" count={1} />
-          <Skeleton variant="card" count={3} />
+          <Skeleton variant="card" count={3} announce={false} />
         </main>
       </div>
     );

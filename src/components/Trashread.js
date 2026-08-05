@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
-import { restoreSession, hardDeleteSession, daysUntilPurge } from '../lib/trash';
+import { restoreSession, hardDeleteSession, daysUntilPurge, expiryLevel } from '../lib/trash';
 import Skeleton from './ui/Skeleton';
 import './TrashDetail.css';
 import './FocusChart.css';
@@ -23,12 +23,6 @@ function TrashDetailTopbar({ onBack, onList }) {
     </header>
   );
 }
-
-const expiryLevel = (daysLeft) => {
-  if (daysLeft <= 3) return 'poor';
-  if (daysLeft <= 7) return 'low';
-  return 'mid';
-};
 
 const formatDate = (iso) => {
   const d = new Date(iso);
@@ -135,7 +129,7 @@ export const Trashread = () => {
         />
         <main className="trash-detail__main">
           <Skeleton variant="text" count={1} />
-          <Skeleton variant="metric" count={1} />
+          <Skeleton variant="metric" count={1} announce={false} />
         </main>
       </div>
     );

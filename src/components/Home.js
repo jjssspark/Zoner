@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './NavBar';
 import ScoreRing from './ui/ScoreRing';
@@ -32,7 +32,7 @@ const PREVIEW_TREND = [0.4, 0.62, 0.55, 0.78, 0.83, 0.71, 0.9, 0.86];
 function useRevealOnScroll() {
   const ref = useRef(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const container = ref.current;
     const targets = container?.querySelectorAll('[data-reveal]');
     if (!targets || targets.length === 0) return undefined;

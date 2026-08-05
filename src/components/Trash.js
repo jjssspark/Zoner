@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
-import { purgeExpiredSessions, daysUntilPurge } from '../lib/trash';
+import { purgeExpiredSessions, daysUntilPurge, expiryLevel } from '../lib/trash';
 import { focusLevel } from './ui/ScoreRing';
 import Skeleton from './ui/Skeleton';
 import './Trash.css';
@@ -23,12 +23,6 @@ function TrashTopbar({ onBack, onHome }) {
     </header>
   );
 }
-
-const expiryLevel = (daysLeft) => {
-  if (daysLeft <= 3) return 'poor';
-  if (daysLeft <= 7) return 'low';
-  return 'mid';
-};
 
 const formatDate = (iso) => {
   const d = new Date(iso);

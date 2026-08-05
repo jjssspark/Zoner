@@ -10,6 +10,12 @@ export function daysUntilPurge(deletedAtIso, now = new Date()) {
   return Math.max(0, PURGE_AFTER_DAYS - elapsedDays);
 }
 
+export const expiryLevel = (daysLeft) => {
+  if (daysLeft <= 3) return 'poor';
+  if (daysLeft <= 7) return 'low';
+  return 'mid';
+};
+
 export async function purgeExpiredSessions(userId) {
   const cutoff = new Date(Date.now() - PURGE_AFTER_DAYS * ONE_DAY_MS).toISOString();
   const { error } = await supabase

@@ -81,6 +81,10 @@
   box-shadow: var(--shadow-md);
 }
 
+.home__preview .sparkline {
+  max-width: 100%;
+}
+
 .home__preview-caption {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
