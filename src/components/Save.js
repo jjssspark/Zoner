@@ -3,7 +3,27 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 import { softDeleteSession } from '../lib/trash';
+import { focusLevel } from './ui/ScoreRing';
+import Skeleton from './ui/Skeleton';
 import './Save.css';
+
+// 로딩 중에도 동일한 마크업을 렌더해야 데이터 로드 완료 시 헤더가 나타나며
+// 레이아웃이 밀리지 않는다.
+function SaveTopbar({ onBack, onHome }) {
+  return (
+    <header className="save-page__topbar">
+      <h1 className="save-page__title">학습 기록</h1>
+      <div className="save-page__topbar-actions">
+        <button type="button" className="save-page__back" onClick={onBack}>
+          뒤로가기
+        </button>
+        <button type="button" className="save-page__home" onClick={onHome}>
+          HOME
+        </button>
+      </div>
+    </header>
+  );
+}
 
 const formatDate = (iso) => {
   const d = new Date(iso);
@@ -75,26 +95,25 @@ export const Save = () => {
   };
 
   if (isLoading) {
-    return <div className="save-page" />;
+    return (
+      <div className="save-page">
+        <SaveTopbar
+          onBack={() => navigate(-1)}
+          onHome={() => navigate('/mypage')}
+        />
+        <main className="save-page__main">
+          <Skeleton variant="card" count={3} />
+        </main>
+      </div>
+    );
   }
 
   return (
     <div className="save-page">
-      <header className="save-page__topbar">
-        <h1 className="save-page__title">학습 기록</h1>
-        <div className="save-page__topbar-actions">
-          <button type="button" className="save-page__back" onClick={() => navigate(-1)}>
-            뒤로가기
-          </button>
-          <button
-            type="button"
-            className="save-page__home"
-            onClick={() => navigate('/mypage')}
-          >
-            HOME
-          </button>
-        </div>
-      </header>
+      <SaveTopbar
+        onBack={() => navigate(-1)}
+        onHome={() => navigate('/mypage')}
+      />
 
       <main className="save-page__main">
         {deleteError && (
@@ -120,7 +139,11 @@ export const Save = () => {
                   <span className="session-card__duration">
                     {formatDuration(session.duration_seconds)}
                   </span>
-                  <span className="session-card__score">
+                  <span
+                    className={`session-card__score session-card__score--${focusLevel(
+                      session.focus_score
+                    )}`}
+                  >
                     {session.focus_score}%
                   </span>
                 </button>

@@ -132,10 +132,26 @@
 }
 
 .session-card__score {
+  display: inline-block;
+  min-width: 4ch;
+  font-family: var(--font-mono);
   font-weight: 700;
-  color: var(--color-accent);
+  letter-spacing: var(--tracking-data);
   font-variant-numeric: tabular-nums;
   text-align: right;
+}
+
+.session-card__score--high {
+  color: var(--color-focus-high);
+}
+.session-card__score--mid {
+  color: var(--color-focus-mid);
+}
+.session-card__score--low {
+  color: var(--color-focus-low);
+}
+.session-card__score--poor {
+  color: var(--color-focus-poor);
 }
 
 .save-page__error {
