@@ -92,6 +92,10 @@
   color: var(--color-text-muted);
 }
 
+.trash-card__duration {
+  color: var(--color-text-muted);
+}
+
 .trash-card__score {
   font-weight: 700;
   color: var(--color-accent);
