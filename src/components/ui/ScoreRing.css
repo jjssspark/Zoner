@@ -1,0 +1,109 @@
+.score-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-ring__svg {
+  display: block;
+}
+
+.score-ring__track {
+  fill: none;
+  stroke: var(--color-border);
+}
+
+.score-ring__value {
+  fill: none;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  animation: score-ring-fill var(--duration-slow) var(--ease-in-out) both;
+}
+
+.score-ring__value--high {
+  stroke: var(--color-focus-high);
+}
+.score-ring__value--mid {
+  stroke: var(--color-focus-mid);
+}
+.score-ring__value--low {
+  stroke: var(--color-focus-low);
+}
+.score-ring__value--poor {
+  stroke: var(--color-focus-poor);
+}
+
+@keyframes score-ring-fill {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+  to {
+    stroke-dashoffset: var(--ring-offset);
+  }
+}
+
+.score-ring__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  pointer-events: none;
+}
+
+.score-ring__number {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+}
+
+.score-ring__number--high {
+  color: var(--color-focus-high);
+}
+.score-ring__number--mid {
+  color: var(--color-focus-mid);
+}
+.score-ring__number--low {
+  color: var(--color-focus-low);
+}
+.score-ring__number--poor {
+  color: var(--color-focus-poor);
+}
+
+.score-ring__unit {
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.score-ring__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.score-ring--sm .score-ring__number {
+  font-size: var(--text-lg);
+}
+.score-ring--sm .score-ring__unit {
+  font-size: var(--text-xs);
+}
+
+.score-ring--md .score-ring__number {
+  font-size: var(--text-metric-sm);
+}
+.score-ring--md .score-ring__unit {
+  font-size: var(--text-sm);
+}
+
+.score-ring--lg .score-ring__number {
+  font-size: var(--text-metric);
+}
+.score-ring--lg .score-ring__unit {
+  font-size: var(--text-base);
+}
