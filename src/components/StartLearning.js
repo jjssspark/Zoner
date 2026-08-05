@@ -11,9 +11,10 @@ import './StartLearning.css';
 const STATUS = {
   REQUESTING_CAMERA: 'requesting_camera',
   CAMERA_DENIED: 'camera_denied',
-  LOADING_MODEL: 'loading_model',
+  PREVIEW: 'preview',
   MODEL_ERROR: 'model_error',
   RUNNING: 'running',
+  PAUSED: 'paused',
   SAVING: 'saving',
   SAVE_ERROR: 'save_error',
 };
@@ -30,14 +31,17 @@ export const StartLearning = () => {
   const trackerRef = useRef(null);
   const ticksRef = useRef([]);
   const startedAtRef = useRef(null);
+  const faceLandmarkerRef = useRef(null);
+  const elapsedTimerIdRef = useRef(null);
 
   const [status, setStatus] = useState(STATUS.REQUESTING_CAMERA);
+  const [isModelReady, setIsModelReady] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isFocused, setIsFocused] = useState(true);
 
   useEffect(() => {
     let stream;
-    let elapsedTimerId;
+    let isModelLoadCancelled = false;
 
     const start = async () => {
       try {
@@ -58,41 +62,31 @@ export const StartLearning = () => {
         }
       }
 
-      setStatus(STATUS.LOADING_MODEL);
+      setStatus(STATUS.PREVIEW);
 
-      let faceLandmarker;
       try {
-        faceLandmarker = await loadFaceLandmarker();
+        const faceLandmarker = await loadFaceLandmarker();
+        if (isModelLoadCancelled) {
+          return;
+        }
+        faceLandmarkerRef.current = faceLandmarker;
+        setIsModelReady(true);
       } catch (error) {
-        setStatus(STATUS.MODEL_ERROR);
-        return;
+        if (!isModelLoadCancelled) {
+          setStatus(STATUS.MODEL_ERROR);
+        }
       }
-
-      startedAtRef.current = new Date().toISOString();
-      setStatus(STATUS.RUNNING);
-
-      elapsedTimerId = window.setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
-
-      trackerRef.current = createFocusTracker({
-        videoEl: videoRef.current,
-        faceLandmarker,
-        onTick: (tick) => {
-          ticksRef.current.push(tick);
-          setIsFocused(tick.focused);
-        },
-      });
     };
 
     start();
 
     return () => {
+      isModelLoadCancelled = true;
       if (trackerRef.current) {
         trackerRef.current.stop();
       }
-      if (elapsedTimerId) {
-        window.clearInterval(elapsedTimerId);
+      if (elapsedTimerIdRef.current) {
+        window.clearInterval(elapsedTimerIdRef.current);
       }
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
@@ -104,15 +98,52 @@ export const StartLearning = () => {
     window.location.reload();
   };
 
+  const beginTicking = () => {
+    elapsedTimerIdRef.current = window.setInterval(() => {
+      setElapsedSeconds((prev) => prev + 1);
+    }, 1000);
+
+    trackerRef.current = createFocusTracker({
+      videoEl: videoRef.current,
+      faceLandmarker: faceLandmarkerRef.current,
+      onTick: (tick) => {
+        ticksRef.current.push(tick);
+        setIsFocused(tick.focused);
+      },
+    });
+  };
+
+  const handleStart = () => {
+    startedAtRef.current = new Date().toISOString();
+    setStatus(STATUS.RUNNING);
+    beginTicking();
+  };
+
+  const handlePause = () => {
+    if (trackerRef.current) {
+      trackerRef.current.stop();
+      trackerRef.current = null;
+    }
+    window.clearInterval(elapsedTimerIdRef.current);
+    setStatus(STATUS.PAUSED);
+  };
+
+  const handleResume = () => {
+    setStatus(STATUS.RUNNING);
+    beginTicking();
+  };
+
   const handleStop = async () => {
     if (trackerRef.current) {
       trackerRef.current.stop();
+      trackerRef.current = null;
     }
+    window.clearInterval(elapsedTimerIdRef.current);
 
     setStatus(STATUS.SAVING);
 
     const endedAt = new Date().toISOString();
-    const { durationSeconds, focusScore, timeline } = aggregateSession(
+    const { focusScore, timeline } = aggregateSession(
       ticksRef.current,
       startedAtRef.current,
       endedAt
@@ -128,7 +159,7 @@ export const StartLearning = () => {
         user_id: user.id,
         started_at: startedAtRef.current,
         ended_at: endedAt,
-        duration_seconds: durationSeconds,
+        duration_seconds: elapsedSeconds,
         focus_score: focusScore,
         timeline,
       })
@@ -210,22 +241,59 @@ export const StartLearning = () => {
           )}
         </div>
 
-        {(status === STATUS.RUNNING || status === STATUS.SAVING) && (
+        {status === STATUS.PREVIEW && (
+          <button
+            type="button"
+            className="start-learning__start"
+            onClick={handleStart}
+            disabled={!isModelReady}
+          >
+            {isModelReady ? '시작' : '모델 준비 중...'}
+          </button>
+        )}
+
+        {(status === STATUS.RUNNING ||
+          status === STATUS.PAUSED ||
+          status === STATUS.SAVING) && (
           <>
             <p className="start-learning__timer">
               {formatElapsed(elapsedSeconds)}
             </p>
             <p className="start-learning__status-text">
-              {isFocused ? '집중 중' : '비집중 감지'}
+              {status === STATUS.PAUSED
+                ? '일시정지됨'
+                : isFocused
+                ? '집중 중'
+                : '비집중 감지'}
             </p>
-            <button
-              type="button"
-              className="start-learning__stop"
-              onClick={handleStop}
-              disabled={status === STATUS.SAVING}
-            >
-              {status === STATUS.SAVING ? '저장 중...' : '종료'}
-            </button>
+            <div className="start-learning__controls">
+              {status === STATUS.RUNNING && (
+                <button
+                  type="button"
+                  className="start-learning__pause"
+                  onClick={handlePause}
+                >
+                  중지
+                </button>
+              )}
+              {status === STATUS.PAUSED && (
+                <button
+                  type="button"
+                  className="start-learning__resume"
+                  onClick={handleResume}
+                >
+                  재개
+                </button>
+              )}
+              <button
+                type="button"
+                className="start-learning__stop"
+                onClick={handleStop}
+                disabled={status === STATUS.SAVING}
+              >
+                {status === STATUS.SAVING ? '저장 중...' : '종료'}
+              </button>
+            </div>
           </>
         )}
       </main>
