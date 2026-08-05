@@ -1,0 +1,1 @@
+create or replace view active_study_sessions with (security_invoker = true) as select id, user_id, started_at, ended_at, duration_seconds, focus_score, timeline, created_at, deleted_at from study_sessions where deleted_at is null;

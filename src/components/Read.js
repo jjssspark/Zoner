@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 import { softDeleteSession } from '../lib/trash';
 import './SessionReport.css';
+import './FocusChart.css';
 
 const formatDate = (iso) => {
   const d = new Date(iso);

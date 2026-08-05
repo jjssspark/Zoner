@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 import { restoreSession, hardDeleteSession } from '../lib/trash';
 import './TrashDetail.css';
+import './FocusChart.css';
 
 const formatDate = (iso) => {
   const d = new Date(iso);
@@ -179,6 +180,7 @@ export const Trashread = () => {
                 }`}
                 onClick={handlePurgeClick}
                 disabled={isRestoring || isPurging}
+                aria-live="polite"
               >
                 {isPurging
                   ? '삭제 중...'
