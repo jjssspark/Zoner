@@ -21,6 +21,7 @@
 
 | ID | 날짜 | 문제 | 상태 |
 |---|---|---|---|
+| TS-003 | 2026-08-05 | `npm test` 전체 실행 시 `react-router-dom` 모듈을 못 찾아 App.test.js만 실패 (CRA Jest 리졸버가 v7 exports map 미지원) | 해결(우회) |
 | TS-002 | 2026-08-05 | React StrictMode 이중 렌더링으로 웹캠 play()가 인터럽트되어 dev 오버레이 에러 발생 | 해결 |
 | TS-001 | 2026-08-05 | Supabase SQL Editor(Monaco)에서 여러 줄 SQL 붙여넣기 시 괄호 자동완성으로 SQL이 깨짐 | 해결(우회) |
 
@@ -92,3 +93,40 @@ CRA 개발 서버(`npm start`)에서 `getUserMedia`로 스트림을 얻은 뒤 `
 
 **배운 점**
 개발 모드에서만 보이는 에러 오버레이라고 해서 무시하면 안 되지만, 기능이 실제로는 정상 동작하고 있다면 "에러처럼 보이는 것"과 "실제로 깨진 것"을 화면 상태로 먼저 구분한 뒤 원인을 좁히는 게 빠르다.
+
+---
+
+### TS-003: `npm test` 전체 실행 시 `react-router-dom` 모듈을 못 찾아 App.test.js만 실패
+
+**날짜**: 2026-08-05
+**상태**: 해결(우회)
+
+**문제**
+`CI=true npx react-scripts test --watchAll=false`(전체 스위트)를 돌리면 `src/App.test.js`가 "Cannot find module 'react-router-dom' from 'src/App.js'"로 스위트 자체를 실행하지 못하고 실패한다. 정작 `npm run build`와 `npm start`는 같은 import(`import { BrowserRouter as Router, ... } from 'react-router-dom'`)로 문제없이 동작하고, 다른 두 테스트 파일(`src/lib/trash.test.js`, `src/lib/focusTracker.test.js`)은 같은 실행에서 정상 통과한다.
+
+**재현 조건**
+`react-router-dom@^7`(현재 설치 버전 7.8.0)이 설치된 CRA(`react-scripts@^5.0.1`) 프로젝트에서, `react-router-dom`을 import하는 파일을 대상으로 `react-scripts test`(Jest)를 실행할 때. 빌드/런타임에는 영향 없음 — Jest 리졸버 경로에서만 재현된다.
+
+**원인**
+- 표면: Jest가 `node_modules`에 실제로 존재하는 `react-router-dom`을 못 찾는다고 보고함
+- 근본(확인함): `node_modules/react-router-dom/package.json`의 `exports` 필드를 직접 읽어보면 `"."` 항목이 `node`/`import`/`default` 조건만 정의하고 있고(`"default": { "default": "./dist/index.js" }`), 이는 최신 Node의 exports-map 조건부 해석을 전제로 한다. `react-scripts 5.0.1`이 내부적으로 고정한 Jest/`jest-resolve` 버전은 이 최신 exports map 해석을 완전히 지원하지 않아, 패키지가 물리적으로 존재해도 조건 매칭에 실패하며 "모듈 없음"으로 보고한다. `react-router-dom` v6까지는 `main` 필드 기반 CJS 진입점이라 문제가 없었고, v7에서 exports map 중심으로 바뀌면서 CRA의 오래된 Jest 설정과 어긋난 것으로 파악.
+
+**시도했지만 안 된 것**
+별도 시도 없음 — `npm run build`/`npm start`가 동일 import로 정상 동작하는 것을 먼저 확인해 "패키지 자체가 깨진 게 아니라 Jest 리졸버 전용 문제"로 원인을 바로 좁혔고, `package.json`의 `exports` 필드를 직접 읽어 근본 원인을 확인함.
+
+**해결**
+전체 스위트(`npm test`) 대신, 변경한 파일 경로로 좁혀서 테스트를 실행한다:
+```bash
+CI=true npx react-scripts test src/lib/trash --watchAll=false
+CI=true npx react-scripts test src/lib/focusTracker --watchAll=false
+```
+`App.test.js`를 건드리지 않는 경로 지정이면 정상 동작한다. `react-scripts`를 eject하거나 Jest 설정(`moduleNameMapper` 등)을 커스터마이징하는 근본 수정은 이번 범위에서 채택하지 않음 — CRA eject는 되돌릴 수 없는 더 큰 변경이라 범위 최소화 원칙에 어긋남.
+
+**검증**
+`CI=true npx react-scripts test --watchAll=false`(전체) 실행 결과: `App.test.js`만 "Test suite failed to run"으로 실패, `src/lib/trash.test.js`(3개)와 `src/lib/focusTracker.test.js`(6개) 9개 테스트는 전부 PASS. 경로를 좁혀 재실행하면 두 스위트 모두 정상 종료 확인.
+
+**추후 방안**
+`react-router-dom`을 import하는 파일에 대한 자동 테스트가 필요해지면(예: `App.test.js` 자체를 살리려면) `react-scripts`를 eject하거나 `jest.config`를 커스터마이징해 `moduleNameMapper`로 `react-router-dom`을 CJS 진입점(`./dist/index.js`)에 직접 매핑하는 방안을 검토한다. 그 전까지는 새 테스트 파일을 추가할 때 이 이슈를 피하려면 `react-router-dom`을 직접 import하지 않는 모듈 단위로 로직을 분리해 테스트 대상으로 삼는다(이번 프로젝트의 `focusTracker.js`/`trash.js`처럼 순수 로직을 컴포넌트에서 분리하는 패턴이 이 문제도 자연히 피해간다).
+
+**배운 점**
+"모듈을 못 찾는다"는 에러가 항상 설치 문제인 것은 아니다. 빌드는 되는데 테스트 러너에서만 못 찾는다면, 두 도구가 모듈을 해석하는 방식(esbuild/webpack의 최신 exports map 해석 vs. 구버전 Jest 리졸버)이 다르다는 신호다. `package.json`의 `exports` 필드를 직접 열어보면 원인을 빠르게 좁힐 수 있다.
