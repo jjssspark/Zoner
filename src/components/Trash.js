@@ -2,7 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 import { purgeExpiredSessions, daysUntilPurge } from '../lib/trash';
+import { focusLevel } from './ui/ScoreRing';
+import Skeleton from './ui/Skeleton';
 import './Trash.css';
+
+// 로딩 중에도 동일한 마크업을 렌더해야 데이터 로드 완료 시 헤더가 나타나며
+// 레이아웃이 밀리지 않는다.
+function TrashTopbar({ onBack, onHome }) {
+  return (
+    <header className="trash-page__topbar">
+      <h1 className="trash-page__title">휴지통</h1>
+      <div className="trash-page__topbar-actions">
+        <button type="button" className="trash-page__back" onClick={onBack}>
+          뒤로가기
+        </button>
+        <button type="button" className="trash-page__home" onClick={onHome}>
+          HOME
+        </button>
+      </div>
+    </header>
+  );
+}
+
+const expiryLevel = (daysLeft) => {
+  if (daysLeft <= 3) return 'poor';
+  if (daysLeft <= 7) return 'low';
+  return 'mid';
+};
 
 const formatDate = (iso) => {
   const d = new Date(iso);
@@ -64,30 +90,25 @@ export const Trash = () => {
   }, [navigate]);
 
   if (isLoading) {
-    return <div className="trash-page" />;
+    return (
+      <div className="trash-page">
+        <TrashTopbar
+          onBack={() => navigate(-1)}
+          onHome={() => navigate('/mypage')}
+        />
+        <main className="trash-page__main">
+          <Skeleton variant="card" count={3} />
+        </main>
+      </div>
+    );
   }
 
   return (
     <div className="trash-page">
-      <header className="trash-page__topbar">
-        <h1 className="trash-page__title">휴지통</h1>
-        <div className="trash-page__topbar-actions">
-          <button
-            type="button"
-            className="trash-page__back"
-            onClick={() => navigate(-1)}
-          >
-            뒤로가기
-          </button>
-          <button
-            type="button"
-            className="trash-page__home"
-            onClick={() => navigate('/mypage')}
-          >
-            HOME
-          </button>
-        </div>
-      </header>
+      <TrashTopbar
+        onBack={() => navigate(-1)}
+        onHome={() => navigate('/mypage')}
+      />
 
       <main className="trash-page__main">
         {sessions.length === 0 ? (
@@ -107,10 +128,18 @@ export const Trash = () => {
                   <span className="trash-card__duration">
                     {formatDuration(session.duration_seconds)}
                   </span>
-                  <span className="trash-card__score">
+                  <span
+                    className={`trash-card__score trash-card__score--${focusLevel(
+                      session.focus_score
+                    )}`}
+                  >
                     {session.focus_score}%
                   </span>
-                  <span className="trash-card__purge">
+                  <span
+                    className={`trash-card__purge trash-card__purge--${expiryLevel(
+                      daysUntilPurge(session.deleted_at)
+                    )}`}
+                  >
                     {daysUntilPurge(session.deleted_at)}일 후 자동 삭제
                   </span>
                 </button>

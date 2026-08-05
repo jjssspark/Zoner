@@ -1,9 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
-import { restoreSession, hardDeleteSession } from '../lib/trash';
+import { restoreSession, hardDeleteSession, daysUntilPurge } from '../lib/trash';
+import Skeleton from './ui/Skeleton';
 import './TrashDetail.css';
 import './FocusChart.css';
+
+// 로딩 중에도 동일한 마크업을 렌더해야 데이터 로드 완료 시 헤더가 나타나며
+// 레이아웃이 밀리지 않는다.
+function TrashDetailTopbar({ onBack, onList }) {
+  return (
+    <header className="trash-detail__topbar">
+      <h1 className="trash-detail__title">삭제한 항목</h1>
+      <div className="trash-detail__topbar-actions">
+        <button type="button" className="trash-detail__back" onClick={onBack}>
+          뒤로가기
+        </button>
+        <button type="button" className="trash-detail__home" onClick={onList}>
+          휴지통으로
+        </button>
+      </div>
+    </header>
+  );
+}
+
+const expiryLevel = (daysLeft) => {
+  if (daysLeft <= 3) return 'poor';
+  if (daysLeft <= 7) return 'low';
+  return 'mid';
+};
 
 const formatDate = (iso) => {
   const d = new Date(iso);
@@ -102,30 +127,26 @@ export const Trashread = () => {
   };
 
   if (isLoading) {
-    return <div className="trash-detail" />;
+    return (
+      <div className="trash-detail">
+        <TrashDetailTopbar
+          onBack={() => navigate(-1)}
+          onList={() => navigate('/trash')}
+        />
+        <main className="trash-detail__main">
+          <Skeleton variant="text" count={1} />
+          <Skeleton variant="metric" count={1} />
+        </main>
+      </div>
+    );
   }
 
   return (
     <div className="trash-detail">
-      <header className="trash-detail__topbar">
-        <h1 className="trash-detail__title">삭제한 항목</h1>
-        <div className="trash-detail__topbar-actions">
-          <button
-            type="button"
-            className="trash-detail__back"
-            onClick={() => navigate(-1)}
-          >
-            뒤로가기
-          </button>
-          <button
-            type="button"
-            className="trash-detail__home"
-            onClick={() => navigate('/trash')}
-          >
-            휴지통으로
-          </button>
-        </div>
-      </header>
+      <TrashDetailTopbar
+        onBack={() => navigate(-1)}
+        onList={() => navigate('/trash')}
+      />
 
       <main className="trash-detail__main">
         {notFound ? (
@@ -143,6 +164,13 @@ export const Trashread = () => {
             <p className="trash-detail__date">
               {formatDate(session.started_at)}
             </p>
+            <span
+              className={`trash-detail__expiry trash-detail__expiry--${expiryLevel(
+                daysUntilPurge(session.deleted_at)
+              )}`}
+            >
+              {daysUntilPurge(session.deleted_at)}일 후 자동 삭제
+            </span>
             <div className="trash-detail__score">
               <span className="trash-detail__score-value">
                 {session.focus_score}%
