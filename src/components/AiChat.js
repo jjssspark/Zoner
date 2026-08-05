@@ -133,9 +133,18 @@ export const AiChat = () => {
     <div className="ai-chat-page">
       <header className="ai-chat-page__topbar">
         <h1 className="ai-chat-page__title">AI 채팅</h1>
-        <button type="button" className="ai-chat-page__home" onClick={() => navigate('/mypage')}>
-          HOME
-        </button>
+        <div className="ai-chat-page__topbar-actions">
+          <button type="button" className="ai-chat-page__back" onClick={() => navigate(-1)}>
+            뒤로가기
+          </button>
+          <button
+            type="button"
+            className="ai-chat-page__home"
+            onClick={() => navigate('/mypage')}
+          >
+            HOME
+          </button>
+        </div>
       </header>
 
       <main className="ai-chat-page__main">
@@ -146,11 +155,30 @@ export const AiChat = () => {
           {messages.length === 0 ? (
             <p className="ai-chat-list__empty">학습에 대해 궁금한 걸 물어보세요.</p>
           ) : (
-            messages.map((message) => (
-              <div key={message.id} className={`ai-chat-bubble ai-chat-bubble--${message.role}`}>
-                {message.content}
-              </div>
-            ))
+            messages.map((message, index) => {
+              const isWaitingForReply =
+                isSending &&
+                index === messages.length - 1 &&
+                message.role === 'assistant' &&
+                message.content === '';
+
+              return (
+                <div
+                  key={message.id}
+                  className={`ai-chat-bubble ai-chat-bubble--${message.role}`}
+                >
+                  {isWaitingForReply ? (
+                    <span className="ai-chat-typing" aria-hidden="true">
+                      <span className="ai-chat-typing__dot" />
+                      <span className="ai-chat-typing__dot" />
+                      <span className="ai-chat-typing__dot" />
+                    </span>
+                  ) : (
+                    message.content
+                  )}
+                </div>
+              );
+            })
           )}
           <div ref={bottomRef} />
         </div>
