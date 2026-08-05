@@ -21,6 +21,7 @@ export const THRESHOLDS = {
   maxPitchDownDeg: 20,
   eyeBlinkThreshold: 0.5,
   eyeLookDownThreshold: 0.4,
+  intervalMs: 5000,
 };
 
 export function computeYawPitchDegrees(matrixData) {
@@ -210,7 +211,7 @@ export async function loadFaceLandmarker() {
 export function createFocusTracker({
   videoEl,
   faceLandmarker,
-  intervalMs = 5000,
+  intervalMs = THRESHOLDS.intervalMs,
   onTick,
 }) {
   let wasEyesClosed = false;
