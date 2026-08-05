@@ -14,6 +14,33 @@ const QUICK_ACTIONS = [
 
 const RECOMMENDED = ['요금제 업그레이드', '개인 설정', '프로모션'];
 
+// 로딩 중에도 동일한 마크업을 렌더해야 데이터 로드 완료 시 헤더가 나타나며
+// 레이아웃이 밀리지 않는다 (userName은 로딩 중 빈 문자열일 뿐 구조는 동일).
+function MypageTopbar({ userName, onBack, onHome, onLogout }) {
+  return (
+    <header className="mypage__topbar">
+      <div className="mypage__identity">
+        <h1 className="mypage__user">
+          {userName}
+          <span className="mypage__status-dot" aria-hidden="true" />
+        </h1>
+        <span className="mypage__badge">AI 학습 보조</span>
+      </div>
+      <div className="mypage__topbar-actions">
+        <button type="button" className="mypage__topbar-link" onClick={onBack}>
+          뒤로가기
+        </button>
+        <button type="button" className="mypage__topbar-link" onClick={onHome}>
+          HOME
+        </button>
+        <button type="button" className="mypage__logout" onClick={onLogout}>
+          LOGOUT
+        </button>
+      </div>
+    </header>
+  );
+}
+
 export const Mypage = () => {
   const navigate = useNavigate();
   const pageRef = useRef(null);
@@ -85,6 +112,12 @@ export const Mypage = () => {
   if (isLoading) {
     return (
       <div className="mypage" ref={pageRef}>
+        <MypageTopbar
+          userName={userName}
+          onBack={() => navigate(-1)}
+          onHome={() => navigate('/')}
+          onLogout={handleLogout}
+        />
         <main className="mypage__main">
           <Skeleton variant="metric" count={1} />
           <Skeleton variant="card" count={3} />
@@ -106,38 +139,12 @@ export const Mypage = () => {
 
   return (
     <div className="mypage" ref={pageRef}>
-      <header className="mypage__topbar">
-        <div className="mypage__identity">
-          <h1 className="mypage__user">
-            {userName}
-            <span className="mypage__status-dot" aria-hidden="true" />
-          </h1>
-          <span className="mypage__badge">AI 학습 보조</span>
-        </div>
-        <div className="mypage__topbar-actions">
-          <button
-            type="button"
-            className="mypage__topbar-link"
-            onClick={() => navigate(-1)}
-          >
-            뒤로가기
-          </button>
-          <button
-            type="button"
-            className="mypage__topbar-link"
-            onClick={() => navigate('/')}
-          >
-            HOME
-          </button>
-          <button
-            type="button"
-            className="mypage__logout"
-            onClick={handleLogout}
-          >
-            LOGOUT
-          </button>
-        </div>
-      </header>
+      <MypageTopbar
+        userName={userName}
+        onBack={() => navigate(-1)}
+        onHome={() => navigate('/')}
+        onLogout={handleLogout}
+      />
 
       <main className="mypage__main">
         <section
@@ -149,7 +156,7 @@ export const Mypage = () => {
           </h2>
           {hasSessions ? (
             <div className="focus-gauge__summary">
-              <ScoreRing value={summaryScore} size="lg" label="평균 집중도" />
+              <ScoreRing value={summaryScore} size="lg" label="평균" />
               <dl className="focus-gauge__stats">
                 <div>
                   <dt>세션</dt>
