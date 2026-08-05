@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from './NavBar';
-import image1 from './image-1.png';
+import ScoreRing from './ui/ScoreRing';
+import Sparkline from './ui/Sparkline';
 import image2 from './image-2.png';
 import image3 from './image-3.png';
 import image4 from './image-4.png';
@@ -12,6 +13,7 @@ const FEATURES = [
     icon: '◉',
     title: '집중도 분석',
     desc: 'AI가 학습 영상을 분석해 집중 구간과 흐트러진 구간을 실시간으로 짚어줍니다.',
+    primary: true,
   },
   {
     icon: '✧',
@@ -25,11 +27,40 @@ const FEATURES = [
   },
 ];
 
+const PREVIEW_TREND = [0.4, 0.62, 0.55, 0.78, 0.83, 0.71, 0.9, 0.86];
+
+function useRevealOnScroll() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const targets = ref.current?.querySelectorAll('[data-reveal]');
+    if (!targets || targets.length === 0) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    targets.forEach((t) => observer.observe(t));
+    return () => observer.disconnect();
+  }, []);
+
+  return ref;
+}
+
 export const Home = () => {
   const navigate = useNavigate();
+  const revealRef = useRevealOnScroll();
 
   return (
-    <div className="home">
+    <div className="home" ref={revealRef}>
       <NavBar />
 
       <section className="home__hero">
@@ -47,12 +78,29 @@ export const Home = () => {
             시작하기
           </button>
         </div>
-        <img className="home__hero-image" alt="" src={image1} />
+        <figure className="home__preview">
+          <ScoreRing value={82} size="lg" label="종합" />
+          <Sparkline
+            data={PREVIEW_TREND}
+            width={280}
+            height={64}
+            ariaLabel="시간대별 집중도 추이 예시"
+          />
+          <figcaption className="home__preview-caption">
+            리포트 화면 예시입니다 (실제 데이터 아님)
+          </figcaption>
+        </figure>
       </section>
 
       <section className="home__features" aria-label="주요 기능">
         {FEATURES.map((feature) => (
-          <article key={feature.title} className="feature-card">
+          <article
+            key={feature.title}
+            className={`feature-card ${
+              feature.primary ? 'feature-card--primary' : ''
+            }`}
+            data-reveal
+          >
             <span className="feature-card__icon" aria-hidden="true">
               {feature.icon}
             </span>
@@ -63,13 +111,13 @@ export const Home = () => {
       </section>
 
       <section className="home__vision" aria-labelledby="vision-heading">
-        <h2 id="vision-heading" className="home__vision-title">
+        <h2 id="vision-heading" className="home__vision-title" data-reveal>
           Our Vision
         </h2>
         <div className="home__vision-gallery">
-          <img alt="" src={image2} />
-          <img alt="" src={image3} />
-          <img alt="" src={image4} />
+          <img alt="" src={image2} data-reveal />
+          <img alt="" src={image3} data-reveal />
+          <img alt="" src={image4} data-reveal />
         </div>
       </section>
 
