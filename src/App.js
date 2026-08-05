@@ -16,6 +16,7 @@ import Read from './components/Read';
 import Trash from './components/Trash';
 import Trashread from './components/Trashread';
 import SignUp from './components/SignUp';
+import AiChat from './components/AiChat';
 /* eslint-enable react/jsx-pascal-case */
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
         <Route path="/trash" element={<Trash />} />
         <Route path="/trashread" element={<Trashread />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/ai-chat" element={<AiChat />} />
       </Routes>
     </Router>
   );
