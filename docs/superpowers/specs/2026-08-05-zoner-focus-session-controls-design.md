@@ -46,7 +46,8 @@ REQUESTING_CAMERA
 스키마(`study_sessions`)는 변경 없음. **`duration_seconds` 계산 방식만 변경**한다.
 
 - 기존: `Math.round((endedAt - startedAt) / 1000)` — 벽시계 기준이라 일시정지 시간까지 포함됨
-- 변경: 화면에 표시되는 `elapsedSeconds` 카운터(= `RUNNING` 상태일 때만 1초마다 증가, `PAUSED`에선 정지)를 그대로 `duration_seconds`로 저장 — **순수 활동 시간만 기록**
+- 변경: **활동 구간별 벽시계 시간을 누적**해 저장한다 — `RUNNING`에 진입할 때 구간 시작 시각(`Date.now()`)을 기록하고, `PAUSED`로 나가거나 종료할 때 그 구간의 경과 시간을 누적기에 더한다. 저장값은 `Math.round(누적ms / 1000)` — **순수 활동 시간만 기록**
+- 화면에 표시되는 `elapsedSeconds` 카운터(1초 인터벌)는 **표시 전용**이며 저장에 쓰지 않는다. 인터벌 틱 개수는 시간이 아니기 때문이다 — 브라우저는 백그라운드 탭의 타이머를 스로틀링하고(숨김 5분 경과 시 분당 1회까지) `setInterval`은 놓친 틱을 보충하지 않으므로, 틱 개수를 저장하면 다른 탭을 보며 공부한 사용자의 학습 시간이 실제보다 적게 기록된다
 
 `focus_score`, `timeline`은 변경 없음 — 둘 다 tick 배열 기반이고, 일시정지 구간엔 애초에 tick이 쌓이지 않는다(인터벌이 멈춰 있음). 다만 `focusTracker.js`는 `started_at` 기준 벽시계 분 단위로 timeline 버킷의 인덱스를 매기고, `Read.js`는 존재하는 버킷만 나란히 이어 그리므로, 정지 구간이 "공백"으로 그려지지는 않는다 — 예를 들어 "1분 활동 → 10분 정지 → 1분 활동"은 인접한 두 막대(라벨 `0`, `11`)로 그려져 라벨만 건너뛴다. 이 렌더링 갭은 이번 브랜치의 범위 밖으로 두고 후속 작업으로 미룬다. `aggregateSession()`(`focusTracker.js`)의 시그니처는 유지하되, 호출부(`StartLearning.js`)에서 계산한 `duration_seconds`를 반환값에 덮어써서 insert한다. `aggregateSession` 내부의 duration 계산 로직 자체는 다른 곳에서 쓰이지 않으므로 그대로 둬도 무방하나, 혼동을 피하기 위해 함수가 반환하는 `durationSeconds`는 폐기하고 호출부의 값을 사용한다.
 

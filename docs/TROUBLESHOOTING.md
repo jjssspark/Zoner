@@ -21,6 +21,8 @@
 
 | ID | 날짜 | 문제 | 상태 |
 |---|---|---|---|
+| TS-005 | 2026-08-05 | 학습 시간을 `setInterval` 틱 개수로 저장해 백그라운드 탭에서 과소 기록 (브라우저 타이머 스로틀링) | 해결 |
+| TS-004 | 2026-08-05 | AI 채팅이 항상 502 — Edge Function 시크릿이 `ANTROPIC_API_KEY`(H 누락)로 등록돼 키가 `undefined` | 해결 |
 | TS-003 | 2026-08-05 | `npm test` 전체 실행 시 `react-router-dom` 모듈을 못 찾아 App.test.js만 실패 (CRA Jest 리졸버가 v7 exports map 미지원) | 해결(우회) |
 | TS-002 | 2026-08-05 | React StrictMode 이중 렌더링으로 웹캠 play()가 인터럽트되어 dev 오버레이 에러 발생 | 해결 |
 | TS-001 | 2026-08-05 | Supabase SQL Editor(Monaco)에서 여러 줄 SQL 붙여넣기 시 괄호 자동완성으로 SQL이 깨짐 | 해결(우회) |
@@ -130,3 +132,118 @@ CI=true npx react-scripts test src/lib/focusTracker --watchAll=false
 
 **배운 점**
 "모듈을 못 찾는다"는 에러가 항상 설치 문제인 것은 아니다. 빌드는 되는데 테스트 러너에서만 못 찾는다면, 두 도구가 모듈을 해석하는 방식(esbuild/webpack의 최신 exports map 해석 vs. 구버전 Jest 리졸버)이 다르다는 신호다. `package.json`의 `exports` 필드를 직접 열어보면 원인을 빠르게 좁힐 수 있다.
+
+---
+
+### TS-004: AI 채팅이 항상 "답변을 받지 못했어요"(502) — Edge Function 시크릿 이름 오타
+
+**날짜**: 2026-08-05
+**상태**: 해결
+
+**문제**
+AI 채팅 기능을 배포한 뒤 메시지를 보내면 스트리밍이 시작되지 않고 매번 실패했다. 프론트엔드에는 아래 메시지만 떴다.
+
+```
+답변을 받지 못했어요. 잠시 후 다시 시도해주세요.
+```
+
+Supabase Edge Function 로그에서는 요청이 도달했고 함수가 실행됐으며, Anthropic 호출 응답이 비정상이라 `!anthropicResponse.ok` 분기를 타고 502로 반환하는 것까지만 확인됐다.
+
+**재현 조건**
+`ai-chat` Edge Function 배포 직후, 시크릿을 Supabase Dashboard → Edge Functions → Secrets에서 수동 등록한 상태. 100% 재현 — 모든 메시지가 실패했다.
+
+**원인**
+- 표면: Anthropic API가 요청을 거부해 Edge Function이 502를 반환
+- 근본(확인함): Supabase Dashboard의 Secrets 목록을 직접 열어보니 시크릿이 **`ANTROPIC_API_KEY`**(H 누락)로 저장돼 있었다. 코드는 `Deno.env.get('ANTHROPIC_API_KEY')`를 읽으므로 `undefined`가 반환되고, 인증 헤더가 빈 값인 채로 Anthropic에 요청이 나가 거부당했다. 함수 코드에는 문제가 없었다.
+
+**시도했지만 안 된 것**
+- Edge Function 코드(요청 바디 구성, 스트리밍 릴레이 포맷, CORS 헤더)를 먼저 의심하고 훑어봤으나 이상 없었다 — 코드 쪽에서 원인을 찾느라 시간을 썼다
+- Invocations 탭의 요청/응답 로그만으로는 원인이 드러나지 않았다. Anthropic이 반환한 상세 에러 본문이 함수 로그에 남지 않아 "왜 ok가 아닌지"를 알 수 없었다
+
+**해결**
+Supabase Dashboard에서 오타난 `ANTROPIC_API_KEY` 시크릿을 삭제하고 `ANTHROPIC_API_KEY`로 다시 등록했다(시크릿 값 자체는 사용자가 직접 입력 — 에이전트는 키 값을 다루지 않는다). 재배포 없이 다음 호출부터 정상 동작했다.
+
+**검증**
+`/ai-chat`에서 질문을 보내 마크다운 형식의 실제 LLM 답변이 토큰 단위로 스트리밍되는 것을 브라우저에서 확인했다.
+
+**추후 방안**
+Edge Function 시작 지점에서 필수 환경변수의 **존재 여부를 먼저 검사**하고, 없으면 "설정 누락"임이 드러나는 별도 에러를 반환하도록 한다. 지금 구조는 키가 없을 때와 Anthropic이 실제로 거부했을 때가 똑같은 502로 뭉뚱그려져 구분이 안 된다. 예:
+
+```ts
+const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+if (!apiKey) {
+  return new Response(
+    JSON.stringify({ error: 'ANTHROPIC_API_KEY 미설정' }),
+    { status: 500, headers: corsHeaders }
+  );
+}
+```
+
+또한 `!anthropicResponse.ok` 분기에서 Anthropic의 응답 본문을 로그에 남기면 다음번엔 로그만 보고 원인을 특정할 수 있다.
+
+**배운 점**
+환경변수 이름은 **오타가 나도 아무도 알려주지 않는다.** `Deno.env.get()`은 없는 키에 대해 조용히 `undefined`를 돌려주고, 그 결과는 한참 뒤 외부 API 호출 실패로만 나타난다. 설정값을 읽는 지점과 실패가 드러나는 지점이 멀수록 디버깅이 어려워지므로 **읽는 즉시 검증**하는 것이 비용 대비 효과가 가장 크다. 코드를 의심하기 전에 설정 화면을 눈으로 먼저 확인하는 것도 순서상 유리하다.
+
+---
+
+### TS-005: 학습 시간을 `setInterval` 틱 개수로 저장하면 백그라운드 탭에서 과소 기록
+
+**날짜**: 2026-08-05
+**상태**: 해결
+
+**문제**
+학습 세션에 시작/중지/재개/종료 제어를 넣으면서, 저장할 `duration_seconds`를 화면 타이머용 카운터(`elapsedSeconds`)로 바꿨다. 일시정지 구간을 자연스럽게 제외할 수 있어서였다. 코드 리뷰에서 이 방식이 **다른 탭을 보며 공부하면 학습 시간이 실제보다 적게 기록되는** 문제로 지적됐다.
+
+```js
+// 문제가 된 코드
+elapsedTimerIdRef.current = window.setInterval(() => {
+  setElapsedSeconds((prev) => prev + 1);
+}, 1000);
+...
+duration_seconds: elapsedSeconds,   // ← 시간이 아니라 "틱이 돈 횟수"
+```
+
+**재현 조건**
+학습 세션을 시작한 뒤 브라우저 탭을 백그라운드로 전환하고 5분 이상 두었다가 종료할 때. 포그라운드 단시간 테스트(수 초~수십 초)로는 재현되지 않는다 — 그래서 브라우저 수동 검증을 전부 통과했는데도 남아 있었다.
+
+**원인**
+- 표면: 저장된 학습 시간이 실제 학습 시간보다 짧다
+- 근본(확인함): `elapsedSeconds`는 시간이 아니라 **인터벌 콜백이 실행된 횟수**다. 브라우저는 숨겨진 탭의 타이머를 최소 1000ms로 클램프하고, Chrome은 탭이 5분 이상 숨겨지면 intensive throttling으로 **분당 1회**까지 낮춘다. 게다가 `setInterval`은 메인 스레드가 바빠 놓친 틱을 나중에 보충하지 않는다 — 이 앱은 5초마다 MediaPipe 추론을 돌리므로 장시간 세션에서 누락이 단조 누적된다.
+- 웹캠 스트림이 활성이면 스로틀링 예외에 해당할 가능성도 있으나(미확인), 문서로 보장되지 않는 브라우저 구현 세부사항에 데이터 정확성을 의존시킬 수는 없다고 판단했다.
+
+**시도했지만 안 된 것**
+- 브라우저 수동 검증(시작→중지→재개→종료, 중지↔재개 2회 반복)에서 타이머가 36→44로 정확히 이어지고 중지 4초가 정확히 제외되는 것까지 확인했으나, **전부 포그라운드였기 때문에** 이 문제를 전혀 건드리지 못했다. 실측만으로는 못 잡는 종류의 결함이었다.
+- 변경 이전 코드(`aggregateSession`의 `endedAt - startedAt` 벽시계 차이)에는 이 문제가 없었다 — 즉 이번 변경이 만든 회귀였다.
+
+**해결**
+표시와 저장의 책임을 분리했다. 화면 타이머는 인터벌 카운터를 그대로 쓰되, **저장값은 활동 구간별 벽시계 시간을 누적**해 계산한다.
+
+```js
+const accumulatedMsRef = useRef(0);
+const segmentStartedAtRef = useRef(null);
+
+// beginTicking(): 구간 시작
+segmentStartedAtRef.current = Date.now();
+
+// stopTicking(): 구간 종료 — null 가드로 중복 호출 시 이중 계상 방지
+if (segmentStartedAtRef.current !== null) {
+  accumulatedMsRef.current += Date.now() - segmentStartedAtRef.current;
+  segmentStartedAtRef.current = null;
+}
+
+// handleStop(): stopTicking()이 먼저 호출되므로 마지막 구간까지 포함됨
+duration_seconds: Math.round(accumulatedMsRef.current / 1000),
+```
+
+`stopTicking()`의 null 가드가 중요하다 — 저장 실패 후 "다시 저장"을 누르면 `handleStop`이 다시 실행되는데, 가드가 없으면 마지막 구간이 두 번 더해진다.
+
+**검증**
+`npm run build` 컴파일 성공, 기존 테스트 23/23 통과. 재개 후 타이머 연속성과 중지 구간 제외를 브라우저에서 재확인(36→44, 중지 4초 제외 후 44→49). 저장 로직이 벽시계 기반이라 포그라운드 결과는 기존과 동일하게 유지되는 것으로 회귀 없음을 확인했다.
+
+**추후 방안**
+`timeline`(1분 단위 집중도 그래프)의 버킷 인덱스는 여전히 `started_at` 기준 **벽시계 분**이라, 1분 이상 일시정지하면 리포트 그래프에서 막대는 붙어 그려지고 라벨만 건너뛴다(예: `0`, `11`). 즉 저장 시간과 그래프 x축의 기준이 서로 다르다. 후속 작업으로 `Read.js`에서 빠진 minute을 빈 막대로 채워 실제 갭을 그리거나, `aggregateSession`에서 활동 시간 기준으로 재인덱싱하는 방안을 검토한다. 이번 브랜치에서는 수정 범위가 다른 파일로 번져 문서화만 하고 미뤘다.
+
+**배운 점**
+**타이머 카운터는 시간이 아니다.** UI에 초를 보여주려고 만든 `setInterval` 카운터를 그대로 데이터로 저장하는 것은, 표시용 근사값을 진실로 승격시키는 일이다. 브라우저 타이머는 스로틀링·드리프트·틱 누락이 전제된 물건이므로, 저장이 필요한 값은 반드시 `Date.now()` 같은 **실제 시각을 빼서** 구해야 한다.
+
+또 하나 — 이 결함은 브라우저 실측을 전부 통과했다. 실측은 "내가 테스트한 조건"만 검증한다. 백그라운드 탭, 장시간 실행, 저사양 기기처럼 **재현 비용이 높은 조건**은 코드를 읽어서 추론해야 하며, 이것이 수동 검증이 끝난 뒤에도 코드 리뷰를 거쳐야 하는 이유다.
