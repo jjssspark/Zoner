@@ -95,7 +95,8 @@ export const AiChat = () => {
           });
         },
       });
-      setAnnouncement('AI 응답이 도착했습니다.');
+      setAnnouncement('');
+      setTimeout(() => setAnnouncement('AI 응답이 도착했습니다.'), 0);
     } catch (error) {
       if (error.isDailyLimit) {
         setLimitReached(true);
