@@ -33,6 +33,8 @@ export const StartLearning = () => {
   const startedAtRef = useRef(null);
   const faceLandmarkerRef = useRef(null);
   const elapsedTimerIdRef = useRef(null);
+  const accumulatedMsRef = useRef(0);
+  const segmentStartedAtRef = useRef(null);
 
   const [status, setStatus] = useState(STATUS.REQUESTING_CAMERA);
   const [isModelReady, setIsModelReady] = useState(false);
@@ -99,6 +101,8 @@ export const StartLearning = () => {
   };
 
   const beginTicking = () => {
+    segmentStartedAtRef.current = Date.now();
+
     elapsedTimerIdRef.current = window.setInterval(() => {
       setElapsedSeconds((prev) => prev + 1);
     }, 1000);
@@ -119,6 +123,11 @@ export const StartLearning = () => {
       trackerRef.current = null;
     }
     window.clearInterval(elapsedTimerIdRef.current);
+
+    if (segmentStartedAtRef.current !== null) {
+      accumulatedMsRef.current += Date.now() - segmentStartedAtRef.current;
+      segmentStartedAtRef.current = null;
+    }
   };
 
   const handleStart = () => {
@@ -149,29 +158,37 @@ export const StartLearning = () => {
       endedAt
     );
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    const { data, error } = await supabase
-      .from('study_sessions')
-      .insert({
-        user_id: user.id,
-        started_at: startedAtRef.current,
-        ended_at: endedAt,
-        duration_seconds: elapsedSeconds,
-        focus_score: focusScore,
-        timeline,
-      })
-      .select('id')
-      .single();
+      // 표시용 elapsedSeconds는 setInterval 틱 개수라 백그라운드 탭에서
+      // 브라우저가 타이머를 스로틀링하면 실제보다 적게 세어진다. 저장값은
+      // 활동 구간마다 누적한 벽시계 시간(accumulatedMsRef)을 사용해
+      // 탭이 백그라운드에 있어도 정확한 학습 시간을 기록한다.
+      const { data, error } = await supabase
+        .from('study_sessions')
+        .insert({
+          user_id: user.id,
+          started_at: startedAtRef.current,
+          ended_at: endedAt,
+          duration_seconds: Math.round(accumulatedMsRef.current / 1000),
+          focus_score: focusScore,
+          timeline,
+        })
+        .select('id')
+        .single();
 
-    if (error) {
+      if (error) {
+        setStatus(STATUS.SAVE_ERROR);
+        return;
+      }
+
+      navigate(`/read?session=${data.id}`);
+    } catch (error) {
       setStatus(STATUS.SAVE_ERROR);
-      return;
     }
-
-    navigate(`/read?session=${data.id}`);
   };
 
   return (
