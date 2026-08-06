@@ -49,7 +49,7 @@
 }
 
 .start-learning__main {
-  max-width: 560px;
+  max-width: 960px;
   margin: 0 auto;
   padding: var(--space-8) var(--space-6);
   display: flex;
@@ -66,7 +66,11 @@
 
 .start-learning__video-wrap {
   position: relative;
-  width: 100%;
+  /* 화면의 중심 요소로 키우되, 뷰포트 높이 기준으로 상한을 둬서 세션
+     컨트롤(시작/중지/종료)이 노트북 화면 아래로 밀려나지 않게 한다.
+     width는 100%(좁은 화면에서 가로 스크롤 방지)와 뷰포트 높이 기반 값,
+     절대 상한(px) 중 가장 작은 값을 취한다. */
+  width: min(100%, calc((58vh * 4) / 3), 880px);
   aspect-ratio: 4 / 3;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
