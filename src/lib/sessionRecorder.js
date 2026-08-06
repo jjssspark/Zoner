@@ -46,6 +46,12 @@ export function createSessionRecorder({ stream, onError } = {}) {
     start() {
       if (recorder || !stream || !isRecordingSupported()) return;
 
+      // 한 인스턴스로 다시 녹화할 수 있다. 이전 세션의 청크와 실패 플래그가
+      // 남아 있으면 새 영상에 옛 데이터가 섞이거나, 지난 실패 때문에
+      // 정상 녹화가 영영 null로 나온다.
+      chunks.length = 0;
+      hasFailed = false;
+
       try {
         recorder = new window.MediaRecorder(stream, {
           mimeType: RECORDER_MIME_TYPE,

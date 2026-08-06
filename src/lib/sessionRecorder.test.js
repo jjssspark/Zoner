@@ -202,4 +202,35 @@ describe('createSessionRecorder', () => {
 
     expect(Fake.instances).toHaveLength(0);
   });
+
+  test('다시 start하면 이전 세션의 청크가 섞이지 않는다', async () => {
+    const Fake = installFakeRecorder();
+    const recorder = createSessionRecorder({ stream: fakeStream });
+
+    recorder.start();
+    Fake.instances[0].emitChunk(10);
+    const first = await recorder.stop();
+
+    recorder.start();
+    Fake.instances[1].emitChunk(10);
+    const second = await recorder.stop();
+
+    expect(Fake.instances).toHaveLength(2);
+    // 두 번째 Blob이 첫 세션 청크까지 담았다면 크기가 대략 두 배가 된다.
+    expect(second.size).toBe(first.size);
+  });
+
+  test('실패한 뒤 다시 start하면 정상 Blob이 나온다', async () => {
+    const Fake = installFakeRecorder();
+    const recorder = createSessionRecorder({ stream: fakeStream, onError: jest.fn() });
+
+    recorder.start();
+    Fake.instances[0].emitError(new Error('device lost'));
+    expect(await recorder.stop()).toBeNull();
+
+    recorder.start();
+    Fake.instances[1].emitChunk(10);
+
+    expect(await recorder.stop()).toBeInstanceOf(Blob);
+  });
 });
