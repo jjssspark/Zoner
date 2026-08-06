@@ -32,6 +32,7 @@ export function createAlertEngine({
         0,
         Math.round((endedAtMs - openAlert.startedAtMs) / 1000)
       ),
+      offset_seconds: openAlert.offsetSeconds,
     });
     openAlert = null;
   };
@@ -56,6 +57,9 @@ export function createAlertEngine({
         startedAtMs: tick.timestampMs,
         startedAt: new Date(tick.timestampMs).toISOString(),
         reason: tick.reason,
+        // 영상 재생 시간축(일시정지 제외)에서 이 알림이 발생한 지점.
+        // 리포트에서 이 값으로 seek한다.
+        offsetSeconds: Math.max(0, Math.round((tick.elapsedMs ?? 0) / 1000)),
       };
 
       if (onAlert) {

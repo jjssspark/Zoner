@@ -229,11 +229,13 @@ describe('aggregateSession', () => {
     const startMs = new Date(startedAt).getTime();
 
     const ticks = [
-      { timestampMs: startMs + 0, focused: true, reason: REASON.FOCUSED },
-      { timestampMs: startMs + 5000, focused: true, reason: REASON.FOCUSED },
-      { timestampMs: startMs + 65000, focused: false, reason: REASON.ABSENT },
+      // 이 테스트에는 일시정지가 없으므로 elapsedMs는 벽시계 오프셋과 같다.
+      { timestampMs: startMs + 0, elapsedMs: 0, focused: true, reason: REASON.FOCUSED },
+      { timestampMs: startMs + 5000, elapsedMs: 5000, focused: true, reason: REASON.FOCUSED },
+      { timestampMs: startMs + 65000, elapsedMs: 65000, focused: false, reason: REASON.ABSENT },
       {
         timestampMs: startMs + 70000,
+        elapsedMs: 70000,
         focused: true,
         reason: REASON.LOOKING_DOWN,
       },
@@ -261,5 +263,46 @@ describe('aggregateSession', () => {
     expect(result.focusScore).toBe(0);
     expect(result.timeline).toEqual([]);
     expect(result.focusBreakdown.focused).toBe(0);
+  });
+});
+
+describe('aggregateSession — 경과 시간 기준 버킷', () => {
+  // 일시정지 동안 elapsedMs는 멈추고 timestampMs만 흐른다.
+  // 버킷은 elapsedMs를 따라야 영상 재생 시간축과 일치한다.
+  const startedAt = '2026-08-06T10:00:00.000Z';
+  const startMs = new Date(startedAt).getTime();
+
+  test('버킷 인덱스가 elapsedMs로 계산된다', () => {
+    const ticks = [
+      { timestampMs: startMs + 5000, elapsedMs: 5000, focused: true, reason: 'focused' },
+      { timestampMs: startMs + 65000, elapsedMs: 65000, focused: false, reason: 'absent' },
+    ];
+
+    const { timeline } = aggregateSession(ticks, startedAt, '2026-08-06T10:02:00.000Z');
+
+    expect(timeline.map((bucket) => bucket.minute)).toEqual([0, 1]);
+  });
+
+  test('10분 일시정지가 있어도 그래프에 빈 구간이 생기지 않는다', () => {
+    const ticks = [
+      // 0분대 — 일시정지 전
+      { timestampMs: startMs + 5000, elapsedMs: 5000, focused: true, reason: 'focused' },
+      // 벽시계로는 11분 뒤지만 실제 학습 경과는 10초뿐이다
+      { timestampMs: startMs + 665000, elapsedMs: 10000, focused: true, reason: 'focused' },
+    ];
+
+    const { timeline } = aggregateSession(ticks, startedAt, '2026-08-06T10:11:10.000Z');
+
+    // 벽시계 기준이었다면 minute 0과 11이 나와 사이가 비었을 것이다
+    expect(timeline).toHaveLength(1);
+    expect(timeline[0].minute).toBe(0);
+  });
+
+  test('elapsedMs가 없는 틱은 0분대로 본다 — 크래시하지 않는다', () => {
+    const ticks = [{ timestampMs: startMs + 5000, focused: true, reason: 'focused' }];
+
+    const { timeline } = aggregateSession(ticks, startedAt, '2026-08-06T10:00:10.000Z');
+
+    expect(timeline).toEqual([{ minute: 0, focus_ratio: 1 }]);
   });
 });

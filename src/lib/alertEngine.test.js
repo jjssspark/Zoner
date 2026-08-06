@@ -100,6 +100,8 @@ describe('createAlertEngine — 이벤트 기록', () => {
         ended_at: new Date(T0 + 90000).toISOString(),
         reason: 'absent',
         duration_seconds: 80,
+        // 이 테스트의 틱에는 elapsedMs가 없으므로 폴백인 0이 된다.
+        offset_seconds: 0,
       },
     ]);
   });
@@ -215,5 +217,66 @@ describe('ALERT_MESSAGES', () => {
   test('집중으로 판정되는 reason에는 문구가 없다', () => {
     expect(ALERT_MESSAGES.focused).toBeUndefined();
     expect(ALERT_MESSAGES.looking_down).toBeUndefined();
+  });
+});
+
+describe('알림 오프셋 — 영상 seek 지점', () => {
+  const tick = (elapsedMs, focused, reason) => ({
+    timestampMs: 1000000 + elapsedMs,
+    elapsedMs,
+    focused,
+    reason,
+  });
+
+  test('알림에 offset_seconds가 붙는다', () => {
+    const engine = createAlertEngine();
+
+    engine.handleTick(tick(5000, false, 'absent'));
+    engine.handleTick(tick(10000, false, 'absent'));
+    engine.handleTick(tick(15000, false, 'absent'));
+
+    const alerts = engine.finish(1_020_000);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].offset_seconds).toBe(15);
+  });
+
+  test('오프셋은 발화한 틱의 경과 시간이다 — 벽시계가 아니다', () => {
+    const engine = createAlertEngine();
+
+    // 일시정지를 사이에 껴서 timestampMs와 elapsedMs를 크게 벌린다
+    engine.handleTick({ timestampMs: 9_000_000, elapsedMs: 5000, focused: false, reason: 'absent' });
+    engine.handleTick({ timestampMs: 9_005_000, elapsedMs: 10000, focused: false, reason: 'absent' });
+    engine.handleTick({ timestampMs: 9_010_000, elapsedMs: 15000, focused: false, reason: 'absent' });
+
+    const alerts = engine.finish(9_015_000);
+    expect(alerts[0].offset_seconds).toBe(15);
+  });
+
+  test('elapsedMs가 없으면 오프셋이 0이다', () => {
+    const engine = createAlertEngine();
+
+    engine.handleTick({ timestampMs: 1000, focused: false, reason: 'absent' });
+    engine.handleTick({ timestampMs: 2000, focused: false, reason: 'absent' });
+    engine.handleTick({ timestampMs: 3000, focused: false, reason: 'absent' });
+
+    const alerts = engine.finish(4000);
+    expect(alerts[0].offset_seconds).toBe(0);
+  });
+
+  test('기존 필드는 그대로 유지된다', () => {
+    const engine = createAlertEngine();
+
+    engine.handleTick(tick(5000, false, 'head_turned'));
+    engine.handleTick(tick(10000, false, 'head_turned'));
+    engine.handleTick(tick(15000, false, 'head_turned'));
+
+    const alerts = engine.finish(1_020_000);
+    expect(Object.keys(alerts[0]).sort()).toEqual([
+      'duration_seconds',
+      'ended_at',
+      'offset_seconds',
+      'reason',
+      'started_at',
+    ]);
   });
 });

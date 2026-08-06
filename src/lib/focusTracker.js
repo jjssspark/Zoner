@@ -148,11 +148,13 @@ export function aggregateSession(ticks, startedAt, endedAt) {
   const focusScore =
     ticks.length === 0 ? 0 : Math.round((focusedCount / ticks.length) * 100);
 
-  const startMs = new Date(startedAt).getTime();
   const buckets = new Map();
 
   ticks.forEach((tick) => {
-    const minute = Math.floor((tick.timestampMs - startMs) / 60000);
+    // 벽시계가 아니라 경과 시간으로 나눈다. 일시정지 구간에서는 elapsedMs가
+    // 멈추므로 그래프에 빈 구간이 생기지 않고, MediaRecorder가 일시정지를
+    // 들어낸 영상의 재생 시간축과도 일치한다.
+    const minute = Math.floor((tick.elapsedMs ?? 0) / 60000);
     const bucket = buckets.get(minute) || { total: 0, focused: 0 };
     bucket.total += 1;
     if (tick.focused) {
