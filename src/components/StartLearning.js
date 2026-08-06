@@ -28,6 +28,7 @@ const formatElapsed = (seconds) => {
 export const StartLearning = () => {
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const streamRef = useRef(null);
   const trackerRef = useRef(null);
   const ticksRef = useRef([]);
   const startedAtRef = useRef(null);
@@ -41,20 +42,53 @@ export const StartLearning = () => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isFocused, setIsFocused] = useState(true);
 
+  // 카메라를 끄고 마지막 프레임이 화면에 얼어붙어 남지 않도록 미리보기도
+  // 비운다. 세션 종료(언마운트 포함)에서만 호출한다 - 일시정지에서는 호출하지
+  // 않아야 재개 시 카메라 재시작 지연이 없다.
+  const releaseCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
   useEffect(() => {
-    let stream;
-    let isModelLoadCancelled = false;
+    // effect가 취소된 뒤(StrictMode의 개발 모드 마운트→클린업→재마운트, 또는
+    // 실제 언마운트) getUserMedia가 뒤늦게 resolve되는 경우를 잡기 위한
+    // 플래그. streamRef는 이 effect 인스턴스가 취소돼도 컴포넌트 인스턴스에
+    // 남아있으므로, "지금 이 effect가 살아있는가"는 별도 클로저 변수로
+    // 판단해야 한다.
+    let isCancelled = false;
 
     const start = async () => {
+      let mediaStream;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+        });
       } catch (error) {
-        setStatus(STATUS.CAMERA_DENIED);
+        if (!isCancelled) {
+          setStatus(STATUS.CAMERA_DENIED);
+        }
         return;
       }
 
+      if (isCancelled) {
+        // 이 effect는 스트림을 받기 전에 이미 클린업됐다. streamRef에는
+        // 다음 마운트의 스트림이 들어있을 수 있으므로 건드리지 않고, 이
+        // 늦게 도착한 스트림만 즉시 해제해 카메라가 계속 켜져 있는 것을
+        // 막는다.
+        mediaStream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
+      streamRef.current = mediaStream;
+
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+        videoRef.current.srcObject = mediaStream;
         try {
           await videoRef.current.play();
         } catch (error) {
@@ -68,13 +102,13 @@ export const StartLearning = () => {
 
       try {
         const faceLandmarker = await loadFaceLandmarker();
-        if (isModelLoadCancelled) {
+        if (isCancelled) {
           return;
         }
         faceLandmarkerRef.current = faceLandmarker;
         setIsModelReady(true);
       } catch (error) {
-        if (!isModelLoadCancelled) {
+        if (!isCancelled) {
           setStatus(STATUS.MODEL_ERROR);
         }
       }
@@ -83,16 +117,14 @@ export const StartLearning = () => {
     start();
 
     return () => {
-      isModelLoadCancelled = true;
+      isCancelled = true;
       if (trackerRef.current) {
         trackerRef.current.stop();
       }
       if (elapsedTimerIdRef.current) {
         window.clearInterval(elapsedTimerIdRef.current);
       }
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
+      releaseCamera();
     };
   }, []);
 
@@ -148,6 +180,10 @@ export const StartLearning = () => {
 
   const handleStop = async () => {
     stopTicking();
+    // 저장 성공 여부와 무관하게 종료 버튼을 누른 시점에 카메라를 끈다.
+    // 저장 왕복(await) 뒤로 미루면 실패 시 컴포넌트가 계속 마운트된 채
+    // 남아 언마운트 클린업이 돌지 않고, 카메라가 켜진 채로 방치된다.
+    releaseCamera();
 
     setStatus(STATUS.SAVING);
 
