@@ -132,6 +132,13 @@ export const StartLearning = () => {
         window.clearInterval(elapsedTimerIdRef.current);
       }
       releaseCamera();
+      // AudioContext는 브라우저가 동시 생성 개수를 제한한다(Chrome 기준 약 6개).
+      // 닫지 않고 페이지를 떠나면 반복 진입 시 한도에 도달해 알림음이 조용히
+      // 멈춘다. close()는 이미 닫힌 컨텍스트에서 reject할 수 있으므로 무시한다.
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {});
+        audioContextRef.current = null;
+      }
     };
   }, []);
 
@@ -218,12 +225,10 @@ export const StartLearning = () => {
   };
 
   const handleToggleMute = () => {
-    setIsMuted((prev) => {
-      const next = !prev;
-      isMutedRef.current = next;
-      saveAlertMuted(next);
-      return next;
-    });
+    const next = !isMuted;
+    isMutedRef.current = next;
+    saveAlertMuted(next);
+    setIsMuted(next);
   };
 
   const handleResume = () => {
