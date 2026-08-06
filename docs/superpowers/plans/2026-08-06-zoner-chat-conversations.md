@@ -105,7 +105,7 @@ describe('buildConversationTitle', () => {
 
   test('단어 중간에서 잘려도 그대로 둔다', () => {
     const content = '이차함수의 그래프를 그리는 방법이 궁금합니다';
-    expect(buildConversationTitle(content)).toBe('이차함수의 그래프를 그리는 방법이…');
+    expect(buildConversationTitle(content)).toBe('이차함수의 그래프를 그리는 방법이 궁…');
   });
 
   test('앞뒤 공백은 제거한다', () => {
