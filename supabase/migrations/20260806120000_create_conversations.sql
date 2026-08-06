@@ -39,19 +39,20 @@ create policy "conversations_delete_own"
 alter table chat_messages
   add column conversation_id uuid references conversations(id) on delete cascade;
 
--- 백필 1: 메시지를 가진 사용자마다 대화 1건 생성.
+-- 백필: 메시지를 가진 사용자마다 대화 1건 생성 + 기존 메시지 연결.
+-- CTE로 INSERT와 UPDATE를 원자적으로 수행하여 대화 오배정 위험 제거.
 -- created_at은 그 사용자의 가장 오래된 메시지 시각, updated_at은 가장 최근 메시지 시각.
-insert into conversations (user_id, title, created_at, updated_at)
-select m.user_id, '이전 대화', min(m.created_at), max(m.created_at)
-from chat_messages m
-group by m.user_id;
-
--- 백필 2: 기존 메시지를 그 사용자의 대화로 연결.
--- 이 시점에 사용자당 conversations 행은 정확히 하나다(위 insert가 방금 만든 것).
+with new_conversations as (
+  insert into conversations (user_id, title, created_at, updated_at)
+  select m.user_id, '이전 대화', min(m.created_at), max(m.created_at)
+  from chat_messages m
+  group by m.user_id
+  returning id, user_id
+)
 update chat_messages m
-set conversation_id = c.id
-from conversations c
-where c.user_id = m.user_id
+set conversation_id = nc.id
+from new_conversations nc
+where nc.user_id = m.user_id
   and m.conversation_id is null;
 
 -- 백필 3: 전부 채워진 것을 전제로 not null 승격 + 조회 인덱스.
