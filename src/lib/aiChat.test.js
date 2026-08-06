@@ -158,6 +158,63 @@ describe('sendChatMessage', () => {
     ).rejects.toThrow('답변을 받지 못했어요.');
   });
 
+  test('401 응답이면 에러 객체에 isUnauthorized 플래그가 설정된다', async () => {
+    const response = { ok: false, status: 401, json: () => Promise.resolve({}) };
+    global.fetch = jest.fn().mockResolvedValue(response);
+
+    let caughtError;
+    try {
+      await sendChatMessage({
+        supabaseUrl: 'https://example.supabase.co',
+        accessToken: 'token123',
+        content: '안녕',
+        onDelta: () => {},
+      });
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError.isUnauthorized).toBe(true);
+  });
+
+  test('404 응답이면 에러 객체에 isConversationGone 플래그가 설정된다', async () => {
+    const response = { ok: false, status: 404, json: () => Promise.resolve({}) };
+    global.fetch = jest.fn().mockResolvedValue(response);
+
+    let caughtError;
+    try {
+      await sendChatMessage({
+        supabaseUrl: 'https://example.supabase.co',
+        accessToken: 'token123',
+        content: '안녕',
+        onDelta: () => {},
+      });
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError.isConversationGone).toBe(true);
+  });
+
+  test('400 응답이면 에러 객체에 isConversationGone 플래그가 설정된다', async () => {
+    const response = { ok: false, status: 400, json: () => Promise.resolve({}) };
+    global.fetch = jest.fn().mockResolvedValue(response);
+
+    let caughtError;
+    try {
+      await sendChatMessage({
+        supabaseUrl: 'https://example.supabase.co',
+        accessToken: 'token123',
+        content: '안녕',
+        onDelta: () => {},
+      });
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError.isConversationGone).toBe(true);
+  });
+
   test('conversationId를 요청 본문에 실어 보낸다', async () => {
     const response = mockStreamResponse(['data: [DONE]\n\n']);
     global.fetch = jest.fn().mockResolvedValue(response);

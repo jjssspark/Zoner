@@ -666,7 +666,7 @@ git add supabase/functions/ai-chat/index.ts
 git commit -m "feat: Edge Function이 대화별로 맥락을 로드하고 소유권을 검증하도록 변경"
 ```
 
-**참고 — 서브에이전트는 배포하지 않는다.** 컨트롤러가 Supabase 대시보드 Edge Functions 에디터로 `ai-chat` 함수를 재배포한다. 재배포 전까지는 프론트에서 400/404가 나는 것이 정상이다.
+**참고 — 서브에이전트는 배포하지 않는다.** 컨트롤러가 Supabase 대시보드 Edge Functions 에디터로 `ai-chat` 함수를 재배포한다. 재배포 전까지는 OLD 함수가 그대로 살아 있으므로 `conversationId`를 무시하고 기존과 동일하게 동작한다 — 400/404가 나는 것이 정상이 아니다.
 
 ---
 
@@ -1999,13 +1999,18 @@ git commit -m "feat: 대화 목록 레이아웃과 반응형 스타일 추가"
 
 ## 배포 (컨트롤러가 수행 — 서브에이전트 아님)
 
-Task 2·3의 산출물은 커밋만으로 동작하지 않는다. 아래를 순서대로 한다.
+Task 2·3의 산출물은 커밋만으로 동작하지 않는다. **무중단 배포를 위해 아래 순서를 반드시 지킨다** —
+`20260806120000`은 더 이상 not null을 걸지 않으므로 OLD Edge Function이 떠 있는 동안 적용해도 안전하다.
+not null 승격(`20260806130000`)은 반드시 새 Edge Function 배포 "이후"에만 적용한다.
 
-1. **마이그레이션 적용 전 기준선 기록** — Supabase SQL Editor에서 `select count(*) from chat_messages;`, `select count(distinct user_id) from chat_messages;` 결과를 적어 둔다.
-2. **마이그레이션 적용** — Task 2의 SQL. TS-001 주의사항(Monaco 괄호 자동완성)을 지킨다.
+1. **기준선 기록** — Supabase SQL Editor에서 `select count(*) from chat_messages;`, `select count(distinct user_id) from chat_messages;` 결과를 적어 둔다.
+2. **`20260806120000` 적용** — Task 2의 SQL(더 이상 not null을 걸지 않는다). TS-001 주의사항(Monaco 괄호 자동완성)을 지킨다.
 3. **백필 검증** — Task 2의 검증 쿼리 3건. 하나라도 어긋나면 **다음 단계로 가지 말고** 원인을 찾는다.
-4. **Edge Function 재배포** — Supabase 대시보드 Edge Functions 에디터로 `ai-chat` 함수에 Task 3의 코드를 반영한다.
-5. 아래 "검증"으로 넘어간다.
+4. **Edge Function 재배포** — Supabase 대시보드 Edge Functions 에디터로 `ai-chat` 함수에 Task 3의 코드를 반영한다. 이 시점까지 OLD 함수가 계속 메시지를 정상 처리하므로 서비스 중단이 없다.
+5. **클라이언트 배포/새로고침** — 새 프론트엔드(Task 4~7 반영분)를 배포하거나 로컬 새로고침한다.
+6. **배포 공백 재확인** — `select count(*) from chat_messages where conversation_id is null;`을 다시 실행한다. 2~4단계 사이에 OLD 함수가 써 넣은 행이 있으면 0보다 클 수 있다. 0보다 크면 먼저 그 행들을 올바른 대화로 백필한다.
+7. **`20260806130000` 적용** — not null 승격. DO 블록 가드가 남은 NULL 행을 감지하면 명확한 한국어 예외로 실패하므로, 6단계를 건너뛰었다면 여기서 걸러진다.
+8. 아래 "검증"으로 넘어간다.
 
 ---
 

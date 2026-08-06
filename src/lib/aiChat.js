@@ -42,6 +42,16 @@ export async function sendChatMessage({ supabaseUrl, accessToken, content, conve
       error.isDailyLimit = true;
       throw error;
     }
+    if (response.status === 401) {
+      const error = new Error('세션이 만료됐어요. 다시 로그인해주세요.');
+      error.isUnauthorized = true;
+      throw error;
+    }
+    if (response.status === 400 || response.status === 404) {
+      const error = new Error('대화를 찾을 수 없어요. 다른 대화를 선택하거나 새로 시작해주세요.');
+      error.isConversationGone = true;
+      throw error;
+    }
     throw new Error('답변을 받지 못했어요.');
   }
 

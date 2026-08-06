@@ -32,6 +32,14 @@ export const AiChat = () => {
   const renameInputRef = useRef(null);
   // 대화를 빠르게 전환할 때 늦게 도착한 응답이 최신 화면을 덮어쓰지 않게 한다.
   const loadRequestRef = useRef(0);
+  // 마운트 해제 후 비동기 응답이 도착해도 state를 건드리지 않도록 막는다.
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const loadMessages = useCallback(async (conversationId) => {
     const requestId = loadRequestRef.current + 1;
@@ -41,7 +49,7 @@ export const AiChat = () => {
     setAnnouncement('대화를 불러오는 중입니다.');
 
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('chat_messages')
         .select('id, role, content, created_at')
         .eq('conversation_id', conversationId)
@@ -49,6 +57,15 @@ export const AiChat = () => {
         .limit(100);
 
       if (loadRequestRef.current !== requestId) return;
+
+      if (error) {
+        console.error(error);
+        setErrorMessage('대화를 불러오지 못했어요.');
+        // 이전 메시지 state를 그대로 둔다. []로 비우면 handleSend가 빈 방으로
+        // 오인해 isFirstMessage를 true로 계산하고 제목을 잘못 덮어쓴다.
+        return;
+      }
+
       setMessages((data || []).slice().reverse());
       setAnnouncement('대화를 불러왔습니다.');
     } finally {
@@ -60,43 +77,61 @@ export const AiChat = () => {
     }
   }, []);
 
+  // 마운트 시 초기 로드와 handleSend의 실패 복구(대화가 사라진 경우) 양쪽에서
+  // 재사용한다. selectFirstOnLoad는 최초 진입 시에만 첫 대화를 자동 선택하기
+  // 위한 것으로, 재호출 시(예: 전송 실패 후 목록만 새로고침) 사용자가 보고
+  // 있던 화면을 임의로 바꾸지 않는다.
+  const loadConversations = useCallback(
+    async ({ selectFirstOnLoad = false } = {}) => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          navigate('/login');
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('conversations')
+          .select('id, title, updated_at')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false });
+
+        if (!isMountedRef.current) return;
+
+        if (error) {
+          console.error(error);
+          setErrorMessage('대화 목록을 불러오지 못했어요.');
+          // 이전 목록을 그대로 둔다. []로 비우면 실제로는 대화가 있는데도
+          // "아직 대화가 없어요"로 보이고, 다음 전송이 대화를 중복 생성한다.
+          return;
+        }
+
+        const list = data || [];
+        setConversations(list);
+
+        if (selectFirstOnLoad && list.length > 0) {
+          setActiveId(list[0].id);
+          loadMessages(list[0].id);
+        }
+      } catch (error) {
+        if (!isMountedRef.current) return;
+        console.error(error);
+        setErrorMessage('대화 목록을 불러오지 못했어요.');
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [navigate, loadMessages]
+  );
+
   useEffect(() => {
-    let isMounted = true;
-
-    const loadConversations = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      const { data } = await supabase
-        .from('conversations')
-        .select('id, title, updated_at')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
-
-      if (!isMounted) return;
-
-      const list = data || [];
-      setConversations(list);
-      setIsLoading(false);
-
-      if (list.length > 0) {
-        setActiveId(list[0].id);
-        loadMessages(list[0].id);
-      }
-    };
-
-    loadConversations();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [navigate, loadMessages]);
+    loadConversations({ selectFirstOnLoad: true });
+  }, [loadConversations]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -119,6 +154,9 @@ export const AiChat = () => {
     setErrorMessage(null);
     setFailedMessage(null);
     loadMessages(conversationId);
+    // 좁은 화면에서는 목록 선택 즉시 패널이 닫혀 방금 누른 버튼이 사라진다.
+    // 포커스를 옮겨주지 않으면 다음 Tab이 body부터 다시 시작한다.
+    textareaRef.current?.focus();
   };
 
   const handleNewConversation = () => {
@@ -244,14 +282,28 @@ export const AiChat = () => {
       setAnnouncement('');
       setTimeout(() => setAnnouncement('AI 응답이 도착했습니다.'), 0);
     } catch (error) {
+      // 낙관적으로 추가한 user 버블 + 빈 assistant 버블을 함께 제거한다.
+      // 하나만 제거하면 재시도 시 같은 user 메시지가 중복 표시된다.
+      setMessages((prev) => prev.slice(0, -2));
+
+      if (error.isUnauthorized) {
+        navigate('/login');
+        return;
+      }
+
+      if (error.isConversationGone) {
+        // 재시도는 무조건 같은 방식으로 실패하므로 다시 시도 버튼을 띄우지 않는다.
+        setErrorMessage(error.message || '답변을 받지 못했어요.');
+        // 사라진 대화를 사이드바에서도 지운다.
+        loadConversations();
+        return;
+      }
+
       if (error.isDailyLimit) {
         setLimitReached(true);
       }
       setErrorMessage(error.message || '답변을 받지 못했어요.');
       setFailedMessage(content);
-      // 낙관적으로 추가한 user 버블 + 빈 assistant 버블을 함께 제거한다.
-      // 하나만 제거하면 재시도 시 같은 user 메시지가 중복 표시된다.
-      setMessages((prev) => prev.slice(0, -2));
     } finally {
       setIsSending(false);
     }
@@ -271,6 +323,8 @@ export const AiChat = () => {
   };
 
   const startRename = (conversation) => {
+    if (isSending) return;
+
     setRenamingId(conversation.id);
     setRenameValue(conversation.title);
   };
@@ -283,9 +337,9 @@ export const AiChat = () => {
 
     const trimmed = renameValue.trim();
     const nextTitle = trimmed.length === 0 ? DEFAULT_CONVERSATION_TITLE : trimmed;
-    const previousTitle = conversations.find(
-      (conversation) => conversation.id === conversationId
-    )?.title;
+    const previousTitle =
+      conversations.find((conversation) => conversation.id === conversationId)?.title ??
+      DEFAULT_CONVERSATION_TITLE;
 
     setRenamingId(null);
     setConversations((prev) =>
@@ -437,6 +491,7 @@ export const AiChat = () => {
                           className="ai-chat-conversations__control"
                           aria-label={`${conversation.title} 이름 변경`}
                           onClick={() => startRename(conversation)}
+                          disabled={isSending}
                         >
                           이름
                         </button>
