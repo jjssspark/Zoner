@@ -107,4 +107,32 @@ describe('ConfirmDialog', () => {
     );
     expect(opener).toHaveFocus();
   });
+
+  test('aria-labelledby와 aria-describedby가 실제 제목·설명 요소를 가리킨다', () => {
+    render(
+      <ConfirmDialog
+        title="대화를 삭제할까요?"
+        description="메시지도 함께 사라져요."
+        onConfirm={noop}
+        onCancel={noop}
+      />
+    );
+
+    const dialog = screen.getByRole('dialog');
+
+    const labelledBy = document.getElementById(dialog.getAttribute('aria-labelledby'));
+    expect(labelledBy).not.toBeNull();
+    expect(labelledBy).toHaveTextContent('대화를 삭제할까요?');
+
+    const describedBy = document.getElementById(dialog.getAttribute('aria-describedby'));
+    expect(describedBy).not.toBeNull();
+    expect(describedBy).toHaveTextContent('메시지도 함께 사라져요.');
+  });
+
+  test('설명이 없으면 aria-describedby가 존재하지 않는다', () => {
+    render(<ConfirmDialog title="삭제할까요?" onConfirm={noop} onCancel={noop} />);
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).not.toHaveAttribute('aria-describedby');
+  });
 });
