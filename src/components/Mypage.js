@@ -81,39 +81,40 @@ export const Mypage = () => {
     let isMounted = true;
 
     const loadUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+        if (!user) {
+          navigate('/login');
+          return;
+        }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('name')
-        .eq('id', user.id)
-        .single();
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', user.id)
+          .single();
 
-      const [{ data: sessions }, { count: sessionCount }] = await Promise.all([
-        supabase
+        const { data: sessions, count: sessionCount } = await supabase
           .from('active_study_sessions')
-          .select('id, started_at, focus_score')
+          .select('id, started_at, focus_score', { count: 'exact' })
           .eq('user_id', user.id)
           .order('started_at', { ascending: false })
-          .limit(3),
-        supabase
-          .from('active_study_sessions')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id),
-      ]);
+          .limit(3);
 
-      if (isMounted) {
-        setUserName(profile ? profile.name : 'Guest');
-        setRecentSessions(sessions || []);
-        setTotalSessions(typeof sessionCount === 'number' ? sessionCount : null);
-        setIsLoading(false);
+        if (isMounted) {
+          setUserName(profile ? profile.name : 'Guest');
+          setRecentSessions(sessions || []);
+          setTotalSessions(typeof sessionCount === 'number' ? sessionCount : null);
+        }
+      } catch (error) {
+        console.error('Mypage: failed to load user data', error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
