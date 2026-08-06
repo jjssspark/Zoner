@@ -416,12 +416,12 @@ export function createAlertEngine({
 - [ ] **Step 4: 테스트가 통과하는지 확인한다**
 
 Run: `CI=true npx react-scripts test --watchAll=false src/lib/alertEngine.test.js`
-Expected: PASS — 19 passed
+Expected: PASS — 20 passed
 
 - [ ] **Step 5: 전체 테스트를 확인한다**
 
 Run: `CI=true npx react-scripts test --watchAll=false`
-Expected: 11 suites / 125 tests 전부 통과
+Expected: 11 suites / 126 tests 전부 통과
 
 - [ ] **Step 6: 커밋한다**
 
@@ -632,7 +632,7 @@ Expected: PASS — 9 passed
 - [ ] **Step 5: 전체 테스트를 확인한다**
 
 Run: `CI=true npx react-scripts test --watchAll=false`
-Expected: 12 suites / 134 tests 전부 통과
+Expected: 12 suites / 135 tests 전부 통과
 
 - [ ] **Step 6: 커밋한다**
 
@@ -989,7 +989,7 @@ import { loadAlertMuted, saveAlertMuted, playAlertTone } from '../lib/alertSound
 - [ ] **Step 7: 테스트와 빌드를 확인한다**
 
 Run: `CI=true npx react-scripts test --watchAll=false`
-Expected: 12 suites / 134 tests 전부 통과 (이 파일에는 테스트가 없다 — 회귀만 확인)
+Expected: 12 suites / 135 tests 전부 통과 (이 파일에는 테스트가 없다 — 회귀만 확인)
 
 Run: `npx react-scripts build`
 Expected: 에러 없이 종료. 기존 경고(UserGuide.js jsx-a11y 3건, mediapipe 1건) 외 새 경고 없음.
@@ -1219,7 +1219,7 @@ Expected: 매치 0건.
 - [ ] **Step 7: 테스트와 빌드를 확인한다**
 
 Run: `CI=true npx react-scripts test --watchAll=false`
-Expected: 12 suites / 134 tests 전부 통과
+Expected: 12 suites / 135 tests 전부 통과
 
 Run: `npx react-scripts build`
 Expected: 에러 없이 종료. 새 경고 없음.
