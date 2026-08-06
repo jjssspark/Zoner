@@ -21,6 +21,7 @@
 
 | ID | 날짜 | 문제 | 상태 |
 |---|---|---|---|
+| TS-012 | 2026-08-06 | 테이블에 있는 컬럼이 뷰에서 `does not exist`. 컬럼을 고정 나열한 뷰를 갱신하지 않아, 저장은 되는데 화면에서는 읽을 수 없는 데이터가 하루 넘게 방치됨 | 해결 |
 | TS-011 | 2026-08-06 | 320px에서 AI 채팅에 가로 스크롤. 전역 `box-sizing` 리셋이 페이지 클래스 5개만 손으로 나열해 적용돼 있어, 새로 만든 화면은 조용히 content-box로 남는다 | 해결 |
 | TS-010 | 2026-08-06 | AI 채팅이 빈 화면에서 영구히 멈춤. 로딩 해제를 지키려고 넣은 `isMountedRef` 가드가 StrictMode 재마운트에서 `false`로 굳어 로딩 해제를 통째로 건너뜀. 정적 리뷰 3회를 통과한 코드였다 | 해결 |
 | TS-009 | 2026-08-06 | 학습 종료 후에도 맥 카메라 표시등이 계속 켜져 있음. 원인이 세 갈래였고, 그중 하나는 StrictMode에서 매번 발생하는 경쟁 조건 | 해결 |
@@ -737,3 +738,79 @@ AI 채팅 대화방 분리 작업의 마지막 검증(스펙: "320px에서 가�
 **반응형은 창 크기가 아니라 CSS 뷰포트로 검증해야 한다.** 브라우저 창을 줄이는 것과 CSS 뷰포트가 좁아지는 것은 페이지 줌이 걸려 있으면 별개다. 자동화로 반응형을 확인할 때는 `window.innerWidth`를 반드시 같이 찍어보고, 값이 의도대로 나오지 않으면 고정 폭 iframe으로 측정한다.
 
 **눈으로 멀쩡한 것과 측정해서 멀쩡한 것은 다르다.** 스크린샷으로는 레이아웃이 정상으로 보였다. `scrollWidth > clientWidth` 한 줄이 아니었으면 그냥 통과시켰을 것이다.
+
+---
+
+### TS-012: 테이블에 분명히 있는 컬럼이 뷰에서는 "does not exist" — 컬럼을 고정 나열한 뷰를 갱신하지 않음
+
+**날짜**: 2026-08-06
+**상태**: 해결
+
+**증상**
+실시간 비집중 알림 기능을 만들면서 리포트에 `focus_breakdown`(원인별 비율)을 표시하려 했다. 이 컬럼은 2026-08-05에 `study_sessions` 테이블에 추가했고, 그때부터 모든 세션이 값을 정상적으로 저장하고 있었다. 그런데 조회하면 이렇게 나온다.
+
+```
+Failed to run sql query: ERROR:  42703: column "focus_breakdown" does not exist
+LINE 1: select count(*) as sessions_before, count(focus_breakdown) as with_breakdown from active_study_sessions limit 100
+```
+
+`select * from study_sessions`에는 그 컬럼이 멀쩡히 있다. **테이블에는 있는데 뷰에는 없다.**
+
+**재현 조건**
+- 컬럼을 명시적으로 나열하는 뷰(`select a, b, c from t`)가 있고
+- 그 뒤 테이블에 컬럼을 추가하면서 뷰를 갱신하지 않은 상태에서
+- 뷰를 통해 그 컬럼을 조회할 때
+
+**원인**
+
+- 표면: `column "focus_breakdown" does not exist`
+- 근본(확인함): `active_study_sessions` 뷰가 `20260805110000_pin_active_study_sessions_columns.sql`에서 **컬럼을 하나씩 나열하는 형태로 고정**돼 있었다.
+
+```sql
+create or replace view active_study_sessions with (security_invoker = true) as
+select id, user_id, started_at, ended_at, duration_seconds, focus_score, timeline, created_at, deleted_at
+from study_sessions where deleted_at is null;
+```
+
+`focus_breakdown`은 그 다음 마이그레이션(`20260805150000`)에서 테이블에 추가됐지만 **뷰는 건드리지 않았다.** 뷰는 생성 시점의 컬럼 목록으로 고정되므로, 테이블에 컬럼이 늘어도 뷰는 모른다.
+
+그리고 화면(`Read.js`)은 테이블이 아니라 **뷰**에서 읽는다. 결과적으로 하루가 넘도록 **저장은 되는데 화면에서는 읽을 방법이 없는 데이터**가 쌓이고 있었다.
+
+**아무도 눈치채지 못한 이유가 핵심이다.** 에러가 난 적이 없다. `Read.js`가 `focus_breakdown`을 `select`에 넣은 적이 없으니 조회 실패가 발생하지 않았고, 저장 쪽은 테이블에 직접 insert 하므로 정상 동작했다. **기능이 조용히 반쪽만 살아 있었다.**
+
+**시도했지만 안 된 것**
+- 없다. 이번엔 디버깅이 아니라 **계획 단계의 코드 읽기**로 먼저 잡았다. 스펙에 "`focus_breakdown`은 이미 저장되고 있으니 `select`에 추가만 하면 된다"고 적혀 있었는데, `Read.js:48`이 테이블이 아니라 뷰에서 읽는 것을 확인하고 뷰 정의를 열어보니 컬럼이 없었다. 그 뒤 실제 DB에 쿼리를 날려 위 에러로 확증했다.
+
+**해결**
+`alerts` 컬럼을 추가하는 마이그레이션에서 뷰도 함께 갱신했다.
+
+```sql
+create or replace view active_study_sessions with (security_invoker = true) as
+select id, user_id, started_at, ended_at, duration_seconds, focus_score, timeline,
+       created_at, deleted_at, focus_breakdown, alerts
+from study_sessions where deleted_at is null;
+```
+
+**`create or replace view`는 기존 컬럼의 이름과 순서를 바꿀 수 없다.** 새 컬럼은 반드시 기존 목록 **뒤에** 붙여야 한다. `focus_breakdown`을 의미상 어울리는 `timeline` 옆에 끼워 넣으면 `cannot change name of view column`으로 실패한다. 그래서 읽기에는 어색해도 `deleted_at` 뒤에 두 개를 붙였다.
+
+**검증**
+적용 전 → 후: 뷰 행 6 → 6(변동 없음), 테이블 행 7 → 7, 뷰 컬럼 9 → 11.
+
+```
+id,user_id,started_at,ended_at,duration_seconds,focus_score,timeline,created_at,deleted_at,focus_breakdown,alerts
+```
+
+그리고 **어제 저장된 08-05 세션의 리포트에 원인별 비율이 처음으로 표시됐다** — 집중 33% / 아래 보기 33% / 자리 비움 17% / 눈 감김 17%. 데이터는 내내 있었고 뷰가 가리고 있었을 뿐이다.
+
+**추후 관리**
+- **컬럼을 고정 나열한 뷰가 있는 테이블에 컬럼을 추가할 때는 같은 마이그레이션에서 뷰도 갱신한다.** 현재 이 저장소에서 그런 뷰는 `active_study_sessions` 하나다.
+- 그 뷰가 왜 `select *`가 아니라 고정 나열인지는 `20260805110000`의 이름(`pin_active_study_sessions_columns`)에 드러나 있다 — 의도적으로 고정한 것이므로 `select *`로 되돌리지 않는다. 대신 **컬럼 추가 마이그레이션의 체크리스트에 "뷰 갱신"을 넣는다.**
+- 새 컬럼은 뷰 목록 맨 뒤에만 붙일 수 있다는 제약을 마이그레이션 파일 주석에 남겼다.
+
+**배운 점**
+
+**"컬럼이 없다"는 에러가 컬럼이 없다는 뜻은 아니다.** 어느 관계(relation)에 없다는 뜻이다. 테이블과 뷰는 다른 관계이고, 애플리케이션이 둘 중 무엇을 읽는지 확인하지 않으면 엉뚱한 곳을 계속 들여다보게 된다. 에러 메시지의 `from` 절을 먼저 읽어야 한다.
+
+**에러가 없다고 기능이 살아 있는 건 아니다.** 이 건은 하루 넘게 아무 에러도 내지 않았다. 쓰기 경로는 테이블로, 읽기 경로는 뷰로 갈라져 있었고 읽기 쪽이 그 컬럼을 요청한 적이 없어서 아무도 부딪히지 않았다. **컬럼을 추가했으면 저장뿐 아니라 조회까지 한 번은 실제로 해봐야 한다.**
+
+**스펙도 틀릴 수 있다.** 승인된 스펙에 "이미 저장되고 있으니 select에 추가만 하면 된다"고 적혀 있었다. 그 문장은 테이블 기준으로는 맞고 뷰 기준으로는 틀렸다. 계획 단계에서 소비자 코드(`Read.js`)가 실제로 무엇을 읽는지 확인하지 않았다면 Task 5에서 "왜 안 나오지"로 시간을 썼을 것이다.
