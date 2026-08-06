@@ -21,6 +21,7 @@
 
 | ID | 날짜 | 문제 | 상태 |
 |---|---|---|---|
+| TS-008 | 2026-08-06 | Mypage가 스켈레톤 상태로 영구히 멈춤. 뷰에 `HEAD`+`count=exact` 요청이 503을 내고, 그 실패가 `setIsLoading(false)`에 도달하지 못하게 막았다 | 해결 |
 | TS-007 | 2026-08-05 | Home 스크롤 리빌이 `IntersectionObserver`에 콘텐츠 가시성을 걸어, 옵저버 미발화 시 랜딩 페이지가 빈 화면. 자동화 탭에서 IO가 억제돼 검증 자체가 불가능했다 | 해결 |
 | TS-006 | 2026-08-05 | WCAG 대비비 손계산이 서로 다르게 나옴 — Chrome이 computed color를 `oklch()` 리터럴로 반환하는데 L/C/H를 R/G/B로 오독 | 해결 |
 | TS-005 | 2026-08-05 | 학습 시간을 `setInterval` 틱 개수로 저장해 백그라운드 탭에서 과소 기록 (브라우저 타이머 스로틀링) | 해결 |
@@ -392,3 +393,89 @@ Claude in Chrome 자동화 탭에서 `http://localhost:3000/`을 열었을 때. 
 **"검증할 수 없다"는 결과는 통과가 아니다.** 환경 때문에 확인이 불가능하다는 걸 알았을 때, 코드가 아마 맞을 거라고 넘기는 대신 *확인 불가능하다는 사실 자체*를 설계 결함의 신호로 읽었다. 관측할 수 없는 실패 모드를 가진 구조는 그 자체가 문제다.
 
 **그리고 콘텐츠 가시성을 JS에 걸지 않는다.** 애니메이션은 향상이지 전제가 아니다. `opacity: 0`을 기본값으로 두는 모든 리빌 패턴은 "이 JS가 반드시 성공한다"에 페이지를 거는 것이고, 그 베팅은 공개 페이지에서 특히 비싸다. 숨김은 항상 JS가 살아 있음을 증명한 뒤에 적용한다.
+
+---
+
+### TS-008: 뷰에 `HEAD` + `count=exact`를 걸면 503, 그리고 그 실패가 페이지를 영구 로딩에 가둠
+
+**날짜**: 2026-08-06
+**상태**: 해결
+
+**문제**
+Mypage "빠른 실행" 타일에 총 세션 수를 붙이려고 count 전용 쿼리를 추가했다. 코드 리뷰 세 번(태스크 리뷰 3건)을 전부 통과했고 테스트 80개도 전부 초록이었다.
+
+브라우저에서 열어보니 **페이지가 스켈레톤 상태로 영구히 멈춰 있었다.** 콘솔에는 에러가 하나도 없었다. React DevTools 안내 메시지 한 줄이 전부였다.
+
+**재현 조건**
+`/mypage` 진입 시 항상. 로그인 상태·데이터 유무와 무관.
+
+**원인**
+
+*표면*: 두 쿼리 중 count 쿼리만 503을 반환한다. 네트워크 로그 실측:
+
+```
+GET  /rest/v1/active_study_sessions?select=id%2Cstarted_at%2Cfocus_score&user_id=eq.<REDACTED>&order=started_at.desc&limit=3   → 200
+HEAD /rest/v1/active_study_sessions?select=id&user_id=eq.<REDACTED>                                                             → 503
+```
+
+*근본 1 (확인함)*: `active_study_sessions`는 테이블이 아니라 **뷰**다. `supabase/migrations/20260805110000_pin_active_study_sessions_columns.sql`:
+
+```sql
+create or replace view active_study_sessions with (security_invoker = true) as
+  select id, user_id, started_at, ended_at, duration_seconds, focus_score, timeline, created_at, deleted_at
+  from study_sessions where deleted_at is null;
+```
+
+이 뷰에 `head: true` + `count: 'exact'`(HTTP `HEAD` + `Prefer: count=exact`)를 걸면 503이 난다. 같은 뷰에 대한 일반 `GET`은 200으로 정상이므로 권한·RLS 문제가 아니다.
+
+*근본 2 (확인함, 이쪽이 더 중요하다)*: 503 자체보다 **그 실패가 페이지를 죽이는 방식**이 진짜 문제였다. `loadUser` 내부가 이런 구조였다:
+
+```javascript
+const [{ data: sessions }, { count }] = await Promise.all([...]);
+if (isMounted) {
+  setUserName(...);
+  setRecentSessions(...);
+  setIsLoading(false);   // ← await가 던지면 여기까지 못 온다
+}
+```
+
+`await`가 던지면 `if (isMounted)` 블록에 아예 도달하지 못한다. `setIsLoading(false)`가 실행되지 않으니 스켈레톤이 영원히 남고, `catch`가 없으니 콘솔에도 아무것도 안 남는다. **조용히 죽는다.**
+
+이 결함은 이번 변경이 만든 게 아니라 **드러낸** 것이다. 기존에도 세션 쿼리가 실패하면 똑같이 멈췄겠지만, 실패할 일이 없어서 보이지 않았을 뿐이다.
+
+**시도했지만 안 된 것**
+- 콘솔 확인 → 에러 0건. 여기서 "네트워크는 정상인데 렌더링 문제"로 잘못 짚을 뻔했다
+- 페이지 컨텍스트에서 `fetch`로 count 요청을 직접 재현하려 함 → 자동화 도구가 `localStorage`의 auth 토큰 판독을 차단(`[BLOCKED: Sensitive key]`)해서 실패. **네트워크 로그를 읽는 쪽이 훨씬 빨랐다**
+- 503의 정확한 서버측 원인(PostgREST 설정인지 커넥션 풀러인지)은 **끝까지 규명하지 못했다.** 서버 설정 접근 권한이 없고, 아래 해결책이 요청 자체를 없애 버려서 더 파고들 이유가 사라졌다
+
+**해결**
+
+*1) count 쿼리를 없앴다.* PostgREST는 `count=exact`를 요청하면 **`limit`이 걸려 있어도 `Content-Range`에 전체 개수**를 돌려준다. 즉 별도 요청이 처음부터 불필요했다. 기존 쿼리에 인자 하나만 얹었다:
+
+```javascript
+const { data: sessions, count: sessionCount } = await supabase
+  .from('active_study_sessions')
+  .select('id, started_at, focus_score', { count: 'exact' })   // ← 두 번째 인자만 추가
+  .eq('user_id', user.id)
+  .order('started_at', { ascending: false })
+  .limit(3);
+```
+
+요청이 2개에서 1개로 줄었고, `Promise.all`도 사라졌다. 503의 원인이 된 HEAD 요청 자체가 없어졌다.
+
+*2) 로딩이 반드시 끝나게 했다.* `loadUser` 전체를 `try/catch/finally`로 감싸고, `finally`에서 `isMounted` 가드를 유지한 채 `setIsLoading(false)`를 호출한다. 실패 시 `console.error`로 원인을 남긴다. 로그인 안 된 사용자의 조기 `return` 경로도 `finally`를 통과하므로 함께 해소됐다.
+
+**검증**
+- 네트워크 로그에서 `HEAD` 요청 소멸, `GET` 1건만 남고 200
+- 화면에 **"총 5세션"과 "최근 기록 3개"가 동시에 표시됨** — `limit(3)`과 무관하게 전체가 집계된다는 직접 증거
+- 테스트 8 스위트 / 80건 전부 통과, `npx react-scripts build` 성공
+- 타일 4개 대비비 캔버스 픽셀 판독: high 10.42 / low 9.78 / mid 8.95 / muted 6.42 / poor 5.39 — 전부 AA(4.5:1) 통과
+
+**추후 관리**
+`active_study_sessions` 뷰에 대한 `head: true` count 요청은 앞으로도 503이 날 것으로 보인다. 다른 화면에서 총계가 필요하면 이번처럼 **기존 조회 쿼리에 `{ count: 'exact' }`를 얹는 방식**을 쓴다. 별도 count 요청을 새로 만들지 않는다.
+
+**배운 점**
+
+**"정적 리뷰 통과"와 "동작한다"는 다른 말이다.** 이 결함은 태스크 리뷰 3건과 테스트 80개를 전부 통과했다. 리뷰어들이 게을렀던 게 아니라, 뷰에 대한 HEAD count가 503을 낸다는 건 코드를 아무리 읽어도 알 수 없는 사실이기 때문이다. **실행해 봐야만 알 수 있는 종류의 결함이 있고, 그래서 브라우저 검증이 리뷰의 대체재가 아니라 별도 관문이다.**
+
+**그리고 조용히 죽는 코드가 가장 비싸다.** 503은 그 자체로는 사소한 문제였다 — 총 세션 수 하나 못 보여주는 정도. 그걸 페이지 전체 마비로 키운 건 `await` 실패가 `setIsLoading(false)`를 건너뛰는 구조였다. 콘솔에 에러 한 줄만 있었어도 진단이 1분이었을 텐데, `catch`가 없어서 네트워크 로그를 뒤져야 했다. **로딩 상태를 푸는 코드는 항상 `finally`에 둔다.**
