@@ -105,14 +105,46 @@ prefers-reduced-motion: reduce
 
 ## 데이터 — 새 쿼리 없음
 
-Mypage가 이미 로드하는 `sessions` 배열만 쓴다. 이 배열은 `focus_score`와 `started_at`을 갖는다.
+Mypage가 이미 로드하는 `recentSessions` 배열만 쓴다.
 
-| 타일 | 보조 수치 | 출처 |
-|---|---|---|
-| 학습 시작 | `마지막 세션 82%` / 세션이 없으면 `첫 세션을 시작하세요` | `sessions[0].focus_score` |
-| 학습 기록 | `총 34세션` / 0이면 `아직 기록이 없습니다` | `sessions.length` |
-| AI 채팅 | `학습 도우미와 대화` | 정적 |
-| 휴지통 | `삭제한 기록 복구` | 정적 |
+**중요 — 이 배열은 `.limit(3)`이 걸려 있다** (`Mypage.js:75`). `id, started_at, focus_score`를 `started_at` 내림차순으로 최대 3건만 가져온다. 따라서:
+
+- `recentSessions[0]`은 **가장 최근 세션**이다 ✅
+- `recentSessions.length`는 **총 세션 수가 아니다** ❌ — 3건 이상 가진 사용자는 전부 "3"이 된다
+
+초안에서 "학습 기록 → 총 34세션"을 계획했으나 **기존 쿼리로는 그 값을 낼 수 없다.**
+
+대안으로 `started_at`을 써서 "마지막 학습 8월 5일"을 넣는 안을 검토했으나 **채택하지 않았다.** 옆의 "학습 시작" 타일이 이미 같은 세션(`recentSessions[0]`)의 점수를 보여주고 있어, 두 타일이 둘 다 "가장 최근 것" 이야기를 하게 된다. 그리고 "학습 기록" 타일이 알려줘야 할 것은 문 뒤에 무엇이 몇 개 있는가다.
+
+**따라서 count 쿼리 한 줄을 추가한다.** `head: true`라 행을 전송하지 않고, 기존 세션 쿼리와 `Promise.all`로 묶으면 왕복 횟수가 늘지 않는다.
+
+```javascript
+const [{ data: sessions }, { count: totalSessions }] = await Promise.all([
+  supabase
+    .from('active_study_sessions')
+    .select('id, started_at, focus_score')
+    .eq('user_id', user.id)
+    .order('started_at', { ascending: false })
+    .limit(3),
+  supabase
+    .from('active_study_sessions')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id),
+]);
+```
+
+| 타일 | 보조 수치 | 출처 | 빈 상태 |
+|---|---|---|---|
+| 학습 시작 | `마지막 세션 82%` | `recentSessions[0].focus_score` | `첫 세션을 시작하세요` |
+| 학습 기록 | `총 34세션` | count 쿼리 | 0이면 `아직 기록이 없습니다` |
+| AI 채팅 | `학습 도우미와 대화` | 정적 | — |
+| 휴지통 | `삭제한 기록 복구` | 정적 | — |
+
+**count가 `null`일 때(쿼리 실패)를 반드시 처리한다.** 이 경우 `기록 전체 보기`라는 중립 문구로 떨어뜨린다. `총 null세션`이 보이면 안 된다.
+
+점수 색상은 `ScoreRing.js`가 이미 export 하는 `focusLevel()`을 재사용한다. 새 매핑 함수를 만들지 않는다.
+
+**빈 상태를 반드시 처리한다.** 신규 사용자에게 `마지막 세션 undefined%`가 보이면 안 된다. `focus_score`가 `null`인 세션도 방어한다.
 
 점수 색상은 `ScoreRing.js`가 이미 export 하는 `focusLevel()`을 재사용한다. 새 매핑 함수를 만들지 않는다.
 
