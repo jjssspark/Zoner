@@ -157,4 +157,23 @@ describe('sendChatMessage', () => {
       })
     ).rejects.toThrow('답변을 받지 못했어요.');
   });
+
+  test('conversationId를 요청 본문에 실어 보낸다', async () => {
+    const response = mockStreamResponse(['data: [DONE]\n\n']);
+    global.fetch = jest.fn().mockResolvedValue(response);
+
+    await sendChatMessage({
+      supabaseUrl: 'https://example.supabase.co',
+      accessToken: 'token123',
+      content: '안녕',
+      conversationId: '11111111-2222-3333-4444-555555555555',
+      onDelta: () => {},
+    });
+
+    const [, init] = global.fetch.mock.calls[0];
+    expect(JSON.parse(init.body)).toEqual({
+      content: '안녕',
+      conversationId: '11111111-2222-3333-4444-555555555555',
+    });
+  });
 });

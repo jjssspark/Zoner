@@ -23,14 +23,14 @@ export function parseChatStreamLine(line) {
   return null;
 }
 
-export async function sendChatMessage({ supabaseUrl, accessToken, content, onDelta }) {
+export async function sendChatMessage({ supabaseUrl, accessToken, content, conversationId, onDelta }) {
   const response = await fetch(`${supabaseUrl}/functions/v1/ai-chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, conversationId }),
   });
 
   if (!response.ok) {
