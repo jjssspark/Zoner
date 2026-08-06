@@ -1,8 +1,9 @@
 // src/components/Read.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 import { softDeleteSession } from '../lib/trash';
+import { SESSION_VIDEO_BUCKET } from '../lib/sessionVideos';
 import ReasonBadge, { REASON_LABELS } from './ui/ReasonBadge';
 import './SessionReport.css';
 import './FocusChart.css';
@@ -43,6 +44,10 @@ export const Read = () => {
   const [notFound, setNotFound] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const videoRef = useRef(null);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [videoError, setVideoError] = useState(false);
+  const [playedSeconds, setPlayedSeconds] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -67,7 +72,9 @@ export const Read = () => {
 
       const { data } = await supabase
         .from('active_study_sessions')
-        .select('id, started_at, duration_seconds, focus_score, timeline, focus_breakdown, alerts')
+        .select(
+          'id, started_at, duration_seconds, focus_score, timeline, focus_breakdown, alerts, video_path'
+        )
         .eq('id', sessionId)
         .eq('user_id', user.id)
         .single();
@@ -89,6 +96,29 @@ export const Read = () => {
     };
   }, [navigate, sessionId]);
 
+  useEffect(() => {
+    if (!session?.video_path) return undefined;
+
+    let isMounted = true;
+
+    // 공개 URL을 쓰지 않는다. 얼굴이 담긴 개인 데이터라 1시간짜리 서명 URL을 쓴다.
+    supabase.storage
+      .from(SESSION_VIDEO_BUCKET)
+      .createSignedUrl(session.video_path, 3600)
+      .then(({ data, error }) => {
+        if (!isMounted) return;
+        if (error || !data?.signedUrl) {
+          setVideoError(true);
+          return;
+        }
+        setVideoUrl(data.signedUrl);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session]);
+
   const handleDelete = async () => {
     setDeleteError(null);
     setIsDeleting(true);
@@ -100,6 +130,17 @@ export const Read = () => {
       setDeleteError('삭제에 실패했습니다. 다시 시도해주세요.');
       setIsDeleting(false);
     }
+  };
+
+  const canSeek = Boolean(videoUrl);
+
+  const seekTo = (seconds) => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.currentTime = seconds;
+    // 정지 상태에서 눌렀으면 바로 보여주는 게 자연스럽다. 자동재생 정책으로
+    // 막히면 사용자가 재생 버튼을 누르면 된다.
+    el.play().catch(() => {});
   };
 
   if (isLoading) {
@@ -161,19 +202,68 @@ export const Read = () => {
               <span className="session-report__score-label">종합 집중도</span>
             </div>
 
+            {session.video_path && (
+              <section className="session-report__section">
+                <h2 className="session-report__section-title">학습 영상</h2>
+                {videoError ? (
+                  <p className="session-report__video-error" role="status">
+                    영상을 불러오지 못했습니다.
+                  </p>
+                ) : (
+                  videoUrl && (
+                    <video
+                      ref={videoRef}
+                      className="session-report__video"
+                      src={videoUrl}
+                      controls
+                      preload="metadata"
+                      onTimeUpdate={(event) =>
+                        setPlayedSeconds(event.currentTarget.currentTime)
+                      }
+                    />
+                  )
+                )}
+              </section>
+            )}
+
             <div
               className="focus-chart"
-              role="img"
-              aria-label={`시간대별 집중도 그래프. 종합 집중도 ${session.focus_score}%`}
+              role={canSeek ? undefined : 'img'}
+              aria-label={
+                canSeek
+                  ? undefined
+                  : `시간대별 집중도 그래프. 종합 집중도 ${session.focus_score}%`
+              }
             >
               <div className="focus-chart__track">
-                {session.timeline.map((bucket) => (
-                  <div
-                    key={bucket.minute}
-                    className="focus-chart__bar"
-                    style={{ height: `${Math.round(bucket.focus_ratio * 100)}%` }}
-                  />
-                ))}
+                {session.timeline.map((bucket) => {
+                  const height = `${Math.round(bucket.focus_ratio * 100)}%`;
+                  const isCurrent =
+                    canSeek && Math.floor(playedSeconds / 60) === bucket.minute;
+                  const className = `focus-chart__bar${
+                    isCurrent ? ' focus-chart__bar--current' : ''
+                  }`;
+
+                  // 영상이 없으면 누를 수 없는 버튼을 만들지 않는다.
+                  if (!canSeek) {
+                    return (
+                      <div key={bucket.minute} className={className} style={{ height }} />
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={bucket.minute}
+                      type="button"
+                      className={className}
+                      style={{ height }}
+                      onClick={() => seekTo(bucket.minute * 60)}
+                      aria-label={`${bucket.minute}분대, 집중도 ${Math.round(
+                        bucket.focus_ratio * 100
+                      )}%, 이 지점부터 재생`}
+                    />
+                  );
+                })}
               </div>
               <div className="focus-chart__labels">
                 {session.timeline.map((bucket) => (
@@ -217,15 +307,42 @@ export const Read = () => {
                   알림 기록 ({session.alerts.length}건)
                 </h2>
                 <ul className="alert-log">
-                  {session.alerts.map((alert, index) => (
-                    <li key={`${alert.started_at}-${index}`} className="alert-log__row">
-                      <span className="alert-log__time">{formatClock(alert.started_at)}</span>
-                      <ReasonBadge reason={alert.reason} />
-                      <span className="alert-log__duration">
-                        {formatDuration(alert.duration_seconds)}
-                      </span>
-                    </li>
-                  ))}
+                  {session.alerts.map((alert, index) => {
+                    // 구버전 알림에는 offset_seconds가 없다. 그 행은 누를 수 없다.
+                    const seekable =
+                      canSeek && typeof alert.offset_seconds === 'number';
+
+                    const body = (
+                      <>
+                        <span className="alert-log__time">
+                          {formatClock(alert.started_at)}
+                        </span>
+                        <ReasonBadge reason={alert.reason} />
+                        <span className="alert-log__duration">
+                          {formatDuration(alert.duration_seconds)}
+                        </span>
+                      </>
+                    );
+
+                    return (
+                      <li key={`${alert.started_at}-${index}`} className="alert-log__row">
+                        {seekable ? (
+                          <button
+                            type="button"
+                            className="alert-log__seek"
+                            onClick={() => seekTo(alert.offset_seconds)}
+                            aria-label={`${
+                              REASON_LABELS[alert.reason] ?? alert.reason
+                            }, ${formatDuration(alert.offset_seconds)} 지점부터 재생`}
+                          >
+                            {body}
+                          </button>
+                        ) : (
+                          body
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             )}
