@@ -312,6 +312,8 @@ export const AiChat = () => {
   };
 
   const confirmDelete = async () => {
+    if (isSending) return;
+
     const target = deleteTarget;
     setDeleteTarget(null);
     if (!target) return;
@@ -443,6 +445,7 @@ export const AiChat = () => {
                           className="ai-chat-conversations__control"
                           aria-label={`${conversation.title} 삭제`}
                           onClick={() => setDeleteTarget(conversation)}
+                          disabled={isSending}
                         >
                           삭제
                         </button>
