@@ -463,32 +463,84 @@
   margin-bottom: var(--space-12);
 }
 
-.quick-actions__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+.quick-actions__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  max-width: 720px;
 }
 
 .quick-action {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 44px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 140px;
+  padding: var(--space-6);
   background-color: var(--color-surface);
+  background-image: repeating-linear-gradient(
+      0deg,
+      oklch(75% 0.14 200 / 0.03) 0 1px,
+      transparent 1px 24px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      oklch(75% 0.14 200 / 0.03) 0 1px,
+      transparent 1px 24px
+    );
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-lg);
   color: var(--color-text);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  padding: var(--space-2) var(--space-4);
+  text-align: left;
   cursor: pointer;
   transition: border-color var(--duration-normal) var(--ease-out-expo),
     transform var(--duration-normal) var(--ease-out-expo);
 }
 
-.quick-action:hover {
+/* 코너 브래킷 — 두 의사요소가 각각 대각선 두 모서리를 그린다.
+   호버 시 translate로 바깥으로 벌어져 "조준선이 잠기는" 인상을 만든다. */
+.quick-action::before,
+.quick-action::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
   border-color: var(--color-accent);
-  transform: translateY(-1px);
+  border-style: solid;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.quick-action::before {
+  top: 8px;
+  left: 8px;
+  border-width: 1px 0 0 1px;
+}
+
+.quick-action::after {
+  right: 8px;
+  bottom: 8px;
+  border-width: 0 1px 1px 0;
+}
+
+.quick-action:hover,
+.quick-action:focus-visible {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.quick-action:hover::before,
+.quick-action:focus-visible::before {
+  opacity: 1;
+  transform: translate(-4px, -4px);
+}
+
+.quick-action:hover::after,
+.quick-action:focus-visible::after {
+  opacity: 1;
+  transform: translate(4px, 4px);
 }
 
 .quick-action:focus-visible {
@@ -496,14 +548,127 @@
   outline-offset: 2px;
 }
 
-.quick-action__icon {
-  font-size: var(--text-base);
-  color: var(--color-accent);
-  transition: transform var(--duration-normal) var(--ease-out-expo);
+/* 스캔 라인 — 호버당 1회만 통과한다. 상시 반복하면 타일 4개가 계속
+   움직여 정작 집중도 요약에서 시선을 뺏는다. */
+/* 요소를 타일 높이 전체(height: 100%)로 두고 2px 밴드는 배경으로 그린다.
+   그래야 translateY(100%)가 "타일 높이만큼"이 되어, 타일이 min-height보다
+   커져도 스캔이 중간에 멈추지 않는다. 고정 px를 쓰면 그 지점에서 끊긴다. */
+.quick-action__scan {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent),
+    transparent
+  );
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
 }
 
-.quick-action:hover .quick-action__icon {
-  transform: scale(1.15) rotate(8deg);
+.quick-action:hover .quick-action__scan,
+.quick-action:focus-visible .quick-action__scan {
+  animation: quick-action-scan var(--duration-slow) var(--ease-out-expo) 1;
+}
+
+@keyframes quick-action-scan {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.quick-action__icon {
+  font-size: var(--text-2xl);
+  line-height: 1;
+  color: var(--color-accent);
+  transition: filter var(--duration-normal) var(--ease-out-expo),
+    transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.quick-action:hover .quick-action__icon,
+.quick-action:focus-visible .quick-action__icon {
+  filter: drop-shadow(0 0 6px var(--color-accent));
+  transform: scale(1.08);
+}
+
+.quick-action__label {
+  margin-top: auto;
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.quick-action__meta {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.quick-action__meta--high {
+  color: var(--color-focus-high);
+}
+
+.quick-action__meta--mid {
+  color: var(--color-focus-mid);
+}
+
+.quick-action__meta--low {
+  color: var(--color-focus-low);
+}
+
+.quick-action__meta--poor {
+  color: var(--color-focus-poor);
+}
+
+@media (max-width: 480px) {
+  .quick-actions__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 정보는 유지하고 움직임만 제거한다. 브래킷이 나타나는 것 자체는
+   호버/포커스 상태를 알리는 신호이므로 없애지 않는다. */
+@media (prefers-reduced-motion: reduce) {
+  .quick-action:hover,
+  .quick-action:focus-visible {
+    transform: none;
+  }
+
+  .quick-action:hover::before,
+  .quick-action:focus-visible::before,
+  .quick-action:hover::after,
+  .quick-action:focus-visible::after {
+    transform: none;
+  }
+
+  .quick-action:hover .quick-action__scan,
+  .quick-action:focus-visible .quick-action__scan {
+    animation: none;
+    opacity: 0;
+  }
+
+  .quick-action:hover .quick-action__icon,
+  .quick-action:focus-visible .quick-action__icon {
+    transform: none;
+  }
 }
 
 .recommended-list {
