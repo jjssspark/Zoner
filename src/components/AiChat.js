@@ -109,6 +109,8 @@ export const AiChat = () => {
   }, [renamingId]);
 
   const handleSelect = (conversationId) => {
+    if (isSending) return;
+
     setIsListOpen(false);
     if (conversationId === activeId) return;
 
@@ -120,6 +122,8 @@ export const AiChat = () => {
   };
 
   const handleNewConversation = () => {
+    if (isSending) return;
+
     // DB 행은 첫 메시지를 보낼 때 만든다. 버튼만 누르고 끝나면 빈 대화가 쌓인다.
     setIsListOpen(false);
     setActiveId(null);
@@ -131,26 +135,31 @@ export const AiChat = () => {
   };
 
   const createConversation = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      navigate('/login');
+      if (!user) {
+        navigate('/login');
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert({ user_id: user.id, title: DEFAULT_CONVERSATION_TITLE })
+        .select('id, title, updated_at')
+        .single();
+
+      if (error || !data) return null;
+
+      setConversations((prev) => [data, ...prev]);
+      setActiveId(data.id);
+      return data.id;
+    } catch (error) {
+      console.error(error);
       return null;
     }
-
-    const { data, error } = await supabase
-      .from('conversations')
-      .insert({ user_id: user.id, title: DEFAULT_CONVERSATION_TITLE })
-      .select('id, title, updated_at')
-      .single();
-
-    if (error || !data) return null;
-
-    setConversations((prev) => [data, ...prev]);
-    setActiveId(data.id);
-    return data.id;
   };
 
   const handleSend = async (contentOverride) => {
@@ -159,9 +168,16 @@ export const AiChat = () => {
 
     setIsSending(true);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    let session;
+    try {
+      const result = await supabase.auth.getSession();
+      session = result.data.session;
+    } catch (error) {
+      console.error(error);
+      setIsSending(false);
+      setErrorMessage('세션을 확인하지 못했어요.');
+      return;
+    }
 
     if (!session) {
       setIsSending(false);
@@ -267,6 +283,9 @@ export const AiChat = () => {
 
     const trimmed = renameValue.trim();
     const nextTitle = trimmed.length === 0 ? DEFAULT_CONVERSATION_TITLE : trimmed;
+    const previousTitle = conversations.find(
+      (conversation) => conversation.id === conversationId
+    )?.title;
 
     setRenamingId(null);
     setConversations((prev) =>
@@ -282,6 +301,13 @@ export const AiChat = () => {
 
     if (error) {
       setErrorMessage('이름을 바꾸지 못했어요.');
+      setConversations((prev) =>
+        prev.map((conversation) =>
+          conversation.id === conversationId
+            ? { ...conversation, title: previousTitle }
+            : conversation
+        )
+      );
     }
   };
 
@@ -355,6 +381,7 @@ export const AiChat = () => {
               type="button"
               className="ai-chat-conversations__new"
               onClick={handleNewConversation}
+              disabled={isSending}
             >
               새 대화
             </button>
@@ -398,6 +425,7 @@ export const AiChat = () => {
                         className="ai-chat-conversations__select"
                         aria-current={conversation.id === activeId ? 'true' : undefined}
                         onClick={() => handleSelect(conversation.id)}
+                        disabled={isSending}
                       >
                         {conversation.title}
                       </button>
