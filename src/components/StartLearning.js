@@ -8,6 +8,7 @@ import {
 } from '../lib/focusTracker';
 import { createAlertEngine, ALERT_MESSAGES } from '../lib/alertEngine';
 import { loadAlertMuted, saveAlertMuted, playAlertTone } from '../lib/alertSound';
+import { createSessionRecorder, isRecordingSupported } from '../lib/sessionRecorder';
 import './StartLearning.css';
 
 const STATUS = {
@@ -41,6 +42,7 @@ export const StartLearning = () => {
   const alertEngineRef = useRef(null);
   const audioContextRef = useRef(null);
   const isMutedRef = useRef(false);
+  const recorderRef = useRef(null);
 
   const [status, setStatus] = useState(STATUS.REQUESTING_CAMERA);
   const [isModelReady, setIsModelReady] = useState(false);
@@ -48,6 +50,7 @@ export const StartLearning = () => {
   const [isFocused, setIsFocused] = useState(true);
   const [activeAlert, setActiveAlert] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [recordingError, setRecordingError] = useState(null);
 
   // 카메라를 끄고 마지막 프레임이 화면에 얼어붙어 남지 않도록 미리보기도
   // 비운다. 세션 종료(언마운트 포함)에서만 호출한다 - 일시정지에서는 호출하지
@@ -139,6 +142,12 @@ export const StartLearning = () => {
         audioContextRef.current.close().catch(() => {});
         audioContextRef.current = null;
       }
+      // 저장하지 않고 화면을 떠나면 녹화분은 버린다. stop()의 Promise는
+      // 받을 곳이 없으므로 기다리지 않는다.
+      if (recorderRef.current) {
+        recorderRef.current.stop();
+        recorderRef.current = null;
+      }
     };
   }, []);
 
@@ -163,11 +172,20 @@ export const StartLearning = () => {
       videoEl: videoRef.current,
       faceLandmarker: faceLandmarkerRef.current,
       onTick: (tick) => {
-        ticksRef.current.push(tick);
-        setIsFocused(tick.focused);
-        alertEngineRef.current?.handleTick(tick);
+        // 영상은 일시정지 구간이 빠져 있으므로, 그래프와 알림도 벽시계가 아니라
+        // 순수 학습 경과 시간을 기준으로 삼아야 재생 지점이 맞는다.
+        const elapsedMs =
+          accumulatedMsRef.current +
+          (segmentStartedAtRef.current === null
+            ? 0
+            : Date.now() - segmentStartedAtRef.current);
+        const enrichedTick = { ...tick, elapsedMs };
+
+        ticksRef.current.push(enrichedTick);
+        setIsFocused(enrichedTick.focused);
+        alertEngineRef.current?.handleTick(enrichedTick);
         // 배너는 자동 타이머로 닫지 않는다. 집중으로 돌아왔을 때만 내린다.
-        if (tick.focused) {
+        if (enrichedTick.focused) {
           setActiveAlert(null);
         }
       },
@@ -212,12 +230,27 @@ export const StartLearning = () => {
       }
     }
 
+    // 이미 열려 있는 카메라 스트림을 재사용한다. getUserMedia를 다시 부르면
+    // TS-002·TS-009 계열의 스트림 수명 문제가 재발한다.
+    if (isRecordingSupported() && streamRef.current) {
+      setRecordingError(null);
+      recorderRef.current = createSessionRecorder({
+        stream: streamRef.current,
+        onError: () => {
+          recorderRef.current = null;
+          setRecordingError('영상 녹화가 중단되었습니다. 학습 기록은 계속 저장됩니다.');
+        },
+      });
+      recorderRef.current.start();
+    }
+
     setStatus(STATUS.RUNNING);
     beginTicking();
   };
 
   const handlePause = () => {
     stopTicking();
+    recorderRef.current?.pause();
     // 사용자가 의도적으로 멈춘 시간은 비집중 구간이 아니다. 열린 알림을 여기서 닫는다.
     alertEngineRef.current?.reset(Date.now());
     setActiveAlert(null);
@@ -236,6 +269,7 @@ export const StartLearning = () => {
     // 않도록 초기값으로 되돌린다. 새 틱이 도착하기 전까지의 공백을 없앤다.
     setIsFocused(true);
     setActiveAlert(null);
+    recorderRef.current?.resume();
     setStatus(STATUS.RUNNING);
     beginTicking();
   };
@@ -352,6 +386,12 @@ export const StartLearning = () => {
             <button type="button" onClick={handleStop}>
               다시 저장
             </button>
+          </p>
+        )}
+
+        {recordingError && (
+          <p className="start-learning__notice" role="status">
+            {recordingError}
           </p>
         )}
 

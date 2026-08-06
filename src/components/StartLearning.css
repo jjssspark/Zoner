@@ -246,3 +246,11 @@
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* 녹화 실패 안내. 학습은 계속되므로 오류(danger)가 아니라 알림 톤으로 둔다. */
+.start-learning__notice {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+  margin: var(--space-2) 0 0;
+}

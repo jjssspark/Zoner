@@ -12,6 +12,7 @@ export const ConfirmDialog = ({
   cancelLabel = '취소',
   onConfirm,
   onCancel,
+  onDismiss,
 }) => {
   const dialogRef = useRef(null);
   const cancelRef = useRef(null);
@@ -31,7 +32,9 @@ export const ConfirmDialog = ({
   const handleKeyDown = (event) => {
     if (event.key === 'Escape') {
       event.stopPropagation();
-      onCancel();
+      // 취소 버튼과 Esc의 의미가 다른 화면이 있다. 학습 종료 다이얼로그에서
+      // 취소 버튼은 "기록만 저장", Esc는 "종료 자체를 그만둠"이다.
+      (onDismiss ?? onCancel)();
       return;
     }
     if (event.key !== 'Tab') return;

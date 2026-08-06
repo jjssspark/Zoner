@@ -135,4 +135,52 @@ describe('ConfirmDialog', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog).not.toHaveAttribute('aria-describedby');
   });
+
+  describe('onDismiss', () => {
+    test('onDismiss를 주면 Esc가 onCancel 대신 onDismiss를 부른다', () => {
+      const onCancel = jest.fn();
+      const onDismiss = jest.fn();
+      render(
+        <ConfirmDialog
+          title="종료할까요?"
+          onConfirm={jest.fn()}
+          onCancel={onCancel}
+          onDismiss={onDismiss}
+        />
+      );
+
+      fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+      expect(onCancel).not.toHaveBeenCalled();
+    });
+
+    test('onDismiss를 줘도 취소 버튼은 여전히 onCancel을 부른다', () => {
+      const onCancel = jest.fn();
+      const onDismiss = jest.fn();
+      render(
+        <ConfirmDialog
+          title="종료할까요?"
+          cancelLabel="기록만 저장"
+          onConfirm={jest.fn()}
+          onCancel={onCancel}
+          onDismiss={onDismiss}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: '기록만 저장' }));
+
+      expect(onCancel).toHaveBeenCalledTimes(1);
+      expect(onDismiss).not.toHaveBeenCalled();
+    });
+
+    test('onDismiss가 없으면 Esc가 기존대로 onCancel을 부른다', () => {
+      const onCancel = jest.fn();
+      render(<ConfirmDialog title="삭제할까요?" onConfirm={jest.fn()} onCancel={onCancel} />);
+
+      fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+
+      expect(onCancel).toHaveBeenCalledTimes(1);
+    });
+  });
 });
