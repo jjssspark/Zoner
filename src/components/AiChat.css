@@ -8,6 +8,11 @@
 }
 
 .ai-chat-page__topbar {
+  /* 상단바는 모든 화면에서 스크롤해도 보이게 고정한다. Mypage와 동일한 값. */
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: space-between;

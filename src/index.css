@@ -6,6 +6,20 @@
   box-sizing: border-box;
 }
 
+/* 상단바가 모든 화면에서 sticky로 고정돼 있다. 키보드로 이동한 요소가 그 아래에
+   가려지지 않도록 스크롤 여백을 준다 (WCAG 2.2 — Focus Not Obscured).
+   상단바 높이는 넓은 화면 약 60px, 320px에서 버튼이 줄바꿈되며 84px까지 커진다.
+   가장 큰 경우보다 넉넉한 88px로 잡는다. */
+a,
+button,
+input,
+select,
+textarea,
+summary,
+[tabindex] {
+  scroll-margin-top: calc(var(--space-16) + var(--space-6));
+}
+
 body {
   margin: 0;
   background-color: var(--color-bg);
