@@ -80,6 +80,10 @@
 }
 
 .ai-chat-page__main {
+  /* src/index.css의 전역 box-sizing 리셋은 .home/.login/.mypage/.signup-overlay/.navbar
+     로만 한정돼 있어 이 화면은 빠져 있다. width:100% + 좌우 패딩이 content-box로 더해져
+     320px에서 가로 스크롤이 생긴다 (TS-011). */
+  box-sizing: border-box;
   max-width: 1080px;
   width: 100%;
   margin: 0 auto;
