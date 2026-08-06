@@ -31,7 +31,6 @@
   );
 }
 
-.mypage__topbar,
 .mypage__main {
   position: relative;
   z-index: 1;
@@ -47,13 +46,14 @@
 }
 
 .mypage__topbar {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4) var(--space-6);
-  background-color: color-mix(in oklch, var(--color-surface) 90%, transparent);
-  backdrop-filter: blur(8px);
+  background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -348,6 +348,9 @@
   font-weight: 600;
   padding: var(--space-2) var(--space-4);
   cursor: pointer;
+  /* 스크롤 시 고정되는 상단바 뒤로 포커스가 숨지 않도록 여유를 둔다
+     (WCAG 2.2 focus not obscured). */
+  scroll-margin-top: calc(var(--space-16) * 2);
   transition: border-color var(--duration-normal) var(--ease-out-expo),
     background-color var(--duration-normal) var(--ease-out-expo),
     box-shadow var(--duration-normal) var(--ease-out-expo);
@@ -414,6 +417,9 @@
   text-align: left;
   font: inherit;
   color: inherit;
+  /* 스크롤 시 고정되는 상단바 뒤로 포커스가 숨지 않도록 여유를 둔다
+     (WCAG 2.2 focus not obscured). */
+  scroll-margin-top: calc(var(--space-16) * 2);
   transition: border-color var(--duration-normal) var(--ease-out-expo),
     transform var(--duration-normal) var(--ease-out-expo);
 }
@@ -493,6 +499,9 @@
   color: var(--color-text);
   text-align: left;
   cursor: pointer;
+  /* 스크롤 시 고정되는 상단바 뒤로 포커스가 숨지 않도록 여유를 둔다
+     (WCAG 2.2 focus not obscured). */
+  scroll-margin-top: calc(var(--space-16) * 2);
   transition: border-color var(--duration-normal) var(--ease-out-expo),
     transform var(--duration-normal) var(--ease-out-expo);
 }
