@@ -7,9 +7,14 @@
 
 export const ALERT_MUTED_STORAGE_KEY = 'zoner:alert-muted';
 
-const TONE_FREQUENCY_HZ = 660;
-const TONE_DURATION_SECONDS = 0.18;
-const TONE_PEAK_GAIN = 0.12;
+// 한 번 삑 하고 마는 소리는 UI 효과음으로 들려 알림으로 인지되지 않는다.
+// 높은 음 → 낮은 음 두 번으로 끊어 쳐야 "알림"으로 읽힌다.
+const TONE_BEEPS_HZ = [880, 660];
+const BEEP_DURATION_SECONDS = 0.16;
+const BEEP_GAP_SECONDS = 0.09;
+const TONE_PEAK_GAIN = 0.3;
+// 0에서 짧게 올린다. 최대 게인에서 바로 시작하면 클릭음이 섞인다.
+const ATTACK_SECONDS = 0.01;
 
 export function loadAlertMuted() {
   try {
@@ -31,22 +36,38 @@ export function playAlertTone(audioContext) {
   if (!audioContext) return;
 
   try {
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
+    // 탭이 백그라운드로 갔다 오거나 OS가 오디오를 뺏으면 컨텍스트가 suspended로
+    // 남는다. 그 상태에서는 오실레이터를 걸어도 소리가 나지 않으므로 매번 깨운다.
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {});
+    }
+
     const now = audioContext.currentTime;
 
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(TONE_FREQUENCY_HZ, now);
+    TONE_BEEPS_HZ.forEach((frequency, index) => {
+      const startAt = now + index * (BEEP_DURATION_SECONDS + BEEP_GAP_SECONDS);
+      const endAt = startAt + BEEP_DURATION_SECONDS;
 
-    // 뚝 끊기면 클릭음이 나므로 지수 감쇠로 끝낸다.
-    gain.gain.setValueAtTime(TONE_PEAK_GAIN, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + TONE_DURATION_SECONDS);
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
 
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, startAt);
 
-    oscillator.start(now);
-    oscillator.stop(now + TONE_DURATION_SECONDS);
+      // 뚝 끊기면 클릭음이 나므로 지수 감쇠로 끝낸다.
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(
+        TONE_PEAK_GAIN,
+        startAt + ATTACK_SECONDS
+      );
+      gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      oscillator.start(startAt);
+      oscillator.stop(endAt);
+    });
   } catch {
     // 재생 실패는 무시한다. 배너는 그대로 표시된다.
   }
