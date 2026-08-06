@@ -6,6 +6,8 @@ import {
   createFocusTracker,
   aggregateSession,
 } from '../lib/focusTracker';
+import { createAlertEngine, ALERT_MESSAGES } from '../lib/alertEngine';
+import { loadAlertMuted, saveAlertMuted, playAlertTone } from '../lib/alertSound';
 import './StartLearning.css';
 
 const STATUS = {
@@ -36,11 +38,16 @@ export const StartLearning = () => {
   const elapsedTimerIdRef = useRef(null);
   const accumulatedMsRef = useRef(0);
   const segmentStartedAtRef = useRef(null);
+  const alertEngineRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const isMutedRef = useRef(false);
 
   const [status, setStatus] = useState(STATUS.REQUESTING_CAMERA);
   const [isModelReady, setIsModelReady] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isFocused, setIsFocused] = useState(true);
+  const [activeAlert, setActiveAlert] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   // 카메라를 끄고 마지막 프레임이 화면에 얼어붙어 남지 않도록 미리보기도
   // 비운다. 세션 종료(언마운트 포함)에서만 호출한다 - 일시정지에서는 호출하지
@@ -132,6 +139,12 @@ export const StartLearning = () => {
     window.location.reload();
   };
 
+  useEffect(() => {
+    const muted = loadAlertMuted();
+    setIsMuted(muted);
+    isMutedRef.current = muted;
+  }, []);
+
   const beginTicking = () => {
     segmentStartedAtRef.current = Date.now();
 
@@ -145,6 +158,11 @@ export const StartLearning = () => {
       onTick: (tick) => {
         ticksRef.current.push(tick);
         setIsFocused(tick.focused);
+        alertEngineRef.current?.handleTick(tick);
+        // 배너는 자동 타이머로 닫지 않는다. 집중으로 돌아왔을 때만 내린다.
+        if (tick.focused) {
+          setActiveAlert(null);
+        }
       },
     });
   };
@@ -164,13 +182,48 @@ export const StartLearning = () => {
 
   const handleStart = () => {
     startedAtRef.current = new Date().toISOString();
+
+    alertEngineRef.current = createAlertEngine({
+      onAlert: (alert) => {
+        setActiveAlert(alert);
+        if (!isMutedRef.current) {
+          playAlertTone(audioContextRef.current);
+        }
+      },
+    });
+
+    // 자동재생 정책상 AudioContext는 사용자 제스처 이후에만 소리를 낼 수 있다.
+    // 시작 버튼 클릭이 그 제스처다. 생성 실패해도 배너는 정상 동작해야 하므로 삼킨다.
+    if (!audioContextRef.current) {
+      try {
+        const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextCtor) {
+          audioContextRef.current = new AudioContextCtor();
+        }
+      } catch {
+        audioContextRef.current = null;
+      }
+    }
+
     setStatus(STATUS.RUNNING);
     beginTicking();
   };
 
   const handlePause = () => {
     stopTicking();
+    // 사용자가 의도적으로 멈춘 시간은 비집중 구간이 아니다. 열린 알림을 여기서 닫는다.
+    alertEngineRef.current?.reset(Date.now());
+    setActiveAlert(null);
     setStatus(STATUS.PAUSED);
+  };
+
+  const handleToggleMute = () => {
+    setIsMuted((prev) => {
+      const next = !prev;
+      isMutedRef.current = next;
+      saveAlertMuted(next);
+      return next;
+    });
   };
 
   const handleResume = () => {
@@ -180,6 +233,7 @@ export const StartLearning = () => {
 
   const handleStop = async () => {
     stopTicking();
+    const alerts = alertEngineRef.current?.finish(Date.now()) ?? [];
     // 저장 성공 여부와 무관하게 종료 버튼을 누른 시점에 카메라를 끈다.
     // 저장 왕복(await) 뒤로 미루면 실패 시 컴포넌트가 계속 마운트된 채
     // 남아 언마운트 클린업이 돌지 않고, 카메라가 켜진 채로 방치된다.
@@ -213,6 +267,7 @@ export const StartLearning = () => {
           focus_score: focusScore,
           timeline,
           focus_breakdown: focusBreakdown,
+          alerts,
         })
         .select('id')
         .single();
@@ -293,6 +348,16 @@ export const StartLearning = () => {
               aria-hidden="true"
             />
           )}
+          {activeAlert && ALERT_MESSAGES[activeAlert.reason] && (
+            <div className="start-learning__alert" role="alert">
+              <span className="start-learning__alert-icon" aria-hidden="true">
+                !
+              </span>
+              <span className="start-learning__alert-text">
+                {ALERT_MESSAGES[activeAlert.reason]}
+              </span>
+            </div>
+          )}
         </div>
 
         {status === STATUS.PREVIEW && (
@@ -346,6 +411,14 @@ export const StartLearning = () => {
                 disabled={status === STATUS.SAVING}
               >
                 {status === STATUS.SAVING ? '저장 중...' : '종료'}
+              </button>
+              <button
+                type="button"
+                className="start-learning__mute"
+                onClick={handleToggleMute}
+                aria-pressed={isMuted}
+              >
+                {isMuted ? '알림음 켜기' : '알림음 끄기'}
               </button>
             </div>
           </>
