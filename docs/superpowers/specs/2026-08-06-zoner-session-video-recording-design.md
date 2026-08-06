@@ -234,14 +234,14 @@ alter table study_sessions add column video_path text null;
 
 `create or replace view`는 컬럼을 **뒤에 덧붙이는 것만** 가능하다. 이름 변경이나 순서 변경은 거부된다. 따라서 기존 순서를 그대로 두고 `video_path`를 맨 뒤에 붙인다.
 
-현재 뷰 컬럼 순서(마이그레이션 이력 기준):
+현재 뷰 컬럼 순서 (`20260806140000_add_alerts_to_study_sessions.sql:15-27` 실측):
 
 ```
 id, user_id, started_at, ended_at, duration_seconds,
-focus_score, timeline, deleted_at, focus_breakdown, alerts
+focus_score, timeline, created_at, deleted_at, focus_breakdown, alerts
 ```
 
-여기에 `video_path`를 추가해 11개가 된다.
+11개다. 여기에 `video_path`를 맨 뒤에 붙여 12개가 된다.
 
 ### 마이그레이션 파일
 
