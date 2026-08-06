@@ -55,6 +55,9 @@ export const StartLearning = () => {
   const audioContextRef = useRef(null);
   const isMutedRef = useRef(false);
   const recorderRef = useRef(null);
+  // 사용자가 저장을 확정한 영상. 저장이 실패해 재시도할 때 다시 쓴다.
+  // 레코더는 이미 멈춰서 다시 만들 수 없으므로 여기 쥐고 있어야 한다.
+  const confirmedVideoRef = useRef(null);
 
   const [status, setStatus] = useState(STATUS.REQUESTING_CAMERA);
   const [isModelReady, setIsModelReady] = useState(false);
@@ -69,6 +72,8 @@ export const StartLearning = () => {
   const [pendingSave, setPendingSave] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [videoSaveError, setVideoSaveError] = useState(null);
+  // 업로드는 실패했지만 학습 기록은 저장된 상태. 사용자가 리포트로 갈 수 있게 id를 쥐고 있는다.
+  const [savedSessionId, setSavedSessionId] = useState(null);
 
   // 카메라를 끄고 마지막 프레임이 화면에 얼어붙어 남지 않도록 미리보기도
   // 비운다. 세션 종료(언마운트 포함)에서만 호출한다 - 일시정지에서는 호출하지
@@ -333,11 +338,22 @@ export const StartLearning = () => {
   };
 
   const handleStop = async () => {
+    // SAVE_ERROR에서 재시도로 들어온 경우. 이미 확정한 영상이 있으면 다시 묻지 않고
+    // 같은 선택으로 저장한다. 레코더는 이미 멈췄으므로 새로 만들 수 없다.
+    if (confirmedVideoRef.current) {
+      const { blob, oldest } = confirmedVideoRef.current;
+      await saveSession(blob, oldest);
+      return;
+    }
+
     stopTicking();
     // 종료 확인 중에는 일시정지와 같은 상태다. 레코더도 함께 멈춰야 사용자가
     // Esc로 학습에 돌아갔을 때 영상 시간축에 빈 구간이 생기지 않는다.
     // 여기서 stop()이 아니라 pause()인 이유다 — 아직 확정된 것이 없다.
     recorderRef.current?.pause();
+    // 종료를 누른 순간 이후는 비집중 구간이 아니다. handlePause와 같은 처리로,
+    // Esc로 학습에 돌아가더라도 대기 시간이 알림에 섞이지 않는다.
+    alertEngineRef.current?.reset(Date.now());
     setActiveAlert(null);
 
     // 녹화 중이 아니었으면(미지원·오류) 물어볼 것이 없다.
@@ -420,10 +436,16 @@ export const StartLearning = () => {
         );
         setIsUploading(false);
         if (uploadError) {
+          // 여기서 곧바로 navigate 하면 배너가 그려지기 전에 언마운트되어
+          // 사용자가 실패를 영영 모른다. 화면에 남아 알리고, 이동은 사용자가 정한다.
           setVideoSaveError(uploadError);
+          setSavedSessionId(data.id);
+          confirmedVideoRef.current = null;
+          return;
         }
       }
 
+      confirmedVideoRef.current = null;
       navigate(`/read?session=${data.id}`);
     } catch (error) {
       setStatus(STATUS.SAVE_ERROR);
@@ -492,14 +514,23 @@ export const StartLearning = () => {
 
         {recordingError && (
           <p className="start-learning__notice" role="status">
-            {recordingError}
+            <span className="start-learning__notice-text">{recordingError}</span>
           </p>
         )}
 
         {videoSaveError && (
-          <p className="start-learning__notice" role="status">
-            {videoSaveError}
-          </p>
+          <div className="start-learning__notice" role="alert">
+            <p className="start-learning__notice-text">{videoSaveError}</p>
+            {savedSessionId && (
+              <button
+                type="button"
+                className="start-learning__notice-action"
+                onClick={() => navigate(`/read?session=${savedSessionId}`)}
+              >
+                리포트 보기
+              </button>
+            )}
+          </div>
         )}
 
         {pendingSave && (
@@ -531,12 +562,16 @@ export const StartLearning = () => {
               // 청크가 잘리지 않는다.
               const blob = await (recorderRef.current?.stop() ?? Promise.resolve(null));
               recorderRef.current = null;
+              confirmedVideoRef.current = { blob, oldest };
               await saveSession(blob, oldest);
             }}
             onCancel={async () => {
               setPendingSave(null);
-              recorderRef.current?.stop();
+              // 트랙보다 레코더를 먼저 멈춘다. 버리는 blob이지만 순서가 뒤바뀌면
+              // onerror가 발동해 엉뚱한 안내가 뜬다.
+              await (recorderRef.current?.stop() ?? Promise.resolve(null));
               recorderRef.current = null;
+              confirmedVideoRef.current = { blob: null, oldest: null };
               await saveSession(null, null);
             }}
             // Esc는 "종료 자체를 그만둠"이다. 학습으로 돌아간다. 레코더는
