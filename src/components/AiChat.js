@@ -36,6 +36,10 @@ export const AiChat = () => {
   const isMountedRef = useRef(true);
 
   useEffect(() => {
+    // StrictMode는 dev에서 마운트 → 언마운트 → 재마운트를 한다. ref는 그 사이 유지되므로
+    // 여기서 true로 되돌리지 않으면 두 번째 마운트에서 계속 false로 남고,
+    // 로딩 해제가 통째로 건너뛰어져 화면이 영구히 멈춘다 (TS-010).
+    isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
