@@ -8,7 +8,19 @@ import {
 } from '../lib/focusTracker';
 import { createAlertEngine, ALERT_MESSAGES } from '../lib/alertEngine';
 import { loadAlertMuted, saveAlertMuted, playAlertTone } from '../lib/alertSound';
-import { createSessionRecorder, isRecordingSupported } from '../lib/sessionRecorder';
+import {
+  createSessionRecorder,
+  isRecordingSupported,
+  RECORDER_MIME_TYPE,
+} from '../lib/sessionRecorder';
+import ConfirmDialog from './ui/ConfirmDialog';
+import {
+  SESSION_VIDEO_BUCKET,
+  MAX_STORED_VIDEOS,
+  buildVideoPath,
+  isVideoLimitReached,
+  pickOldestVideoSession,
+} from '../lib/sessionVideos';
 import './StartLearning.css';
 
 const STATUS = {
@@ -51,6 +63,12 @@ export const StartLearning = () => {
   const [activeAlert, setActiveAlert] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
   const [recordingError, setRecordingError] = useState(null);
+  // { oldest } — 종료 확인 다이얼로그가 떠 있는 동안의 보류 상태.
+  // oldest가 있으면 한도가 찬 것이고, 저장하려면 그것을 먼저 지워야 한다.
+  // 영상 Blob은 여기 담지 않는다 — 사용자가 고른 뒤에 레코더를 멈춰 만든다.
+  const [pendingSave, setPendingSave] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [videoSaveError, setVideoSaveError] = useState(null);
 
   // 카메라를 끄고 마지막 프레임이 화면에 얼어붙어 남지 않도록 미리보기도
   // 비운다. 세션 종료(언마운트 포함)에서만 호출한다 - 일시정지에서는 호출하지
@@ -274,15 +292,84 @@ export const StartLearning = () => {
     beginTicking();
   };
 
+  // 실패하면 사람이 읽을 메시지를 돌려주고, 성공하면 null을 준다.
+  // 어떤 실패도 던지지 않는다 — 세션 기록은 이미 저장됐고 그것을 지켜야 한다.
+  const uploadSessionVideo = async (blob, userId, sessionId, oldest) => {
+    try {
+      if (oldest) {
+        const { error: removeError } = await supabase.storage
+          .from(SESSION_VIDEO_BUCKET)
+          .remove([oldest.video_path]);
+        // 지우지 못한 채 올리면 한도를 넘는다. 여기서 멈춘다.
+        if (removeError) {
+          return '오래된 영상 정리에 실패해 이번 영상을 저장하지 못했습니다.';
+        }
+        await supabase
+          .from('study_sessions')
+          .update({ video_path: null })
+          .eq('id', oldest.id);
+      }
+
+      const path = buildVideoPath(userId, sessionId);
+      const { error: uploadError } = await supabase.storage
+        .from(SESSION_VIDEO_BUCKET)
+        .upload(path, blob, { contentType: RECORDER_MIME_TYPE, upsert: true });
+      if (uploadError) {
+        return '영상 저장에 실패했습니다. 학습 기록은 저장되었습니다.';
+      }
+
+      const { error: linkError } = await supabase
+        .from('study_sessions')
+        .update({ video_path: path })
+        .eq('id', sessionId);
+      if (linkError) {
+        return '영상 저장에 실패했습니다. 학습 기록은 저장되었습니다.';
+      }
+
+      return null;
+    } catch (error) {
+      return '영상 저장에 실패했습니다. 학습 기록은 저장되었습니다.';
+    }
+  };
+
   const handleStop = async () => {
     stopTicking();
-    const alerts = alertEngineRef.current?.finish(Date.now()) ?? [];
-    // 트래커가 멈춰 새 틱이 더는 오지 않으므로, 열려 있던 배너를 여기서
-    // 직접 닫는다. 안 그러면 저장 실패(SAVE_ERROR) 시 배너가 영영 남는다.
+    // 종료 확인 중에는 일시정지와 같은 상태다. 레코더도 함께 멈춰야 사용자가
+    // Esc로 학습에 돌아갔을 때 영상 시간축에 빈 구간이 생기지 않는다.
+    // 여기서 stop()이 아니라 pause()인 이유다 — 아직 확정된 것이 없다.
+    recorderRef.current?.pause();
     setActiveAlert(null);
-    // 저장 성공 여부와 무관하게 종료 버튼을 누른 시점에 카메라를 끈다.
-    // 저장 왕복(await) 뒤로 미루면 실패 시 컴포넌트가 계속 마운트된 채
-    // 남아 언마운트 클린업이 돌지 않고, 카메라가 켜진 채로 방치된다.
+
+    // 녹화 중이 아니었으면(미지원·오류) 물어볼 것이 없다.
+    if (!recorderRef.current?.isActive()) {
+      await saveSession(null, null);
+      return;
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // 휴지통에 있는 영상도 용량은 실제로 차지하므로 뷰가 아니라 테이블에서 센다.
+    const { data: videoSessions } = await supabase
+      .from('study_sessions')
+      .select('id, started_at, video_path')
+      .eq('user_id', user.id)
+      .not('video_path', 'is', null);
+
+    const rows = videoSessions ?? [];
+    setPendingSave({
+      oldest: isVideoLimitReached(rows.length) ? pickOldestVideoSession(rows) : null,
+    });
+  };
+
+  const saveSession = async (videoBlob, oldest) => {
+    const alerts = alertEngineRef.current?.finish(Date.now()) ?? [];
+
+    // 저장이 확정된 시점에 카메라를 끈다. 저장 왕복(await) 뒤로 미루면 실패 시
+    // 컴포넌트가 계속 마운트된 채 남아 언마운트 클린업이 돌지 않고, 카메라가
+    // 켜진 채로 방치된다. 종료 확인 다이얼로그 단계로 올려서도 안 된다 —
+    // 사용자가 Esc로 학습에 돌아갔을 때 카메라가 이미 꺼져 있게 된다.
     releaseCamera();
 
     setStatus(STATUS.SAVING);
@@ -321,6 +408,20 @@ export const StartLearning = () => {
       if (error) {
         setStatus(STATUS.SAVE_ERROR);
         return;
+      }
+
+      if (videoBlob) {
+        setIsUploading(true);
+        const uploadError = await uploadSessionVideo(
+          videoBlob,
+          user.id,
+          data.id,
+          oldest
+        );
+        setIsUploading(false);
+        if (uploadError) {
+          setVideoSaveError(uploadError);
+        }
       }
 
       navigate(`/read?session=${data.id}`);
@@ -393,6 +494,58 @@ export const StartLearning = () => {
           <p className="start-learning__notice" role="status">
             {recordingError}
           </p>
+        )}
+
+        {videoSaveError && (
+          <p className="start-learning__notice" role="status">
+            {videoSaveError}
+          </p>
+        )}
+
+        {pendingSave && (
+          <ConfirmDialog
+            title={
+              pendingSave.oldest
+                ? `저장된 영상이 ${MAX_STORED_VIDEOS}개로 가득 찼습니다`
+                : '영상도 함께 저장할까요?'
+            }
+            description={
+              pendingSave.oldest
+                ? `가장 오래된 영상(${new Date(
+                    pendingSave.oldest.started_at
+                  ).toLocaleDateString('ko-KR', {
+                    month: 'long',
+                    day: 'numeric',
+                  })})을 지우고 저장합니다.`
+                : '학습 기록만 저장하면 영상은 남지 않습니다.'
+            }
+            confirmLabel={
+              pendingSave.oldest ? '오래된 것 지우고 저장' : '영상과 함께 저장'
+            }
+            cancelLabel="기록만 저장"
+            onConfirm={async () => {
+              const { oldest } = pendingSave;
+              setPendingSave(null);
+              // 여기서 처음으로 레코더를 확정 종료한다. 카메라 트랙은
+              // saveSession의 releaseCamera()가 그 뒤에 끊으므로 마지막
+              // 청크가 잘리지 않는다.
+              const blob = await (recorderRef.current?.stop() ?? Promise.resolve(null));
+              recorderRef.current = null;
+              await saveSession(blob, oldest);
+            }}
+            onCancel={async () => {
+              setPendingSave(null);
+              recorderRef.current?.stop();
+              recorderRef.current = null;
+              await saveSession(null, null);
+            }}
+            // Esc는 "종료 자체를 그만둠"이다. 학습으로 돌아간다. 레코더는
+            // pause 상태로 살아 있으므로 재개 버튼을 누르면 이어서 녹화된다.
+            onDismiss={() => {
+              setPendingSave(null);
+              setStatus(STATUS.PAUSED);
+            }}
+          />
         )}
 
         <div className="start-learning__video-wrap">
@@ -475,7 +628,11 @@ export const StartLearning = () => {
                 onClick={handleStop}
                 disabled={status === STATUS.SAVING}
               >
-                {status === STATUS.SAVING ? '저장 중...' : '종료'}
+                {isUploading
+                  ? '영상 업로드 중...'
+                  : status === STATUS.SAVING
+                    ? '저장 중...'
+                    : '종료'}
               </button>
               {muteButton}
             </div>
