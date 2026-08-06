@@ -175,6 +175,7 @@
 
 .start-learning__controls {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
 }
 

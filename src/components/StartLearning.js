@@ -232,6 +232,10 @@ export const StartLearning = () => {
   };
 
   const handleResume = () => {
+    // 일시정지 전 상태(비집중 표시, 열린 배너)가 재개 후에도 남아있지
+    // 않도록 초기값으로 되돌린다. 새 틱이 도착하기 전까지의 공백을 없앤다.
+    setIsFocused(true);
+    setActiveAlert(null);
     setStatus(STATUS.RUNNING);
     beginTicking();
   };
@@ -239,6 +243,9 @@ export const StartLearning = () => {
   const handleStop = async () => {
     stopTicking();
     const alerts = alertEngineRef.current?.finish(Date.now()) ?? [];
+    // 트래커가 멈춰 새 틱이 더는 오지 않으므로, 열려 있던 배너를 여기서
+    // 직접 닫는다. 안 그러면 저장 실패(SAVE_ERROR) 시 배너가 영영 남는다.
+    setActiveAlert(null);
     // 저장 성공 여부와 무관하게 종료 버튼을 누른 시점에 카메라를 끈다.
     // 저장 왕복(await) 뒤로 미루면 실패 시 컴포넌트가 계속 마운트된 채
     // 남아 언마운트 클린업이 돌지 않고, 카메라가 켜진 채로 방치된다.
@@ -287,6 +294,16 @@ export const StartLearning = () => {
       setStatus(STATUS.SAVE_ERROR);
     }
   };
+
+  const muteButton = (
+    <button
+      type="button"
+      className="start-learning__mute"
+      onClick={handleToggleMute}
+    >
+      {isMuted ? '알림음 켜기' : '알림음 끄기'}
+    </button>
+  );
 
   return (
     <div className="start-learning">
@@ -366,14 +383,17 @@ export const StartLearning = () => {
         </div>
 
         {status === STATUS.PREVIEW && (
-          <button
-            type="button"
-            className="start-learning__start"
-            onClick={handleStart}
-            disabled={!isModelReady}
-          >
-            {isModelReady ? '시작' : '모델 준비 중...'}
-          </button>
+          <div className="start-learning__controls">
+            <button
+              type="button"
+              className="start-learning__start"
+              onClick={handleStart}
+              disabled={!isModelReady}
+            >
+              {isModelReady ? '시작' : '모델 준비 중...'}
+            </button>
+            {muteButton}
+          </div>
         )}
 
         {(status === STATUS.RUNNING ||
@@ -417,14 +437,7 @@ export const StartLearning = () => {
               >
                 {status === STATUS.SAVING ? '저장 중...' : '종료'}
               </button>
-              <button
-                type="button"
-                className="start-learning__mute"
-                onClick={handleToggleMute}
-                aria-pressed={isMuted}
-              >
-                {isMuted ? '알림음 켜기' : '알림음 끄기'}
-              </button>
+              {muteButton}
             </div>
           </>
         )}
