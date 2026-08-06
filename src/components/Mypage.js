@@ -3,16 +3,43 @@ import { useNavigate } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 import ScoreRing, { focusLevel } from './ui/ScoreRing';
 import Skeleton from './ui/Skeleton';
+import { buildQuickActionMeta } from '../lib/quickActions';
 import './Mypage.css';
 
 const QUICK_ACTIONS = [
-  { label: 'AI 채팅', path: '/ai-chat', icon: '◈' },
-  { label: '학습 시작', path: '/start-learning', icon: '▶' },
-  { label: '학습 기록', path: '/save', icon: '◉' },
-  { label: '휴지통', path: '/trash', icon: '⌦' },
+  { label: 'AI 채팅', path: '/ai-chat', icon: '◈', metaKey: null, staticMeta: '학습 도우미와 대화' },
+  { label: '학습 시작', path: '/start-learning', icon: '▶', metaKey: 'startLearning', staticMeta: null },
+  { label: '학습 기록', path: '/save', icon: '◉', metaKey: 'records', staticMeta: null },
+  { label: '휴지통', path: '/trash', icon: '⌦', metaKey: null, staticMeta: '삭제한 기록 복구' },
 ];
 
 const RECOMMENDED = ['요금제 업그레이드', '개인 설정', '프로모션'];
+
+// 장식 요소(스캔 라인·아이콘)는 aria-hidden으로 빼고, 보조 문구는 aria-label에
+// 합성해 넣는다. 그러지 않으면 스크린리더가 라벨과 수치를 별개 조각으로 읽는다.
+function QuickActionTile({ action, meta, onSelect }) {
+  const metaText = action.staticMeta || (meta ? meta.text : '');
+  const level = meta ? meta.level : null;
+  const metaClass = level
+    ? `quick-action__meta quick-action__meta--${level}`
+    : 'quick-action__meta';
+
+  return (
+    <button
+      type="button"
+      className="quick-action"
+      onClick={onSelect}
+      aria-label={metaText ? `${action.label}, ${metaText}` : action.label}
+    >
+      <span className="quick-action__scan" aria-hidden="true" />
+      <span className="quick-action__icon" aria-hidden="true">
+        {action.icon}
+      </span>
+      <span className="quick-action__label">{action.label}</span>
+      {metaText && <span className={metaClass}>{metaText}</span>}
+    </button>
+  );
+}
 
 // 로딩 중에도 동일한 마크업을 렌더해야 데이터 로드 완료 시 헤더가 나타나며
 // 레이아웃이 밀리지 않는다 (userName은 로딩 중 빈 문자열일 뿐 구조는 동일).
@@ -48,6 +75,7 @@ export const Mypage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [recentSessions, setRecentSessions] = useState([]);
+  const [totalSessions, setTotalSessions] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -68,16 +96,23 @@ export const Mypage = () => {
         .eq('id', user.id)
         .single();
 
-      const { data: sessions } = await supabase
-        .from('active_study_sessions')
-        .select('id, started_at, focus_score')
-        .eq('user_id', user.id)
-        .order('started_at', { ascending: false })
-        .limit(3);
+      const [{ data: sessions }, { count: sessionCount }] = await Promise.all([
+        supabase
+          .from('active_study_sessions')
+          .select('id, started_at, focus_score')
+          .eq('user_id', user.id)
+          .order('started_at', { ascending: false })
+          .limit(3),
+        supabase
+          .from('active_study_sessions')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id),
+      ]);
 
       if (isMounted) {
         setUserName(profile ? profile.name : 'Guest');
         setRecentSessions(sessions || []);
+        setTotalSessions(typeof sessionCount === 'number' ? sessionCount : null);
         setIsLoading(false);
       }
     };
@@ -136,6 +171,7 @@ export const Mypage = () => {
   const maxScore = hasSessions
     ? Math.max(...recentSessions.map((session) => session.focus_score))
     : 0;
+  const quickActionMeta = buildQuickActionMeta(recentSessions, totalSessions);
 
   return (
     <div className="mypage" ref={pageRef}>
@@ -248,19 +284,14 @@ export const Mypage = () => {
           <h2 id="quick-actions-heading" className="record-section__title">
             빠른 실행
           </h2>
-          <div className="quick-actions__list">
+          <div className="quick-actions__grid">
             {QUICK_ACTIONS.map((action) => (
-              <button
+              <QuickActionTile
                 key={action.path}
-                type="button"
-                className="quick-action"
-                onClick={() => navigate(action.path)}
-              >
-                <span className="quick-action__icon" aria-hidden="true">
-                  {action.icon}
-                </span>
-                <span className="quick-action__label">{action.label}</span>
-              </button>
+                action={action}
+                meta={action.metaKey ? quickActionMeta[action.metaKey] : null}
+                onSelect={() => navigate(action.path)}
+              />
             ))}
           </div>
         </section>
