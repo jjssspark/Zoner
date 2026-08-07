@@ -1,22 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import supabase from '../lib/supabaseClient';
+import supabase from '../../lib/supabaseClient';
 import {
   loadFaceLandmarker,
   createFocusTracker,
   aggregateSession,
   computeRollingFocus,
   ROLLING_WINDOW_MS,
-} from '../lib/focusTracker';
-import { focusLevel } from './ui/ScoreRing';
-import { createAlertEngine, ALERT_MESSAGES } from '../lib/alertEngine';
-import { loadAlertMuted, saveAlertMuted, playAlertTone } from '../lib/alertSound';
+} from '../../lib/focusTracker';
+import { focusLevel } from '../../components/ui/ScoreRing';
+import { createAlertEngine, ALERT_MESSAGES } from '../../lib/alertEngine';
+import { loadAlertMuted, saveAlertMuted, playAlertTone } from '../../lib/alertSound';
 import {
   createSessionRecorder,
   isRecordingSupported,
   RECORDER_MIME_TYPE,
-} from '../lib/sessionRecorder';
-import ConfirmDialog from './ui/ConfirmDialog';
+} from '../../lib/sessionRecorder';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import {
   SESSION_VIDEO_BUCKET,
   MAX_STORED_VIDEOS,
@@ -24,7 +24,7 @@ import {
   isVideoLimitReached,
   isVideoTooLarge,
   pickOldestVideoSession,
-} from '../lib/sessionVideos';
+} from '../../lib/sessionVideos';
 import './StartLearning.css';
 
 // tokens.css의 --color-reason-*는 케밥 케이스인데 REASON 값은 스네이크다.

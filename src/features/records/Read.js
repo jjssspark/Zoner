@@ -1,10 +1,10 @@
 // src/components/Read.js
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import supabase from '../lib/supabaseClient';
-import { softDeleteSession } from '../lib/trash';
-import { SESSION_VIDEO_BUCKET } from '../lib/sessionVideos';
-import ReasonBadge, { REASON_LABELS } from './ui/ReasonBadge';
+import supabase from '../../lib/supabaseClient';
+import { softDeleteSession } from '../../lib/trash';
+import { SESSION_VIDEO_BUCKET } from '../../lib/sessionVideos';
+import ReasonBadge, { REASON_LABELS } from '../../components/ui/ReasonBadge';
 import './SessionReport.css';
 import './FocusChart.css';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import NavBar from './NavBar';
+import NavBar from '../../components/layout/NavBar';
 import './Pricing.css';
 
 // 기존 화면에 실제로 적혀 있던 내용만 옮겼다. 없던 요금제나 기능은 넣지 않는다.

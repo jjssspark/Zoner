@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import supabase from '../lib/supabaseClient';
-import { purgeExpiredSessions, daysUntilPurge, expiryLevel } from '../lib/trash';
-import { focusLevel } from './ui/ScoreRing';
-import Skeleton from './ui/Skeleton';
+import supabase from '../../lib/supabaseClient';
+import { purgeExpiredSessions, daysUntilPurge, expiryLevel } from '../../lib/trash';
+import { focusLevel } from '../../components/ui/ScoreRing';
+import Skeleton from '../../components/ui/Skeleton';
 import './Trash.css';
 
 // 로딩 중에도 동일한 마크업을 렌더해야 데이터 로드 완료 시 헤더가 나타나며

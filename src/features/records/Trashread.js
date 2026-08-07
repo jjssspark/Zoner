@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import supabase from '../lib/supabaseClient';
-import { restoreSession, hardDeleteSession, daysUntilPurge, expiryLevel } from '../lib/trash';
-import Skeleton from './ui/Skeleton';
+import supabase from '../../lib/supabaseClient';
+import { restoreSession, hardDeleteSession, daysUntilPurge, expiryLevel } from '../../lib/trash';
+import Skeleton from '../../components/ui/Skeleton';
 import './TrashDetail.css';
 import './FocusChart.css';
 

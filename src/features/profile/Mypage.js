@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import supabase from '../lib/supabaseClient';
-import ScoreRing, { focusLevel } from './ui/ScoreRing';
-import Skeleton from './ui/Skeleton';
-import { buildQuickActionMeta } from '../lib/quickActions';
+import supabase from '../../lib/supabaseClient';
+import ScoreRing, { focusLevel } from '../../components/ui/ScoreRing';
+import Skeleton from '../../components/ui/Skeleton';
+import { buildQuickActionMeta } from '../../lib/quickActions';
 import './Mypage.css';
 
 const QUICK_ACTIONS = [

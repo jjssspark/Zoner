@@ -9,19 +9,19 @@ import {
   Route,
   useLocation,
 } from 'react-router-dom';
-import Home from './components/Home';
-import UserGuide from './components/UserGuide';
-import Pricing from './components/Pricing';
-import FAQ from './components/FAQ';
-import Login from './components/Login';
-import Mypage from './components/Mypage';
-import StartLearning from './components/StartLearning';
-import Save from './components/Save';
-import Read from './components/Read';
-import Trash from './components/Trash';
-import Trashread from './components/Trashread';
-import SignUp from './components/SignUp';
-import AiChat from './components/AiChat';
+import Home from './features/marketing/Home';
+import UserGuide from './features/marketing/UserGuide';
+import Pricing from './features/marketing/Pricing';
+import FAQ from './features/marketing/FAQ';
+import Login from './features/auth/Login';
+import Mypage from './features/profile/Mypage';
+import StartLearning from './features/learning/StartLearning';
+import Save from './features/records/Save';
+import Read from './features/records/Read';
+import Trash from './features/records/Trash';
+import Trashread from './features/records/Trashread';
+import SignUp from './features/auth/SignUp';
+import AiChat from './features/chat/AiChat';
 /* eslint-enable react/jsx-pascal-case */
 
 // 화면이 바뀔 때 툭 끊기지 않도록 진입 페이드를 준다. pathname을 key로 주면

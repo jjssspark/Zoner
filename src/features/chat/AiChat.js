@@ -1,10 +1,10 @@
 // src/components/AiChat.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import supabase from '../lib/supabaseClient';
-import { sendChatMessage, isValidMessage, MAX_MESSAGE_LENGTH } from '../lib/aiChat';
-import { buildConversationTitle, DEFAULT_CONVERSATION_TITLE } from '../lib/conversations';
-import ConfirmDialog from './ui/ConfirmDialog';
+import supabase from '../../lib/supabaseClient';
+import { sendChatMessage, isValidMessage, MAX_MESSAGE_LENGTH } from '../../lib/aiChat';
+import { buildConversationTitle, DEFAULT_CONVERSATION_TITLE } from '../../lib/conversations';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import './AiChat.css';
 
 const MAX_TITLE_INPUT_LENGTH = 60;

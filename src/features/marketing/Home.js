@@ -1,8 +1,8 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import NavBar from './NavBar';
-import ScoreRing from './ui/ScoreRing';
-import Sparkline from './ui/Sparkline';
+import NavBar from '../../components/layout/NavBar';
+import ScoreRing from '../../components/ui/ScoreRing';
+import Sparkline from '../../components/ui/Sparkline';
 import image2 from './image-2.png';
 import image3 from './image-3.png';
 import image4 from './image-4.png';

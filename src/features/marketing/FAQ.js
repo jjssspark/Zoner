@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import NavBar from './NavBar';
+import NavBar from '../../components/layout/NavBar';
 import './FAQ.css';
 
 const QUESTIONS = [
