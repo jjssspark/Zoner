@@ -152,3 +152,20 @@
 .trash-card__purge--poor {
   color: var(--color-focus-poor);
 }
+
+.trash-card:active {
+  transform: translateY(0);
+}
+
+.trash-page__back:active,
+.trash-page__home:active {
+  transform: translateY(1px);
+}
+
+.trash-page__back,
+.trash-page__home {
+  transition: border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}

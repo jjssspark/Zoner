@@ -23,3 +23,20 @@
 .sparkline--poor .sparkline__line {
   stroke: var(--color-focus-poor);
 }
+
+/* 데이터가 도착했음을 알리는 그리기 모션. ScoreRing의 링 채우기와 같은
+   기법이고 tokens.css의 --duration-slow 를 맞춘다.
+
+   pathLength="100" 으로 길이를 정규화해 두었기 때문에 실제 좌표가
+   어떻든 dasharray 100 이 선 전체를 덮는다. */
+.sparkline__line {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: sparkline-draw var(--duration-slow) var(--ease-in-out) forwards;
+}
+
+@keyframes sparkline-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

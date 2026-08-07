@@ -109,8 +109,12 @@ export const Trash = () => {
           <p className="trash-page__empty">휴지통이 비어 있습니다.</p>
         ) : (
           <ul className="trash-list">
-            {sessions.map((session) => (
-              <li key={session.id}>
+            {sessions.map((session, i) => (
+              <li
+                key={session.id}
+                className="fade-in-content"
+                style={{ '--reveal-index': i }}
+              >
                 <button
                   type="button"
                   className="trash-card"

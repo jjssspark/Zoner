@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../../components/layout/NavBar';
+import useRevealOnScroll from '../../hooks/useRevealOnScroll';
 import image10 from './image-10.png';
 import image11 from './image-11.png';
 import image12 from './image-12.png';
@@ -48,9 +49,10 @@ const STEPS = [
 
 export const UserGuide = () => {
   const navigate = useNavigate();
+  const revealRef = useRevealOnScroll();
 
   return (
-    <div className="guide">
+    <div className="guide" ref={revealRef}>
       <NavBar />
 
       <main className="guide__main">
@@ -69,7 +71,7 @@ export const UserGuide = () => {
 
           <ol className="guide__steps">
             {STEPS.map((step, index) => (
-              <li key={step.id} className="guide__step">
+              <li key={step.id} className="guide__step" data-reveal>
                 <div className="guide__text">
                   <p className="guide__step-number" aria-hidden="true">
                     {String(index + 1).padStart(2, '0')}

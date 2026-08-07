@@ -177,3 +177,20 @@
   background-color: var(--color-danger);
   color: white;
 }
+
+.trash-detail__back:active,
+.trash-detail__home:active,
+.trash-detail__restore:active,
+.trash-detail__purge:active {
+  transform: translateY(1px);
+}
+
+.trash-detail__back,
+.trash-detail__home,
+.trash-detail__restore,
+.trash-detail__purge {
+  transition: border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}

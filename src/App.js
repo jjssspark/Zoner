@@ -2,6 +2,7 @@
 
 /* eslint-disable react/jsx-pascal-case */
 import './styles/tokens.css';
+import './styles/motion.css';
 import React from 'react';
 import {
   BrowserRouter as Router,

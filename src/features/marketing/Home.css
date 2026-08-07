@@ -204,25 +204,3 @@
   }
 }
 
-/* Hidden-by-default state is opt-in, scoped to .reveal-enabled, which JS
-   only adds once it has confirmed there is something to reveal (see
-   useRevealOnScroll in Home.js). Without JS, [data-reveal] elements are
-   never hidden — progressive enhancement, not a single point of failure. */
-.reveal-enabled [data-reveal] {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity var(--duration-slow) var(--ease-in-out),
-    transform var(--duration-slow) var(--ease-in-out);
-}
-
-[data-reveal].is-revealed {
-  opacity: 1;
-  transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal-enabled [data-reveal] {
-    opacity: 1;
-    transform: none;
-  }
-}

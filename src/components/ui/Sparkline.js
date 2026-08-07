@@ -36,7 +36,11 @@ export function Sparkline({ data, width = 96, height = 24, ariaLabel }) {
         ariaLabel ?? `집중도 추이, 평균 ${Math.round(average * 100)}퍼센트`
       }
     >
-      <polyline className="sparkline__line" points={points} />
+      <polyline
+        className="sparkline__line"
+        points={points}
+        pathLength="100"
+      />
     </svg>
   );
 }

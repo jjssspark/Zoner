@@ -254,11 +254,12 @@ export const Mypage = () => {
           </div>
           <div className="record-grid">
             {recentSessions.length > 0 ? (
-              recentSessions.map((session) => (
+              recentSessions.map((session, i) => (
                 <button
                   key={session.id}
                   type="button"
-                  className="record-card"
+                  className="record-card fade-in-content"
+                  style={{ '--reveal-index': i }}
                   onClick={() => navigate(`/read?session=${session.id}`)}
                 >
                   <span className="record-card__date">

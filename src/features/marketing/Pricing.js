@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../../components/layout/NavBar';
+import useRevealOnScroll from '../../hooks/useRevealOnScroll';
 import './Pricing.css';
 
 // 기존 화면에 실제로 적혀 있던 내용만 옮겼다. 없던 요금제나 기능은 넣지 않는다.
@@ -59,9 +60,10 @@ const PLANS = [
 
 export const Pricing = () => {
   const navigate = useNavigate();
+  const revealRef = useRevealOnScroll();
 
   return (
-    <div className="pricing">
+    <div className="pricing" ref={revealRef}>
       <NavBar />
 
       <main className="pricing__main">
@@ -85,6 +87,7 @@ export const Pricing = () => {
                 className={`pricing__tier ${
                   plan.featured ? 'pricing__tier--featured' : ''
                 }`}
+                data-reveal
               >
                 {plan.featured && <p className="pricing__badge">추천</p>}
 

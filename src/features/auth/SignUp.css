@@ -138,3 +138,26 @@
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+.signup-card__input {
+  transition: border-color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo);
+}
+
+.signup-card__input:hover {
+  border-color: var(--color-text-muted);
+}
+
+.signup-card__input:focus-visible {
+  border-color: var(--color-accent);
+  outline-offset: 0;
+}
+
+.signup-card__submit {
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.signup-card__submit:active {
+  transform: translateY(1px);
+}

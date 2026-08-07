@@ -164,3 +164,26 @@
   font-size: var(--text-sm);
   margin: 0 0 var(--space-4);
 }
+
+/* 눌리는 순간의 피드백. hover 로 뜬 카드가 클릭에 반응하지 않으면
+   눌렀는지 알 수 없다. */
+.session-card__link:active {
+  transform: translateY(0);
+}
+
+.session-card__delete:active,
+.save-page__back:active,
+.save-page__home:active {
+  transform: translateY(1px);
+}
+
+/* 위 :active 가 동작하려면 전환이 걸려 있어야 한다. 이 버튼들에는
+   hover 규칙만 있고 transition 이 없어 상태 변화가 툭 끊겼다. */
+.save-page__back,
+.save-page__home,
+.session-card__delete {
+  transition: border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}

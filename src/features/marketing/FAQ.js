@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import NavBar from '../../components/layout/NavBar';
+import useRevealOnScroll from '../../hooks/useRevealOnScroll';
 import './FAQ.css';
 
 const QUESTIONS = [
@@ -33,9 +34,10 @@ export const FAQ = () => {
   // 한 번에 하나만 열린다. 첫 질문은 열어 둔다 — 이전 화면은 답변이 어디에도
   // 보이지 않아 무엇을 하는 화면인지 읽히지 않았다.
   const [openId, setOpenId] = useState(QUESTIONS[0].id);
+  const revealRef = useRevealOnScroll();
 
   return (
-    <div className="faq">
+    <div className="faq" ref={revealRef}>
       <NavBar />
 
       <main className="faq__main">
@@ -57,7 +59,7 @@ export const FAQ = () => {
               const isOpen = openId === item.id;
 
               return (
-                <li key={item.id} className="faq__item">
+                <li key={item.id} className="faq__item" data-reveal>
                   <h3 className="faq__question">
                     <button
                       type="button"

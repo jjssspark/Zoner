@@ -255,3 +255,24 @@
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+.session-report__back:active,
+.session-report__home:active,
+.session-report__delete:active,
+.alert-log__seek:active {
+  transform: translateY(1px);
+}
+
+.session-report__back,
+.session-report__home,
+.session-report__delete {
+  transition: border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.alert-log__seek {
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}

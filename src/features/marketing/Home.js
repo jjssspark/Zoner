@@ -1,6 +1,7 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../../components/layout/NavBar';
+import useRevealOnScroll from '../../hooks/useRevealOnScroll';
 import ScoreRing from '../../components/ui/ScoreRing';
 import Sparkline from '../../components/ui/Sparkline';
 import image2 from './image-2.png';
@@ -29,37 +30,6 @@ const FEATURES = [
 
 const PREVIEW_TREND = [0.4, 0.62, 0.55, 0.78, 0.83, 0.71, 0.9, 0.86];
 
-function useRevealOnScroll() {
-  const ref = useRef(null);
-
-  useLayoutEffect(() => {
-    const container = ref.current;
-    const targets = container?.querySelectorAll('[data-reveal]');
-    if (!targets || targets.length === 0) return undefined;
-
-    // Only hide content once JS has proven it can run and found something to
-    // reveal — otherwise a failed observer would leave the page permanently
-    // blank. See task-8-report.md for the incident this fixes.
-    container.classList.add('reveal-enabled');
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-revealed');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-
-    targets.forEach((t) => observer.observe(t));
-    return () => observer.disconnect();
-  }, []);
-
-  return ref;
-}
 
 export const Home = () => {
   const navigate = useNavigate();
