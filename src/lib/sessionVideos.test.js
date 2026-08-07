@@ -1,8 +1,10 @@
 import {
   SESSION_VIDEO_BUCKET,
   MAX_STORED_VIDEOS,
+  MAX_VIDEO_BYTES,
   buildVideoPath,
   isVideoLimitReached,
+  isVideoTooLarge,
   pickOldestVideoSession,
 } from './sessionVideos';
 
@@ -71,6 +73,29 @@ describe('pickOldestVideoSession', () => {
   });
 });
 
+describe('isVideoTooLarge', () => {
+  test('한도보다 작으면 false', () => {
+    expect(isVideoTooLarge(MAX_VIDEO_BYTES - 1)).toBe(false);
+  });
+
+  test('한도와 정확히 같으면 false — 버킷은 초과분만 거절한다', () => {
+    expect(isVideoTooLarge(MAX_VIDEO_BYTES)).toBe(false);
+  });
+
+  test('한도를 넘으면 true', () => {
+    expect(isVideoTooLarge(MAX_VIDEO_BYTES + 1)).toBe(true);
+  });
+
+  test('0이면 false', () => {
+    expect(isVideoTooLarge(0)).toBe(false);
+  });
+
+  test('크기를 알 수 없으면 막지 않는다 — 판단 불가로 저장을 포기시키지 않는다', () => {
+    expect(isVideoTooLarge(undefined)).toBe(false);
+    expect(isVideoTooLarge(null)).toBe(false);
+  });
+});
+
 describe('상수', () => {
   test('버킷 이름이 마이그레이션과 같다', () => {
     expect(SESSION_VIDEO_BUCKET).toBe('session-videos');
@@ -78,5 +103,9 @@ describe('상수', () => {
 
   test('한도는 3개다', () => {
     expect(MAX_STORED_VIDEOS).toBe(3);
+  });
+
+  test('크기 한도는 마이그레이션의 file_size_limit과 같은 200MB다', () => {
+    expect(MAX_VIDEO_BYTES).toBe(209715200);
   });
 });

@@ -19,6 +19,7 @@ import {
   MAX_STORED_VIDEOS,
   buildVideoPath,
   isVideoLimitReached,
+  isVideoTooLarge,
   pickOldestVideoSession,
 } from '../lib/sessionVideos';
 import './StartLearning.css';
@@ -31,6 +32,11 @@ const STATUS = {
   RUNNING: 'running',
   PAUSED: 'paused',
   SAVING: 'saving',
+  // 학습 기록은 저장됐고 영상 업로드만 실패한 종료 상태. SAVING에 머무르면
+  // 종료 버튼이 "저장 중..."인 채로 영영 잠겨 돌아가지도 않는 작업을
+  // 진행 중이라고 거짓말한다. 이 시점에 남은 동작은 리포트 이동뿐이므로
+  // 타이머와 컨트롤을 내리고 안내 배너만 남긴다.
+  VIDEO_SAVE_FAILED: 'video_save_failed',
   SAVE_ERROR: 'save_error',
 };
 
@@ -58,6 +64,10 @@ export const StartLearning = () => {
   // 사용자가 저장을 확정한 영상. 저장이 실패해 재시도할 때 다시 쓴다.
   // 레코더는 이미 멈춰서 다시 만들 수 없으므로 여기 쥐고 있어야 한다.
   const confirmedVideoRef = useRef(null);
+  // 종료 처리가 진행 중인지. 녹화 경로의 handleStop은 getUser + 영상 세션
+  // 조회로 await 구간이 열려 있는데, 그동안 종료 버튼은 아직 잠기지 않는다.
+  // 연타하면 같은 조회가 중복되고 setPendingSave가 덮어써진다.
+  const isStoppingRef = useRef(false);
 
   const [status, setStatus] = useState(STATUS.REQUESTING_CAMERA);
   const [isModelReady, setIsModelReady] = useState(false);
@@ -157,6 +167,13 @@ export const StartLearning = () => {
       if (elapsedTimerIdRef.current) {
         window.clearInterval(elapsedTimerIdRef.current);
       }
+      // 저장하지 않고 화면을 떠나면 녹화분은 버린다. stop()의 Promise는
+      // 받을 곳이 없으므로 기다리지 않는다. 버리는 blob이라도 트랙보다
+      // 레코더를 먼저 멈춘다 — 순서가 뒤바뀌면 onerror가 발동한다.
+      if (recorderRef.current) {
+        recorderRef.current.stop();
+        recorderRef.current = null;
+      }
       releaseCamera();
       // AudioContext는 브라우저가 동시 생성 개수를 제한한다(Chrome 기준 약 6개).
       // 닫지 않고 페이지를 떠나면 반복 진입 시 한도에 도달해 알림음이 조용히
@@ -164,12 +181,6 @@ export const StartLearning = () => {
       if (audioContextRef.current) {
         audioContextRef.current.close().catch(() => {});
         audioContextRef.current = null;
-      }
-      // 저장하지 않고 화면을 떠나면 녹화분은 버린다. stop()의 Promise는
-      // 받을 곳이 없으므로 기다리지 않는다.
-      if (recorderRef.current) {
-        recorderRef.current.stop();
-        recorderRef.current = null;
       }
     };
   }, []);
@@ -301,20 +312,15 @@ export const StartLearning = () => {
   // 어떤 실패도 던지지 않는다 — 세션 기록은 이미 저장됐고 그것을 지켜야 한다.
   const uploadSessionVideo = async (blob, userId, sessionId, oldest) => {
     try {
-      if (oldest) {
-        const { error: removeError } = await supabase.storage
-          .from(SESSION_VIDEO_BUCKET)
-          .remove([oldest.video_path]);
-        // 지우지 못한 채 올리면 한도를 넘는다. 여기서 멈춘다.
-        if (removeError) {
-          return '오래된 영상 정리에 실패해 이번 영상을 저장하지 못했습니다.';
-        }
-        await supabase
-          .from('study_sessions')
-          .update({ video_path: null })
-          .eq('id', oldest.id);
+      // 버킷이 거절할 크기는 올려보기 전에 거른다. 왕복을 기다린 끝에
+      // 실패를 듣게 하지 않는다.
+      if (isVideoTooLarge(blob?.size)) {
+        return '영상이 너무 커서 저장하지 못했습니다. 학습 기록은 저장되었습니다.';
       }
 
+      // 새 영상을 확보한 뒤에 옛 영상을 지운다. 순서를 뒤집으면 업로드가
+      // 실패했을 때 옛 영상만 사라져 영상이 순감한다. 한도는 용량이 아니라
+      // 개수(3개)이므로 잠깐 4개를 들고 있어도 티어를 넘지 않는다.
       const path = buildVideoPath(userId, sessionId);
       const { error: uploadError } = await supabase.storage
         .from(SESSION_VIDEO_BUCKET)
@@ -331,6 +337,26 @@ export const StartLearning = () => {
         return '영상 저장에 실패했습니다. 학습 기록은 저장되었습니다.';
       }
 
+      if (oldest) {
+        const { error: removeError } = await supabase.storage
+          .from(SESSION_VIDEO_BUCKET)
+          .remove([oldest.video_path]);
+        if (removeError) {
+          return '오래된 영상을 지우지 못했습니다. 이번 영상은 저장되었습니다.';
+        }
+
+        // 파일은 지웠는데 이 갱신이 실패하면 행이 없는 파일을 계속 가리켜
+        // 한도 한 칸을 영영 차지하고, 리포트에서는 재생도 되지 않는다.
+        // 옆의 두 호출과 같이 반드시 확인한다.
+        const { error: unlinkError } = await supabase
+          .from('study_sessions')
+          .update({ video_path: null })
+          .eq('id', oldest.id);
+        if (unlinkError) {
+          return '오래된 영상 정리에 실패했습니다. 이번 영상은 저장되었습니다.';
+        }
+      }
+
       return null;
     } catch (error) {
       return '영상 저장에 실패했습니다. 학습 기록은 저장되었습니다.';
@@ -338,6 +364,17 @@ export const StartLearning = () => {
   };
 
   const handleStop = async () => {
+    // 연타 무시. 처리가 끝나면 풀어 SAVE_ERROR에서의 재시도를 막지 않는다.
+    if (isStoppingRef.current) return;
+    isStoppingRef.current = true;
+    try {
+      await runStop();
+    } finally {
+      isStoppingRef.current = false;
+    }
+  };
+
+  const runStop = async () => {
     // SAVE_ERROR에서 재시도로 들어온 경우. 이미 확정한 영상이 있으면 다시 묻지 않고
     // 같은 선택으로 저장한다. 레코더는 이미 멈췄으므로 새로 만들 수 없다.
     if (confirmedVideoRef.current) {
@@ -441,6 +478,7 @@ export const StartLearning = () => {
           setVideoSaveError(uploadError);
           setSavedSessionId(data.id);
           confirmedVideoRef.current = null;
+          setStatus(STATUS.VIDEO_SAVE_FAILED);
           return;
         }
       }

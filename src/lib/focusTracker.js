@@ -154,6 +154,10 @@ export function aggregateSession(ticks, startedAt, endedAt) {
     // 벽시계가 아니라 경과 시간으로 나눈다. 일시정지 구간에서는 elapsedMs가
     // 멈추므로 그래프에 빈 구간이 생기지 않고, MediaRecorder가 일시정지를
     // 들어낸 영상의 재생 시간축과도 일치한다.
+    // ?? 0은 elapsedMs를 넣어주기 전에 만들어진 틱(구버전 저장분·직접 만든
+    // 틱)을 위한 것이다. 진짜 0초와 값 없음을 구분하지 못하지만, 둘 다 0분
+    // 버킷으로 보내는 것이 의도다 — 없는 값을 버리면 틱 수가 줄어 비율이
+    // 왜곡되고, 0분에 넣으면 최악이라도 맨 앞 막대만 영향을 받는다.
     const minute = Math.floor((tick.elapsedMs ?? 0) / 60000);
     const bucket = buckets.get(minute) || { total: 0, focused: 0 };
     bucket.total += 1;

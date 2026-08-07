@@ -265,7 +265,9 @@ export const Read = () => {
                   );
                 })}
               </div>
-              <div className="focus-chart__labels">
+              {/* canSeek이면 위 role="img"가 빠져 이 숫자들이 그대로 낭독된다.
+                  막대 버튼이 이미 "N분대"를 읽어주므로 중복이다. */}
+              <div className="focus-chart__labels" aria-hidden="true">
                 {session.timeline.map((bucket) => (
                   <span key={bucket.minute} className="focus-chart__minute">
                     {bucket.minute}

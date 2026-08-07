@@ -59,6 +59,9 @@ export function createAlertEngine({
         reason: tick.reason,
         // 영상 재생 시간축(일시정지 제외)에서 이 알림이 발생한 지점.
         // 리포트에서 이 값으로 seek한다.
+        // ?? 0은 elapsedMs를 넣어주기 전에 만들어진 틱을 위한 것이다. 진짜
+        // 0초와 값 없음을 구분하지 못하지만 둘 다 영상 맨 앞으로 보내는 것이
+        // 의도다 — 알림 자체를 버리는 것보다 낫다.
         offsetSeconds: Math.max(0, Math.round((tick.elapsedMs ?? 0) / 1000)),
       };
 
