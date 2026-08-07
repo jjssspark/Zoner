@@ -54,6 +54,12 @@
 }
 
 .start-learning__main {
+  /* 영상과 실시간 게이지가 같은 폭으로 정렬되도록 한 곳에서 정의한다.
+     화면의 중심 요소로 키우되, 뷰포트 높이 기준으로 상한을 둬서 세션
+     컨트롤(시작/중지/종료)이 노트북 화면 아래로 밀려나지 않게 한다.
+     width는 100%(좁은 화면에서 가로 스크롤 방지)와 뷰포트 높이 기반 값,
+     절대 상한(px) 중 가장 작은 값을 취한다. */
+  --stage-width: min(100%, calc((58vh * 4) / 3), 880px);
   max-width: 960px;
   margin: 0 auto;
   padding: var(--space-8) var(--space-6);
@@ -71,16 +77,20 @@
 
 .start-learning__video-wrap {
   position: relative;
-  /* 화면의 중심 요소로 키우되, 뷰포트 높이 기준으로 상한을 둬서 세션
-     컨트롤(시작/중지/종료)이 노트북 화면 아래로 밀려나지 않게 한다.
-     width는 100%(좁은 화면에서 가로 스크롤 방지)와 뷰포트 높이 기반 값,
-     절대 상한(px) 중 가장 작은 값을 취한다. */
-  width: min(100%, calc((58vh * 4) / 3), 880px);
+  width: var(--stage-width);
   aspect-ratio: 4 / 3;
   background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
+  /* --live-focus-color는 main에서 상속된다. 측정 전에는 정의되지 않아
+     기존 테두리 색으로 떨어진다. */
+  border: 1px solid var(--live-focus-color, var(--color-border));
   border-radius: var(--radius-lg);
   overflow: hidden;
+  /* 집중도가 낮아지면 화면 가장자리가 천천히 물든다. 틱마다 확 바뀌면
+     시야 주변에서 깜빡여 학습을 방해하므로 --duration-slow로 늦춘다. */
+  box-shadow: 0 0 32px -8px
+    color-mix(in oklch, var(--live-focus-color, transparent) 50%, transparent);
+  transition: border-color var(--duration-slow) var(--ease-in-out),
+    box-shadow var(--duration-slow) var(--ease-in-out);
 }
 
 .start-learning__video {
@@ -98,14 +108,23 @@
   height: 14px;
   border-radius: var(--radius-full);
   border: 2px solid var(--color-surface);
+  /* 판정 원인별 색은 tokens.css의 --color-reason-*를 화면에서 인라인으로
+     내려준다. 첫 틱 전에는 값이 없어 중립색으로 떨어진다. */
+  background-color: var(--live-reason-color, var(--color-text-muted));
+  transition: background-color var(--duration-normal) var(--ease-in-out);
+  animation: start-learning-observing 2.4s var(--ease-in-out) infinite;
 }
 
-.start-learning__status-dot.is-focused {
-  background-color: var(--color-success);
-}
-
-.start-learning__status-dot.is-unfocused {
-  background-color: var(--color-danger);
+/* 관측 중임을 드러내는 맥박. 카메라가 켜져 있다는 유일한 시각 신호다. */
+@keyframes start-learning-observing {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0
+      color-mix(in oklch, var(--live-reason-color, transparent) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
 }
 
 .start-learning__timer {
@@ -119,6 +138,55 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   margin: 0;
+}
+
+.start-learning__focus {
+  width: var(--stage-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.start-learning__focus-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.start-learning__focus-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-data);
+}
+
+.start-learning__focus-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-metric-sm);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-data);
+  /* 수치도 구간 색을 따라간다. 색만으로 정보를 전달하지 않도록 옆의
+     라벨과 퍼센트 수치를 항상 함께 보여준다. */
+  color: var(--live-focus-color, var(--color-text-muted));
+  transition: color var(--duration-slow) var(--ease-in-out);
+}
+
+.start-learning__focus-track {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.start-learning__focus-fill {
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--live-focus-color, var(--color-border));
+  /* width가 아니라 scaleX로 늘린다 — 레이아웃을 다시 계산시키지 않는다. */
+  transform: scaleX(var(--fill, 0));
+  transform-origin: left center;
+  transition: transform var(--duration-slow) var(--ease-in-out),
+    background-color var(--duration-slow) var(--ease-in-out);
 }
 
 .start-learning__stop {

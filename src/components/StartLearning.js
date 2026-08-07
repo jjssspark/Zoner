@@ -5,7 +5,10 @@ import {
   loadFaceLandmarker,
   createFocusTracker,
   aggregateSession,
+  computeRollingFocus,
+  ROLLING_WINDOW_MS,
 } from '../lib/focusTracker';
+import { focusLevel } from './ui/ScoreRing';
 import { createAlertEngine, ALERT_MESSAGES } from '../lib/alertEngine';
 import { loadAlertMuted, saveAlertMuted, playAlertTone } from '../lib/alertSound';
 import {
@@ -23,6 +26,10 @@ import {
   pickOldestVideoSession,
 } from '../lib/sessionVideos';
 import './StartLearning.css';
+
+// tokens.css의 --color-reason-*는 케밥 케이스인데 REASON 값은 스네이크다.
+const reasonColorVar = (reason) =>
+  `var(--color-reason-${reason.replace(/_/g, '-')})`;
 
 const STATUS = {
   REQUESTING_CAMERA: 'requesting_camera',
@@ -73,6 +80,9 @@ export const StartLearning = () => {
   const [isModelReady, setIsModelReady] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isFocused, setIsFocused] = useState(true);
+  // 실시간 표시 전용. 저장되는 집중도는 종료 시 aggregateSession이 따로 낸다.
+  const [liveFocus, setLiveFocus] = useState(null);
+  const [currentReason, setCurrentReason] = useState(null);
   const [activeAlert, setActiveAlert] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
   const [recordingError, setRecordingError] = useState(null);
@@ -217,6 +227,10 @@ export const StartLearning = () => {
 
         ticksRef.current.push(enrichedTick);
         setIsFocused(enrichedTick.focused);
+        setCurrentReason(enrichedTick.reason);
+        setLiveFocus(
+          computeRollingFocus(ticksRef.current, enrichedTick.timestampMs)
+        );
         alertEngineRef.current?.handleTick(enrichedTick);
         // 배너는 자동 타이머로 닫지 않는다. 집중으로 돌아왔을 때만 내린다.
         if (enrichedTick.focused) {
@@ -227,6 +241,10 @@ export const StartLearning = () => {
   };
 
   const stopTicking = () => {
+    // 측정이 멈춘 동안 마지막 수치를 그대로 두면 지금 상태로 오해된다.
+    setLiveFocus(null);
+    setCurrentReason(null);
+
     if (trackerRef.current) {
       trackerRef.current.stop();
       trackerRef.current = null;
@@ -522,7 +540,15 @@ export const StartLearning = () => {
         </div>
       </header>
 
-      <main className="start-learning__main">
+      <main
+        className="start-learning__main"
+        // 영상 테두리와 게이지가 같은 색을 쓰므로 한 번만 내려주고 상속시킨다.
+        style={
+          liveFocus === null
+            ? undefined
+            : { '--live-focus-color': `var(--color-focus-${focusLevel(liveFocus)})` }
+        }
+      >
         {status === STATUS.CAMERA_DENIED && (
           <p className="start-learning__error" role="alert">
             카메라 권한이 필요합니다.{' '}
@@ -630,9 +656,12 @@ export const StartLearning = () => {
           />
           {status === STATUS.RUNNING && (
             <span
-              className={`start-learning__status-dot ${
-                isFocused ? 'is-focused' : 'is-unfocused'
-              }`}
+              className="start-learning__status-dot"
+              style={
+                currentReason
+                  ? { '--live-reason-color': reasonColorVar(currentReason) }
+                  : undefined
+              }
               aria-hidden="true"
             />
           )}
@@ -676,6 +705,27 @@ export const StartLearning = () => {
                 ? '집중 중'
                 : '비집중 감지'}
             </p>
+
+            {status === STATUS.RUNNING && (
+              <div className="start-learning__focus">
+                <div className="start-learning__focus-head">
+                  <span className="start-learning__focus-label">
+                    최근 {ROLLING_WINDOW_MS / 60000}분 집중도
+                  </span>
+                  {/* 5초마다 갱신되므로 aria-live를 걸지 않는다 — 스크린리더가
+                      쉬지 않고 읽어 학습을 방해한다. */}
+                  <span className="start-learning__focus-value">
+                    {liveFocus === null ? '측정 중' : `${liveFocus}%`}
+                  </span>
+                </div>
+                <div className="start-learning__focus-track" aria-hidden="true">
+                  <div
+                    className="start-learning__focus-fill"
+                    style={{ '--fill': (liveFocus ?? 0) / 100 }}
+                  />
+                </div>
+              </div>
+            )}
             <div className="start-learning__controls">
               {status === STATUS.RUNNING && (
                 <button
