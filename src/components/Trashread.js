@@ -178,11 +178,15 @@ export const Trashread = () => {
               aria-label={`시간대별 집중도 그래프. 종합 집중도 ${session.focus_score}%`}
             >
               <div className="focus-chart__track">
-                {session.timeline.map((bucket) => (
+                {session.timeline.map((bucket, index) => (
                   <div
                     key={bucket.minute}
                     className="focus-chart__bar"
-                    style={{ height: `${Math.round(bucket.focus_ratio * 100)}%` }}
+                    style={{
+                      height: `${Math.round(bucket.focus_ratio * 100)}%`,
+                      // 왼쪽부터 순차로 자라도록 순번을 CSS에 넘긴다.
+                      '--bar-index': index,
+                    }}
                   />
                 ))}
               </div>

@@ -4,6 +4,8 @@ import {
   isEyesClosed,
   computeFocusBreakdown,
   aggregateSession,
+  computeRollingFocus,
+  ROLLING_WINDOW_MS,
   REASON,
 } from './focusTracker';
 
@@ -304,5 +306,70 @@ describe('aggregateSession — 경과 시간 기준 버킷', () => {
     const { timeline } = aggregateSession(ticks, startedAt, '2026-08-06T10:00:10.000Z');
 
     expect(timeline).toEqual([{ minute: 0, focus_ratio: 1 }]);
+  });
+});
+
+describe('computeRollingFocus', () => {
+  const NOW = 1754500000000;
+  const tickAt = (msAgo, focused) => ({ timestampMs: NOW - msAgo, focused });
+
+  // focusedCount개가 집중, 나머지는 비집중인 틱을 창 안쪽에 만든다.
+  const ratioTicks = (focusedCount, totalCount) =>
+    Array.from({ length: totalCount }, (_, index) =>
+      tickAt(1000 + index, index < focusedCount)
+    );
+
+  test('틱이 없으면 null을 반환한다', () => {
+    expect(computeRollingFocus([], NOW)).toBeNull();
+  });
+
+  test('창 밖의 틱만 있으면 null을 반환한다 — 재개 직후 "측정 중" 상태', () => {
+    const ticks = [tickAt(300000, true), tickAt(130000, true)];
+
+    expect(computeRollingFocus(ticks, NOW)).toBeNull();
+  });
+
+  test('창 밖 틱은 계산에서 제외한다', () => {
+    // 창 밖 비집중 4개 + 창 안 집중 1개.
+    // 전체로 계산하면 20%지만 창 안만 보면 100%여야 한다.
+    const ticks = [
+      tickAt(300000, false),
+      tickAt(280000, false),
+      tickAt(260000, false),
+      tickAt(240000, false),
+      tickAt(1000, true),
+    ];
+
+    expect(computeRollingFocus(ticks, NOW)).toBe(100);
+  });
+
+  test('창 경계에 정확히 걸친 틱은 포함한다', () => {
+    const ticks = [tickAt(ROLLING_WINDOW_MS, true)];
+
+    expect(computeRollingFocus(ticks, NOW)).toBe(100);
+  });
+
+  test('전부 집중이면 100, 전부 비집중이면 0', () => {
+    expect(computeRollingFocus(ratioTicks(5, 5), NOW)).toBe(100);
+    expect(computeRollingFocus(ratioTicks(0, 5), NOW)).toBe(0);
+  });
+
+  test('밴드 경계값을 정확히 만든다 — 80 / 50 / 30', () => {
+    expect(computeRollingFocus(ratioTicks(8, 10), NOW)).toBe(80);
+    expect(computeRollingFocus(ratioTicks(5, 10), NOW)).toBe(50);
+    expect(computeRollingFocus(ratioTicks(3, 10), NOW)).toBe(30);
+  });
+
+  test('창보다 짧은 세션도 있는 틱만으로 계산한다', () => {
+    const ticks = [tickAt(3000, true), tickAt(2000, true), tickAt(1000, false)];
+
+    // 2/3 = 66.67 → 반올림 67
+    expect(computeRollingFocus(ticks, NOW)).toBe(67);
+  });
+
+  test('windowMs를 넘기면 그 창을 쓴다', () => {
+    const ticks = [tickAt(50000, false), tickAt(1000, true)];
+
+    expect(computeRollingFocus(ticks, NOW, 10000)).toBe(100);
   });
 });

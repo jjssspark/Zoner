@@ -33,3 +33,31 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* 라우트 진입 페이드. src/App.js의 AnimatedRoutes가 pathname으로 키를 줘
+   화면이 바뀔 때마다 다시 재생된다.
+
+   transform을 쓰지 않는 이유는 App.js 주석 참고 — 조상 transform이
+   position: fixed 자손의 기준을 바꿔 고정 배경이 튄다.
+   prefers-reduced-motion은 tokens.css의 전역 블록이 처리한다. */
+.route-enter {
+  animation: route-enter var(--duration-normal) var(--ease-out-expo) both;
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 전역 포커스 표시. FAQ·Pricing·UserGuide에는 :focus-visible 규칙이 아예
+   없어 어두운 배경에서 키보드 사용자가 자기 위치를 잃었다.
+   .claude/standards/accessibility.md가 정한 값이다.
+   개별 컴포넌트가 더 구체적인 선택자로 덮어쓰는 것은 그대로 이긴다. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

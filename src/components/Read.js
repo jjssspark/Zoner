@@ -236,8 +236,10 @@ export const Read = () => {
               }
             >
               <div className="focus-chart__track">
-                {session.timeline.map((bucket) => {
+                {session.timeline.map((bucket, index) => {
                   const height = `${Math.round(bucket.focus_ratio * 100)}%`;
+                  // 왼쪽부터 순차로 자라도록 순번을 CSS에 넘긴다.
+                  const barStyle = { height, '--bar-index': index };
                   const isCurrent =
                     canSeek && Math.floor(playedSeconds / 60) === bucket.minute;
                   const className = `focus-chart__bar${
@@ -247,7 +249,7 @@ export const Read = () => {
                   // 영상이 없으면 누를 수 없는 버튼을 만들지 않는다.
                   if (!canSeek) {
                     return (
-                      <div key={bucket.minute} className={className} style={{ height }} />
+                      <div key={bucket.minute} className={className} style={barStyle} />
                     );
                   }
 
@@ -256,7 +258,7 @@ export const Read = () => {
                       key={bucket.minute}
                       type="button"
                       className={className}
-                      style={{ height }}
+                      style={barStyle}
                       onClick={() => seekTo(bucket.minute * 60)}
                       aria-label={`${bucket.minute}분대, 집중도 ${Math.round(
                         bucket.focus_ratio * 100
