@@ -19,7 +19,7 @@
 }
 
 .trash-page__title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--text-lg);
   font-weight: 700;
   margin: 0;

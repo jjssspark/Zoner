@@ -33,7 +33,7 @@
 }
 
 .home__headline {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-weight: 800;
   font-size: var(--text-hero);
   line-height: var(--leading-tight);
@@ -135,7 +135,7 @@
 }
 
 .feature-card__title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--text-lg);
   margin: 0 0 var(--space-2);
 }
@@ -154,7 +154,7 @@
 }
 
 .home__vision-title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--text-2xl);
   margin: 0 0 var(--space-6);
 }
@@ -174,7 +174,7 @@
 
 .home__watermark {
   text-align: center;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-weight: 900;
   font-size: clamp(3rem, 15vw, 12rem);
   letter-spacing: 0.05em;

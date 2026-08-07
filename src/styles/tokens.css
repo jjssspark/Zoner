@@ -55,8 +55,9 @@
   --color-reason-absent: var(--navy-550);
 
   /* typography (Pretendard covers both display and body — one font family) */
+  /* 제목도 본문과 같은 Pretendard를 쓴다. 제목용 서체를 따로 들일 때
+     --font-display 를 여기에 되살리고 제목 규칙만 그쪽으로 옮긴다. */
   --font-sans: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
-  --font-display: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
 
   --text-xs: clamp(0.75rem, 0.73rem + 0.1vw, 0.813rem);

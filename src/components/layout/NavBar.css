@@ -15,7 +15,7 @@
   border: none;
   cursor: pointer;
   color: var(--color-text);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-weight: 800;
   font-size: var(--text-lg);
   letter-spacing: 0.04em;

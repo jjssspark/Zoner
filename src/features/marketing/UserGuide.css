@@ -35,7 +35,7 @@
 
 .guide__title {
   margin: 0 0 var(--space-4);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-weight: 800;
   font-size: var(--text-2xl);
   line-height: var(--leading-tight);
@@ -87,7 +87,7 @@
 
 .guide__step-title {
   margin: 0 0 var(--space-4);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--text-xl);
   font-weight: 700;
   line-height: var(--leading-tight);
@@ -149,7 +149,7 @@
 
 .guide__outro-title {
   margin: 0 0 var(--space-6);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--text-lg);
   font-weight: 700;
 }

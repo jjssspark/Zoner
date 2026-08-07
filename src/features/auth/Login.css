@@ -30,7 +30,7 @@
 }
 
 .login-card__title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--text-xl);
   margin: 0 0 var(--space-6);
 }

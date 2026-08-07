@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** Mypage의 "빠른 실행"을 작은 알약 4개에서 HUD 질감의 큰 2×2 타일 4개로 재설계하고, 이미 로드된 세션 데이터로 각 타일에 살아있는 보조 정보를 붙인다.
 
 **Architecture:** 순수 계산 함수를 `src/lib/quickActions.js`로 분리해 `react-router-dom` 없이 테스트한다(이 저장소의 Jest 리졸버 제약 회피). `Mypage.js`는 그 함수를 호출해 모듈 스코프 `QuickActionTile` 컴포넌트에 값을 넘긴다. 시각 효과는 전부 CSS 의사요소로 구현하며 새 JS 의존성이 없다.
