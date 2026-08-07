@@ -105,7 +105,7 @@ describe('상수', () => {
     expect(MAX_STORED_VIDEOS).toBe(3);
   });
 
-  test('크기 한도는 마이그레이션의 file_size_limit과 같은 200MB다', () => {
-    expect(MAX_VIDEO_BYTES).toBe(209715200);
+  test('크기 한도는 마이그레이션의 file_size_limit과 같은 50MB다', () => {
+    expect(MAX_VIDEO_BYTES).toBe(52428800);
   });
 });

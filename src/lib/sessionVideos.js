@@ -7,9 +7,13 @@ export const SESSION_VIDEO_BUCKET = 'session-videos';
 // 무료 티어 1GB 기준. 400kbps로 45분이 약 135MB이므로 3개면 약 400MB다.
 export const MAX_STORED_VIDEOS = 3;
 
-// 200MB. 마이그레이션의 버킷 file_size_limit과 반드시 같은 값이어야 한다.
-// 45분 학습(약 135MB)에 여유를 둔 값이다.
-export const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
+// 50MB. 마이그레이션의 버킷 file_size_limit과 반드시 같은 값이어야 한다.
+// 버킷의 file_size_limit은 Supabase 프로젝트의 전역 한도를 낮추기만 할 뿐
+// 올리지 못한다 — 실효 한도는 min(버킷, 전역)이고 전역이 우선한다. 이
+// 프로젝트는 Free 플랜이라 전역 한도가 50MB로 고정되어 있으므로 실제
+// 상한도 50MB다. 400kbps(RECORDER_VIDEO_BITS_PER_SECOND) 기준 약 16분
+// 분량이며, 그보다 긴 세션은 영상을 저장할 수 없다.
+export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
 // 첫 세그먼트가 user_id여야 한다. Storage RLS가
 // (storage.foldername(name))[1] = auth.uid()::text 로 소유자를 판별한다.

@@ -166,6 +166,22 @@ describe('purgeExpiredSessions', () => {
     expect(bucket.remove.mock.invocationCallOrder[0]).toBeLessThan(
       deleteQuery.delete.mock.invocationCallOrder[0]
     );
+
+    // makeQuery의 체이너블 mock은 무엇을 넘겨도 자기 자신을 돌려주므로, select의
+    // 조건이 통째로 빠져도 위 remove 인자·순서 검증은 그대로 통과한다. 만료되지
+    // 않은 세션의 영상까지 지우는 회귀를 잡으려면 select에 실제로 어떤 조건이
+    // 걸렸는지를 고정해야 한다. delete와 동일한 조건이어야 한다.
+    expect(selectQuery.select).toHaveBeenCalledWith('video_path');
+    expect(selectQuery.eq).toHaveBeenCalledWith('user_id', 'u1');
+    expect(selectQuery.not).toHaveBeenCalledWith('deleted_at', 'is', null);
+    expect(selectQuery.not).toHaveBeenCalledWith('video_path', 'is', null);
+    expect(selectQuery.lt).toHaveBeenCalledWith('deleted_at', expect.any(String));
+
+    // select와 delete가 같은 cutoff를 쓰는지도 고정한다 — 둘이 어긋나면
+    // 영상이 지워지는 대상과 행이 지워지는 대상이 갈린다.
+    const selectCutoff = selectQuery.lt.mock.calls[0][1];
+    const deleteCutoff = deleteQuery.lt.mock.calls[0][1];
+    expect(selectCutoff).toBe(deleteCutoff);
   });
 
   test('만료 대상에 영상이 없으면 Storage를 건드리지 않는다', async () => {

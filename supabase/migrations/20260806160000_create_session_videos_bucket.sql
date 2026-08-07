@@ -6,10 +6,13 @@
 -- 경로 규칙: {user_id}/{session_id}.webm
 -- 첫 세그먼트가 user_id인 것이 아래 정책들의 소유자 판별 기준이다.
 
--- file_size_limit을 명시하지 않으면 프로젝트 기본값(무료 티어 50MB)이 걸린다.
--- 이 기능의 목표치가 400kbps × 45분 ≈ 135MB라 그대로 두면 정작 목표 시나리오가
--- 업로드에 실패한다. 200MB(209715200 B)로 올린다 — src/lib/sessionVideos.js의
--- MAX_VIDEO_BYTES와 같은 값이어야 한다.
+-- 버킷의 file_size_limit은 Supabase 프로젝트의 전역 Storage 한도를
+-- 낮추기만 할 뿐 올리지 못한다 — 실효 한도는 min(버킷, 전역)이고 전역이
+-- 우선한다. 이 프로젝트는 Free 플랜이라 전역 한도가 50MB로 고정되어 있어,
+-- 여기 값을 그 이상으로 두는 것은 의미가 없다. 실제 상한을 올리려면
+-- Storage Settings의 Global file size limit을 올려야 하는데 Free 플랜은
+-- 그것이 50MB로 막혀 있다. 50MB(52428800 B)로 맞춘다 —
+-- src/lib/sessionVideos.js의 MAX_VIDEO_BYTES와 같은 값이어야 한다.
 --
 -- allowed_mime_types는 업로드가 보내는 contentType과 맞아야 한다. 레코더는
 -- 'video/webm;codecs=vp8'로 올리는데(RECORDER_MIME_TYPE), Supabase가 코덱
@@ -23,7 +26,7 @@ values (
   'session-videos',
   'session-videos',
   false,
-  209715200,
+  52428800,
   array['video/webm', 'video/webm;codecs=vp8']
 )
 on conflict (id) do update set
