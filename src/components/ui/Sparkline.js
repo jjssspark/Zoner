@@ -1,5 +1,5 @@
 import React from 'react';
-import { focusLevel } from './ScoreRing';
+import { focusLevel } from '../../lib/focusLevel';
 import './Sparkline.css';
 
 const STROKE = 1.5;

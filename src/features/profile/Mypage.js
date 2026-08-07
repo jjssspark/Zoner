@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
-import ScoreRing, { focusLevel } from '../../components/ui/ScoreRing';
+import ScoreRing from '../../components/ui/ScoreRing';
+import { focusLevel } from '../../lib/focusLevel';
 import Skeleton from '../../components/ui/Skeleton';
 import { buildQuickActionMeta } from '../../lib/quickActions';
 import './Mypage.css';

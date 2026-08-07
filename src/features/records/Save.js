@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
 import { softDeleteSession } from '../../lib/trash';
-import { focusLevel } from '../../components/ui/ScoreRing';
+import { focusLevel } from '../../lib/focusLevel';
 import Skeleton from '../../components/ui/Skeleton';
 import './Save.css';
 

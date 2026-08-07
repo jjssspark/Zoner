@@ -8,7 +8,7 @@ import {
   computeRollingFocus,
   ROLLING_WINDOW_MS,
 } from '../../lib/focusTracker';
-import { focusLevel } from '../../components/ui/ScoreRing';
+import { focusLevel } from '../../lib/focusLevel';
 import { createAlertEngine, ALERT_MESSAGES } from '../../lib/alertEngine';
 import { loadAlertMuted, saveAlertMuted, playAlertTone } from '../../lib/alertSound';
 import {
