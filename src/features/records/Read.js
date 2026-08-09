@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
 import { softDeleteSession } from '../../lib/trash';
 import { SESSION_VIDEO_BUCKET } from '../../lib/sessionVideos';
+import { buildReportTitle } from '../../lib/reportTitle';
 import ReasonBadge, { REASON_LABELS } from '../../components/ui/ReasonBadge';
 import './SessionReport.css';
 import './FocusChart.css';
@@ -132,6 +133,25 @@ export const Read = () => {
     }
   };
 
+  // PDF는 브라우저 인쇄 기능으로 만든다. 화면을 그리는 엔진이 그대로 쓰이므로
+  // oklch 색과 한글이 손상 없이 넘어가고, 글자가 벡터라 검색·복사가 된다.
+  // html2canvas 계열은 oklch를 파싱하지 못해 이 프로젝트에서는 쓸 수 없다.
+  const handleSavePdf = () => {
+    const previousTitle = document.title;
+    // 인쇄 대화상자가 document.title을 기본 파일명으로 쓴다.
+    document.title = buildReportTitle(session.started_at);
+
+    // print() 반환 시점은 브라우저마다 다르다(대화상자를 닫을 때까지 막는 곳도,
+    // 즉시 돌아오는 곳도 있다). afterprint로 되돌려야 제목이 바뀐 채 남지 않는다.
+    const restore = () => {
+      document.title = previousTitle;
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+
+    window.print();
+  };
+
   const canSeek = Boolean(videoUrl);
 
   const seekTo = (seconds) => {
@@ -159,6 +179,15 @@ export const Read = () => {
           >
             뒤로가기
           </button>
+          {session && (
+            <button
+              type="button"
+              className="session-report__pdf"
+              onClick={handleSavePdf}
+            >
+              PDF 저장
+            </button>
+          )}
           {session && (
             <button
               type="button"
@@ -201,9 +230,12 @@ export const Read = () => {
               </span>
               <span className="session-report__score-label">종합 집중도</span>
             </div>
+            <p className="session-report__duration">
+              학습 시간 {formatDuration(session.duration_seconds)}
+            </p>
 
             {session.video_path && (
-              <section className="session-report__section">
+              <section className="session-report__section session-report__section--video">
                 <h2 className="session-report__section-title">학습 영상</h2>
                 {videoError ? (
                   <p className="session-report__video-error" role="status">

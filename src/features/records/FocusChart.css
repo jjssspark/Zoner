@@ -77,3 +77,35 @@ button.focus-chart__bar:focus-visible {
   outline: 2px solid var(--color-text);
   outline-offset: 1px;
 }
+
+/* ── 인쇄 / PDF ────────────────────────────────────────────
+   화면에서는 막대가 12px 고정이고 넘치면 가로 스크롤이 받아준다. 종이에는
+   스크롤이 없다. 60분 세션이면 12px+8px간격 × 60 = 1200px로 A4 인쇄 폭
+   (약 680px)을 훌쩍 넘겨 뒷부분이 잘린다. 폭을 고정하지 말고 나눠 갖게 한다. */
+@media print {
+  .focus-chart {
+    overflow-x: visible;
+  }
+
+  .focus-chart__track {
+    height: 110px;
+    gap: 1px;
+  }
+
+  .focus-chart__bar,
+  .focus-chart__minute {
+    /* 개수가 몇 개든 주어진 폭을 균등하게 나눈다. */
+    flex: 1 1 0;
+    width: auto;
+    min-width: 3px;
+  }
+
+  .focus-chart__minute {
+    font-size: 7pt;
+    overflow: hidden;
+  }
+
+  .focus-chart__labels {
+    gap: 1px;
+  }
+}
