@@ -17,6 +17,10 @@ const MODEL = 'claude-haiku-4-5-20251001';
 const MAX_TOKENS = 700;
 const MAX_ADVICE_ITEMS = 4;
 
+// ⚠️ src/lib/sessionMetrics.js의 WARMUP_MINUTES와 같은 값이어야 한다.
+// 프롬프트가 지표의 정의를 잘못 설명하면 모델이 그 전제로 조언을 쓴다.
+const WARMUP_MINUTES = 2;
+
 // src/lib/focusTracker.js의 REASON과 1:1이다. 한쪽을 고치면 다른 쪽도 고친다.
 const REASONS = [
   'focused',
@@ -49,6 +53,21 @@ const TREND_LABELS: Record<string, string> = {
   down: '최근 떨어지는 중',
 };
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+// ⚠️ src/lib/learningProfile.js의 formatTimeSlot과 동일한 구현이다.
+// Deno 런타임이라 그 파일을 import 할 수 없어 복제했다.
+// learningProfile.test.js가 이 동작의 계약을 고정한다. 한쪽을 고치면 다른 쪽도 고친다.
+const SLOT_MINUTES = 30;
+const SLOTS_PER_DAY = (24 * 60) / SLOT_MINUTES;
+
+function formatTimeSlot(slot: number): string | null {
+  if (!Number.isInteger(slot) || slot < 0 || slot >= SLOTS_PER_DAY) return null;
+  const pad = (value: number) => String(value).padStart(2, '0');
+  const clock = (minutes: number) =>
+    `${pad(Math.floor(minutes / 60) % 24)}:${pad(minutes % 60)}`;
+  const start = slot * SLOT_MINUTES;
+  return `${clock(start)}~${clock(start + SLOT_MINUTES)}`;
+}
 
 const SYSTEM_PROMPT = `당신은 학습 집중도 리포트를 읽고 조언하는 코치입니다.
 
@@ -103,7 +122,10 @@ function describeSession(raw: Record<string, unknown>): string[] {
     line('종합 집중도', num(raw.focusScore), '%'),
     line('순 집중 시간(분)', Math.round((num(raw.netFocusSeconds) ?? 0) / 60)),
     line('최장 연속 집중(분)', num(raw.longestStreakMinutes)),
-    line('처음 집중이 무너진 시점(분)', num(raw.firstBreakMinute)),
+    line(
+      `처음 집중이 무너진 시점(분, 첫 ${WARMUP_MINUTES}분 워밍업 제외)`,
+      num(raw.firstBreakMinute)
+    ),
     line('전반 집중도', num(raw.firstHalf), '%'),
     line('후반 집중도', num(raw.secondHalf), '%'),
     line('구간별 기복(표준편차)', num(raw.volatility)),
@@ -121,6 +143,8 @@ function describeProfile(raw: Record<string, unknown> | null): string[] {
   const trend = oneOf(raw.trend, TRENDS);
   const distraction = oneOf(raw.distractionType, REASONS);
   const weekday = num(raw.bestWeekday);
+  const slot = num(raw.bestSlot);
+  const slotLabel = slot === null ? null : formatTimeSlot(slot);
 
   return [
     line('분석한 세션 수', num(raw.sessionCount)),
@@ -128,11 +152,11 @@ function describeProfile(raw: Record<string, unknown> | null): string[] {
     rhythm ? `- 리듬: ${RHYTHM_LABELS[rhythm]}` : null,
     distraction ? `- 반복되는 이탈 원인: ${REASON_LABELS[distraction]}` : null,
     line(
-      '평균적으로 집중이 무너지기 시작하는 시점(분)',
+      `평균적으로 집중이 무너지기 시작하는 시점(분, 첫 ${WARMUP_MINUTES}분 워밍업 제외)`,
       num(raw.enduranceMinutes)
     ),
     trend ? `- 추세: ${TREND_LABELS[trend]}` : null,
-    line('가장 잘 되는 시간대(시)', num(raw.bestHour)),
+    slotLabel ? `- 가장 잘 되는 시간대: ${slotLabel}` : null,
     weekday !== null && weekday >= 0 && weekday <= 6
       ? `- 가장 잘 되는 요일: ${WEEKDAYS[weekday]}요일`
       : null,

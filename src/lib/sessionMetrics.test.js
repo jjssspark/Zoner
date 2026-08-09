@@ -1,4 +1,4 @@
-import { computeSessionMetrics } from './sessionMetrics';
+import { computeSessionMetrics, WARMUP_MINUTES } from './sessionMetrics';
 
 // ratio 배열을 timeline 모양으로 바꾼다. 테스트가 분 번호가 아니라
 // 집중도 곡선 자체에 집중하도록.
@@ -53,23 +53,46 @@ describe('computeSessionMetrics', () => {
   describe('집중이 처음 무너진 시점', () => {
     test('50% 아래로 처음 떨어진 분을 찾는다', () => {
       const m = computeSessionMetrics(
-        sessionOf({ timeline: timelineOf([0.9, 0.8, 0.7, 0.3, 0.9, 0.2]) })
+        sessionOf({
+          timeline: timelineOf([0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.3, 0.9, 0.2]),
+        })
       );
-      expect(m.firstBreakMinute).toBe(3);
+      expect(m.firstBreakMinute).toBe(6);
     });
 
     test('끝까지 안 무너지면 null이다 — 0분과 구분되어야 한다', () => {
       const m = computeSessionMetrics(
-        sessionOf({ timeline: timelineOf([0.9, 0.8, 0.7]) })
+        sessionOf({
+          timeline: timelineOf([0.9, 0.8, 0.7, 0.9, 0.8, 0.7, 0.9, 0.8]),
+        })
       );
       expect(m.firstBreakMinute).toBeNull();
     });
 
-    test('시작부터 무너져 있으면 0분이다', () => {
+    // 워밍업 길이를 바꿔도 테스트가 따라오도록 상수에서 만든다.
+    const warmupLow = Array(WARMUP_MINUTES).fill(0.1);
+
+    test(`워밍업 ${WARMUP_MINUTES}분 안의 하락은 무너짐으로 세지 않는다`, () => {
+      // 카메라가 얼굴을 잡기 전이라 거의 모든 세션의 앞부분이 낮게 찍힌다.
+      // 이걸 세면 "집중 지속 한계 약 0분"이라는 뜻 없는 값이 나온다.
       const m = computeSessionMetrics(
-        sessionOf({ timeline: timelineOf([0.1, 0.9]) })
+        sessionOf({ timeline: timelineOf([...warmupLow, 0.9, 0.9, 0.9, 0.9]) })
       );
-      expect(m.firstBreakMinute).toBe(0);
+      expect(m.firstBreakMinute).toBeNull();
+    });
+
+    test('워밍업이 끝나자마자 무너지면 그 분을 집는다', () => {
+      const m = computeSessionMetrics(
+        sessionOf({ timeline: timelineOf([...warmupLow, 0.2, 0.9, 0.9]) })
+      );
+      expect(m.firstBreakMinute).toBe(WARMUP_MINUTES);
+    });
+
+    test('워밍업보다 짧은 세션은 판정하지 않는다', () => {
+      const m = computeSessionMetrics(
+        sessionOf({ timeline: timelineOf(warmupLow) })
+      );
+      expect(m.firstBreakMinute).toBeNull();
     });
   });
 

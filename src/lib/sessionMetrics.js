@@ -12,6 +12,14 @@ const STREAK_THRESHOLD = 0.8;
 // 집중이 "무너졌다"고 볼 하한. 절반도 못 채운 구간.
 const BREAK_THRESHOLD = 0.5;
 
+// 세션 앞부분은 무너짐 판정에서 뺀다. 카메라가 얼굴을 잡고 자세를 잡는
+// 동안이라 거의 모든 세션이 0분에 낮게 찍히고, 그대로 세면 "집중 지속
+// 한계 약 0분" 같은 뜻 없는 값이 나온다. 워밍업은 이탈이 아니다.
+//
+// 2분이다. 더 길게 잡으면 진짜 초반 이탈까지 가려서, 초반에 무너지는
+// 사람에게 "한 번도 안 무너졌다"고 잘못 말하게 된다.
+export const WARMUP_MINUTES = 2;
+
 const toPercent = (ratio) => Math.round(ratio * 100);
 
 const ratiosOf = (timeline) =>
@@ -32,7 +40,10 @@ function longestStreak(ratios) {
 
 function firstBreak(timeline) {
   if (!Array.isArray(timeline)) return null;
-  const found = timeline.find((bucket) => bucket.focus_ratio < BREAK_THRESHOLD);
+  const found = timeline.find(
+    (bucket) =>
+      bucket.minute >= WARMUP_MINUTES && bucket.focus_ratio < BREAK_THRESHOLD
+  );
   return found ? found.minute : null;
 }
 

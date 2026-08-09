@@ -1,4 +1,9 @@
-import { buildLearningProfile, MIN_PROFILE_SESSIONS } from './learningProfile';
+import {
+  buildLearningProfile,
+  formatTimeSlot,
+  MIN_PROFILE_SESSIONS,
+} from './learningProfile';
+import { WARMUP_MINUTES } from './sessionMetrics';
 
 const timelineOf = (ratios) =>
   ratios.map((focus_ratio, minute) => ({ minute, focus_ratio }));
@@ -20,6 +25,24 @@ const sessionOf = ({
 
 const repeat = (count, factory) =>
   Array.from({ length: count }, (_, i) => factory(i));
+
+describe('formatTimeSlot', () => {
+  test('30분 구간을 시각 범위로 적는다', () => {
+    expect(formatTimeSlot(0)).toBe('00:00~00:30');
+    expect(formatTimeSlot(26)).toBe('13:00~13:30');
+    expect(formatTimeSlot(27)).toBe('13:30~14:00');
+  });
+
+  test('마지막 구간의 끝은 24:00이 아니라 00:00이다', () => {
+    expect(formatTimeSlot(47)).toBe('23:30~00:00');
+  });
+
+  test('범위 밖이면 null이다', () => {
+    expect(formatTimeSlot(48)).toBeNull();
+    expect(formatTimeSlot(-1)).toBeNull();
+    expect(formatTimeSlot(null)).toBeNull();
+  });
+});
 
 describe('buildLearningProfile', () => {
   describe('표본이 모자랄 때', () => {
@@ -113,18 +136,33 @@ describe('buildLearningProfile', () => {
   });
 
   describe('집중 지속 한계', () => {
+    // 워밍업(첫 5분) 뒤에 무너지도록 만든다. 그 안쪽 하락은 세지 않는다.
+    const breakAt = (minute, length = 14) =>
+      Array.from({ length }, (_, i) => (i === minute ? 0.1 : 0.9));
+
     test('무너지기 시작한 분의 평균을 낸다', () => {
       const profile = buildLearningProfile([
-        sessionOf({ ratios: [0.9, 0.9, 0.9, 0.1] }), // 3분
-        sessionOf({ ratios: [0.9, 0.1, 0.9, 0.9] }), // 1분
-        sessionOf({ ratios: [0.9, 0.9, 0.1, 0.9] }), // 2분
+        sessionOf({ ratios: breakAt(6) }),
+        sessionOf({ ratios: breakAt(8) }),
+        sessionOf({ ratios: breakAt(10) }),
       ]);
-      expect(profile.enduranceMinutes).toBe(2);
+      expect(profile.enduranceMinutes).toBe(8);
     });
 
     test('한 번도 안 무너지면 null이다', () => {
       const profile = buildLearningProfile(
-        repeat(4, () => sessionOf({ ratios: [0.9, 0.9, 0.9, 0.9] }))
+        repeat(4, () => sessionOf({ ratios: Array(14).fill(0.9) }))
+      );
+      expect(profile.enduranceMinutes).toBeNull();
+    });
+
+    test('워밍업 안에서만 낮았던 세션은 한계를 만들지 않는다', () => {
+      const warmupOnly = [
+        ...Array(WARMUP_MINUTES).fill(0.1),
+        ...Array(12).fill(0.9),
+      ];
+      const profile = buildLearningProfile(
+        repeat(4, () => sessionOf({ ratios: warmupOnly }))
       );
       expect(profile.enduranceMinutes).toBeNull();
     });
@@ -185,14 +223,26 @@ describe('buildLearningProfile', () => {
       expect(monday).toEqual({ weekday: 1, average: 70, count: 2 });
     });
 
-    test('가장 잘 되는 시간대를 집는다', () => {
+    test('가장 잘 되는 시간대를 30분 단위로 집는다', () => {
       const profile = buildLearningProfile([
         sessionOf({ at: '2026-08-03T09:00:00', score: 90 }),
-        sessionOf({ at: '2026-08-04T09:00:00', score: 88 }),
+        sessionOf({ at: '2026-08-04T09:10:00', score: 88 }),
         sessionOf({ at: '2026-08-05T22:00:00', score: 40 }),
       ]);
-      expect(profile.bestHour.hour).toBe(9);
-      expect(profile.bestHour.average).toBe(89);
+      expect(formatTimeSlot(profile.bestSlot.slot)).toBe('09:00~09:30');
+      expect(profile.bestSlot.average).toBe(89);
+    });
+
+    test('같은 시(時)라도 앞뒤 30분은 다른 칸이다', () => {
+      // "9시대"로 묶으면 09:10 과 09:50 이 한 칸에 들어가 언제 앉으면
+      // 되는지를 알려주지 못한다.
+      const profile = buildLearningProfile([
+        sessionOf({ at: '2026-08-03T09:10:00', score: 30 }),
+        sessionOf({ at: '2026-08-04T09:50:00', score: 90 }),
+        sessionOf({ at: '2026-08-05T09:55:00', score: 92 }),
+      ]);
+      expect(formatTimeSlot(profile.bestSlot.slot)).toBe('09:30~10:00');
+      expect(profile.bestSlot.average).toBe(91);
     });
 
     test('날짜가 깨진 세션은 요일 집계에서 빠지되 전체를 막지 않는다', () => {

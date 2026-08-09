@@ -280,3 +280,31 @@
     left: var(--space-6);
   }
 }
+
+/* 지금 되는 것과 계획을 구분한다. 결제 화면이라 이 구분이 흐리면 안 된다. */
+.pricing__notice {
+  margin: var(--space-4) auto 0;
+  max-width: 34rem;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+/* 흐리게만 처리하면 대비비가 떨어지고, 색각 이상 사용자에게는 아무 차이도
+   없다. 아래 "준비 중" 글자가 실제 구분을 맡는다. */
+.pricing__feature--planned {
+  color: var(--color-text-muted);
+}
+
+.pricing__planned {
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}

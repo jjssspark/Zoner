@@ -44,7 +44,7 @@ export function buildInsightPayload({
           distractionType: profile.distractionType,
           enduranceMinutes: profile.enduranceMinutes,
           trend: profile.trend,
-          bestHour: profile.bestHour?.hour ?? null,
+          bestSlot: profile.bestSlot?.slot ?? null,
           bestWeekday: profile.bestWeekday?.weekday ?? null,
         }
       : null,

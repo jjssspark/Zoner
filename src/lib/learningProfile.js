@@ -15,6 +15,28 @@ const VOLATILE_THRESHOLD = 25;
 // 추세를 "움직였다"고 부를 최소 변화(%p).
 const TREND_DELTA = 5;
 
+// 시간대를 30분 단위로 쪼갠다. "13시대"는 13:00 학습과 13:50 학습을 한
+// 칸에 넣어버려서, 언제 앉으면 되는지를 알려주지 못한다.
+export const SLOT_MINUTES = 30;
+const SLOTS_PER_DAY = (24 * 60) / SLOT_MINUTES;
+
+const slotOf = (date) =>
+  Math.floor((date.getHours() * 60 + date.getMinutes()) / SLOT_MINUTES);
+
+const pad = (value) => String(value).padStart(2, '0');
+
+/** 슬롯 번호를 "13:00~13:30" 으로 옮긴다. 범위 밖이면 null. */
+export function formatTimeSlot(slot) {
+  if (!Number.isInteger(slot) || slot < 0 || slot >= SLOTS_PER_DAY) return null;
+
+  const clock = (minutes) =>
+    // 마지막 슬롯의 끝은 1440분이다. 24:00 대신 00:00 으로 적는다.
+    `${pad(Math.floor(minutes / 60) % 24)}:${pad(minutes % 60)}`;
+
+  const start = slot * SLOT_MINUTES;
+  return `${clock(start)}~${clock(start + SLOT_MINUTES)}`;
+}
+
 const mean = (values) =>
   values.reduce((sum, value) => sum + value, 0) / values.length;
 
@@ -114,7 +136,7 @@ export function buildLearningProfile(sessions) {
   const hasEnoughData = list.length >= MIN_PROFILE_SESSIONS;
 
   const byWeekday = groupBy(list, (date) => date.getDay(), 'weekday');
-  const byHour = groupBy(list, (date) => date.getHours(), 'hour');
+  const bySlot = groupBy(list, slotOf, 'slot');
   const metrics = hasEnoughData ? metricsOf(list) : [];
 
   return {
@@ -124,9 +146,9 @@ export function buildLearningProfile(sessions) {
     ),
     hasEnoughData,
     byWeekday,
-    byHour,
+    bySlot,
     bestWeekday: pickBest(byWeekday),
-    bestHour: pickBest(byHour),
+    bestSlot: pickBest(bySlot),
     rhythmType: hasEnoughData ? rhythmType(metrics) : null,
     distractionType: hasEnoughData ? distractionType(list) : null,
     enduranceMinutes: hasEnoughData ? enduranceMinutes(metrics) : null,

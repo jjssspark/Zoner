@@ -20,9 +20,9 @@ const profile = {
   distractionType: 'absent',
   enduranceMinutes: 35,
   trend: 'up',
-  bestHour: { hour: 9, average: 84, count: 5 },
+  bestSlot: { slot: 18, average: 84, count: 5 },
   bestWeekday: { weekday: 2, average: 80, count: 3 },
-  byHour: [{ hour: 9, average: 84, count: 5 }],
+  bySlot: [{ slot: 18, average: 84, count: 5 }],
   byWeekday: [{ weekday: 2, average: 80, count: 3 }],
 };
 

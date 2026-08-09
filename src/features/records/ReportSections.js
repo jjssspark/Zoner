@@ -1,4 +1,6 @@
 import React from 'react';
+import { formatTimeSlot } from '../../lib/learningProfile';
+import { WARMUP_MINUTES } from '../../lib/sessionMetrics';
 import { REASON_LABELS } from '../../components/ui/ReasonBadge';
 
 // 리포트의 파생 지표·성향·조언 섹션. Read.js가 조회와 상태를 맡고
@@ -63,7 +65,11 @@ export const MetricsGrid = ({ metrics, durationSeconds }) => {
               ? '없음'
               : `${metrics.firstBreakMinute}분째`
           }
-          note={metrics.firstBreakMinute === null ? '끝까지 유지' : '50% 아래로'}
+          note={
+            metrics.firstBreakMinute === null
+              ? '50% 아래로 떨어진 적 없음'
+              : `50% 아래로 · 첫 ${WARMUP_MINUTES}분 제외`
+          }
         />
         <Row
           label="전반 → 후반"
@@ -146,7 +152,7 @@ export const ProfileSection = ({ profile }) => {
               ? null
               : `약 ${profile.enduranceMinutes}분`
           }
-          note="이후 흔들리기 시작"
+          note={`이후 흔들리기 시작 · 첫 ${WARMUP_MINUTES}분 제외`}
         />
         <Row
           label="반복되는 이탈"
@@ -158,8 +164,8 @@ export const ProfileSection = ({ profile }) => {
         />
         <Row
           label="잘 되는 시간대"
-          value={profile.bestHour ? `${profile.bestHour.hour}시대` : null}
-          note={profile.bestHour ? `평균 ${profile.bestHour.average}%` : null}
+          value={profile.bestSlot ? formatTimeSlot(profile.bestSlot.slot) : null}
+          note={profile.bestSlot ? `평균 ${profile.bestSlot.average}%` : null}
         />
         <Row
           label="잘 되는 요일"
