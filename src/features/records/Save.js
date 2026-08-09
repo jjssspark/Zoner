@@ -126,12 +126,8 @@ export const Save = () => {
           <p className="save-page__empty">아직 학습 세션이 없습니다.</p>
         ) : (
           <ul className="session-list">
-            {sessions.map((session, i) => (
-              <li
-                key={session.id}
-                className="session-card fade-in-content"
-                style={{ '--reveal-index': i }}
-              >
+            {sessions.map((session) => (
+              <li key={session.id} className="session-card fade-in-content">
                 <button
                   type="button"
                   className="session-card__link"

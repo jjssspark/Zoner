@@ -88,3 +88,17 @@
     display: flex;
   }
 }
+
+/* 누르는 순간의 피드백. hover 만 있으면 눌렀는지 알 수 없다. */
+.navbar__logo,
+.navbar__toggle {
+  transition: color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.navbar__link:active,
+.navbar__logo:active,
+.navbar__toggle:active {
+  transform: translateY(1px);
+}

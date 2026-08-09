@@ -350,3 +350,28 @@
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* 학습 화면이므로 진입 연출은 넣지 않는다. 집중을 방해한다.
+   누름 피드백만 준다 — 이건 장식이 아니라 조작 결과의 확인이다. */
+.start-learning__start,
+.start-learning__pause,
+.start-learning__resume,
+.start-learning__mute,
+.start-learning__back,
+.start-learning__home,
+.start-learning__notice-action {
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.start-learning__start:active,
+.start-learning__pause:active,
+.start-learning__resume:active,
+.start-learning__mute:active,
+.start-learning__back:active,
+.start-learning__home:active,
+.start-learning__notice-action:active {
+  transform: translateY(1px);
+}

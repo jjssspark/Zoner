@@ -179,7 +179,7 @@ export const Read = () => {
         </div>
       </header>
 
-      <main className="session-report__main">
+      <main className="session-report__main fade-in-content">
         {notFound ? (
           <p className="session-report__empty">
             해당 학습 세션을 찾을 수 없습니다.

@@ -716,3 +716,20 @@
     align-self: flex-start;
   }
 }
+
+.mypage__logout,
+.mypage__topbar-link,
+.record-section__link {
+  transition: color var(--duration-fast) var(--ease-out-expo),
+    border-color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.mypage__logout:active,
+.mypage__topbar-link:active,
+.record-section__link:active,
+.quick-action:active,
+.record-card:active {
+  transform: translateY(1px);
+}

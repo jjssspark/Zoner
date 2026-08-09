@@ -29,13 +29,19 @@
 
    pathLength="100" 으로 길이를 정규화해 두었기 때문에 실제 좌표가
    어떻든 dasharray 100 이 선 전체를 덮는다. */
+/* 기본값은 "다 그려진 상태"다. 숨긴 상태를 기본으로 두고 애니메이션으로
+   되돌리면, 애니메이션이 억제되는 환경(배경 탭·iframe)에서 선이 영영
+   안 보인다 — TS-017과 같은 함정이다. 그래서 fill-mode 도 쓰지 않는다.
+   재생되면 그려지는 연출이 되고, 안 되면 그냥 처음부터 보인다. */
 .sparkline__line {
   stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-  animation: sparkline-draw var(--duration-slow) var(--ease-in-out) forwards;
+  animation: sparkline-draw var(--duration-slow) var(--ease-in-out);
 }
 
 @keyframes sparkline-draw {
+  from {
+    stroke-dashoffset: 100;
+  }
   to {
     stroke-dashoffset: 0;
   }

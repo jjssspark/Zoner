@@ -473,3 +473,24 @@
     display: none;
   }
 }
+
+.ai-chat-page__back,
+.ai-chat-page__home,
+.ai-chat-page__list-toggle,
+.ai-chat-conversations__new,
+.ai-chat-conversations__control,
+.ai-chat-conversations__select {
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.ai-chat-page__back:active,
+.ai-chat-page__home:active,
+.ai-chat-page__list-toggle:active,
+.ai-chat-conversations__new:active,
+.ai-chat-conversations__control:active,
+.ai-chat-conversations__select:active {
+  transform: translateY(1px);
+}

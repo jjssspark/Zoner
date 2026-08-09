@@ -28,7 +28,7 @@ function QuickActionTile({ action, meta, onSelect }) {
   return (
     <button
       type="button"
-      className="quick-action"
+      className="quick-action fade-in-content"
       onClick={onSelect}
       aria-label={metaText ? `${action.label}, ${metaText}` : action.label}
     >
@@ -254,12 +254,11 @@ export const Mypage = () => {
           </div>
           <div className="record-grid">
             {recentSessions.length > 0 ? (
-              recentSessions.map((session, i) => (
+              recentSessions.map((session) => (
                 <button
                   key={session.id}
                   type="button"
                   className="record-card fade-in-content"
-                  style={{ '--reveal-index': i }}
                   onClick={() => navigate(`/read?session=${session.id}`)}
                 >
                   <span className="record-card__date">
@@ -308,7 +307,10 @@ export const Mypage = () => {
           </h2>
           <div className="recommended-list">
             {RECOMMENDED.map((item) => (
-              <div key={item} className="recommended-card">
+              <div
+                key={item}
+                className="recommended-card fade-in-content"
+              >
                 {item}
               </div>
             ))}

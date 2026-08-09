@@ -82,3 +82,16 @@
   outline: 2px solid var(--color-danger);
   outline-offset: 2px;
 }
+
+.confirm-dialog__cancel,
+.confirm-dialog__confirm {
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.confirm-dialog__cancel:active,
+.confirm-dialog__confirm:active {
+  transform: translateY(1px);
+}
