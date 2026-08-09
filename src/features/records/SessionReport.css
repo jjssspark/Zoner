@@ -314,6 +314,138 @@
     transform var(--duration-fast) var(--ease-out-expo);
 }
 
+/* ── 파생 지표 · 성향 · 조언 ─────────────────────────────── */
+
+.section-sub {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  margin-left: var(--space-2);
+}
+
+/* 값이 라벨보다 크고 굵다. 훑을 때 숫자가 먼저 잡혀야 한다. */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.metric {
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.metric__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.metric__value {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 값에 딸린 맥락. 줄을 바꿔 값의 크기를 방해하지 않게 한다. */
+.metric__note {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.profile-headline {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+
+.profile-headline strong {
+  font-size: var(--text-xl);
+  color: var(--color-accent);
+  letter-spacing: var(--tracking-tight);
+}
+
+.profile-headline__note {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.weekday-bars {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.weekday-bars__row {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) 3rem;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.weekday-bars__day {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.weekday-bars__track {
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.weekday-bars__bar {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--color-accent);
+}
+
+.weekday-bars__value {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.advice {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* 왼쪽 강조선으로 인용문처럼 보이게 한다. 카드로 감싸면 위의 지표와
+   무게가 같아져 결론이 결론으로 안 읽힌다. */
+.advice__item {
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-accent);
+  line-height: var(--leading-body);
+  color: var(--color-text);
+}
+
+.advice__disclaimer {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
 /* ── 인쇄 / PDF ────────────────────────────────────────────
    화면은 다크, 종이는 라이트다. 의미 토큰만 다시 매핑하면 아래 규칙들이
    전부 따라온다 — 2계층 토큰을 쓰는 이유다. 이 블록은 인쇄에만 적용되므로
@@ -381,5 +513,31 @@
   /* 알림 기록이 길면 여러 장으로 넘어간다. 각 장에서 제목이 다시 보이도록. */
   .session-report__section-title {
     break-after: avoid;
+  }
+
+  /* 새 섹션도 페이지 경계에서 잘리지 않게 */
+  .session-report .metric,
+  .session-report .advice__item,
+  .session-report .weekday-bars__row,
+  .session-report .profile-headline {
+    break-inside: avoid;
+  }
+
+  /* 카드 테두리는 종이에서 과하다. 배경 대신 선 하나로 줄인다. */
+  .session-report .metric {
+    padding: var(--space-2) 0;
+    border: none;
+    border-top: 1px solid var(--color-border);
+    border-radius: 0;
+  }
+
+  .session-report .metric-grid {
+    gap: 0 var(--space-6);
+  }
+
+  .session-report .weekday-bars__bar,
+  .session-report .weekday-bars__track {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

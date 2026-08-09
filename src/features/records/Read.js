@@ -1,13 +1,20 @@
 // src/components/Read.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
 import { softDeleteSession } from '../../lib/trash';
 import { SESSION_VIDEO_BUCKET } from '../../lib/sessionVideos';
 import { buildReportTitle } from '../../lib/reportTitle';
+import { computeSessionMetrics } from '../../lib/sessionMetrics';
+import { buildLearningProfile } from '../../lib/learningProfile';
+import { buildInsightPayload, fetchReportInsight } from '../../lib/reportInsight';
+import { MetricsGrid, ProfileSection, AdviceSection } from './ReportSections';
 import ReasonBadge, { REASON_LABELS } from '../../components/ui/ReasonBadge';
 import './SessionReport.css';
 import './FocusChart.css';
+
+// 성향을 볼 표본. 너무 적으면 그날 컨디션이고, 너무 많으면 과거가 현재를 가린다.
+const RECENT_SESSION_LIMIT = 20;
 
 const formatDate = (iso) => {
   const d = new Date(iso);
@@ -49,6 +56,16 @@ export const Read = () => {
   const [videoUrl, setVideoUrl] = useState(null);
   const [videoError, setVideoError] = useState(false);
   const [playedSeconds, setPlayedSeconds] = useState(0);
+  // null = 아직 안 읽음. 빈 배열(=기록 없음)과 구분해야 조언을 두 번 부르지 않는다.
+  const [recentSessions, setRecentSessions] = useState(null);
+  const [advice, setAdvice] = useState([]);
+  const [adviceStatus, setAdviceStatus] = useState('idle');
+
+  const metrics = useMemo(() => computeSessionMetrics(session), [session]);
+  const profile = useMemo(
+    () => buildLearningProfile(recentSessions),
+    [recentSessions]
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -119,6 +136,85 @@ export const Read = () => {
       isMounted = false;
     };
   }, [session]);
+
+  // 성향은 세션 하나로 나오지 않는다. 최근 기록을 함께 읽는다.
+  // 영상 경로나 알림 원문은 필요 없어서 가져오지 않는다.
+  useEffect(() => {
+    if (!session) return undefined;
+    let isMounted = true;
+
+    const loadRecent = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('active_study_sessions')
+        .select(
+          'started_at, duration_seconds, focus_score, timeline, focus_breakdown'
+        )
+        .eq('user_id', user.id)
+        .order('started_at', { ascending: false })
+        .limit(RECENT_SESSION_LIMIT);
+
+      // 실패해도 빈 배열로 확정한다. null로 두면 조언이 영영 안 뜬다.
+      if (isMounted) setRecentSessions(data || []);
+    };
+
+    loadRecent();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session]);
+
+  // 조언은 지표와 성향이 다 모인 뒤 한 번만 부른다. 유료 호출이라
+  // 최근 기록이 도착하기 전에 미리 부르면 같은 리포트에 두 번 과금된다.
+  useEffect(() => {
+    if (!session || recentSessions === null) return undefined;
+
+    const controller = new AbortController();
+    let isMounted = true;
+
+    const loadAdvice = async () => {
+      setAdviceStatus('loading');
+      try {
+        const {
+          data: { session: authSession },
+        } = await supabase.auth.getSession();
+        if (!authSession?.access_token) throw new Error('토큰이 없습니다');
+
+        const items = await fetchReportInsight({
+          supabaseUrl: process.env.REACT_APP_SUPABASE_URL,
+          accessToken: authSession.access_token,
+          payload: buildInsightPayload({
+            durationSeconds: session.duration_seconds,
+            focusScore: session.focus_score,
+            metrics,
+            profile,
+          }),
+          signal: controller.signal,
+        });
+
+        if (isMounted) {
+          setAdvice(items);
+          setAdviceStatus('ready');
+        }
+      } catch {
+        // 조언은 리포트의 곁가지다. 함수가 배포되지 않았거나 죽어도
+        // 수치와 성향은 그대로 보여준다.
+        if (isMounted) setAdviceStatus('failed');
+      }
+    };
+
+    loadAdvice();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [session, recentSessions, metrics, profile]);
 
   const handleDelete = async () => {
     setDeleteError(null);
@@ -310,6 +406,11 @@ export const Read = () => {
               </div>
             </div>
 
+            <MetricsGrid
+              metrics={metrics}
+              durationSeconds={session.duration_seconds}
+            />
+
             {breakdownRows(session.focus_breakdown).length > 0 && (
               <section className="session-report__section">
                 <h2 className="session-report__section-title">원인별 비율</h2>
@@ -382,6 +483,9 @@ export const Read = () => {
                 </ul>
               </section>
             )}
+
+            <ProfileSection profile={profile} />
+            <AdviceSection advice={advice} status={adviceStatus} />
           </>
         )}
       </main>
