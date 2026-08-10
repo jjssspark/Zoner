@@ -647,7 +647,7 @@ export const StartLearning = () => {
           />
         )}
 
-        <div className="start-learning__video-wrap">
+        <div className="start-learning__video-wrap hud-brackets">
           <video
             ref={videoRef}
             className="start-learning__video"
