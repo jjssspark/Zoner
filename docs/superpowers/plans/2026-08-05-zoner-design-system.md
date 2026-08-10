@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** 집중도 수치를 화면의 주인공으로 만드는 "계측 장비" 디자인 시스템(토큰 + 공용 컴포넌트 4종)을 세우고, 기능 변경이 없는 5개 화면(Mypage, Save, Trash, Trashread, Home)에 적용한다.
 
 **Architecture:** 기존 `src/styles/tokens.css`에 상태 색·데이터 타이포·모션 토큰을 **추가만** 한다(기존 값 변경 없음 — 전역 import라 파급이 크다). 그 위에 라우터 의존이 없는 순수 프레젠테이션 컴포넌트 4종을 `src/components/ui/`에 새로 만들고, 화면들은 이 컴포넌트를 소비하기만 한다. 차트 라이브러리 없이 SVG를 직접 그린다.

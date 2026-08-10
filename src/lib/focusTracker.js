@@ -13,7 +13,7 @@ export const REASON = {
 // 집중으로 집계하는 reason. looking_down이 여기 있는 이유는 얼굴만 보는
 // 모델로 교재와 휴대폰을 구분할 수 없기 때문 - 공부 중인 사용자를 딴짓으로
 // 오판하는 쪽이 반대 방향 오차보다 비용이 크다.
-const FOCUSED_REASONS = [REASON.FOCUSED, REASON.LOOKING_DOWN];
+export const FOCUSED_REASONS = [REASON.FOCUSED, REASON.LOOKING_DOWN];
 
 export const THRESHOLDS = {
   maxYawDeg: 30,

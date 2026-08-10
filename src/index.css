@@ -61,3 +61,17 @@ code {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* 인쇄에서 종이 자체를 희게 만든다.
+   화면은 다크라 body 배경이 navy-950 이다. 인쇄 대화상자에서 "배경 그래픽"
+   을 켜면(리포트의 막대 색을 남기려면 켜야 한다) 이 검은 배경까지 같이
+   찍혀서, 콘텐츠가 끝난 자리부터 페이지 끝까지 검게 나온다.
+   SessionReport.css 의 인쇄 블록은 .session-report 안쪽만 덮으므로
+   그 바깥인 body 는 여기서 처리해야 한다. */
+@media print {
+  html,
+  body {
+    background-color: white;
+    color: black;
+  }
+}

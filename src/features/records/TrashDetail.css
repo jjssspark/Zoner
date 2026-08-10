@@ -1,0 +1,196 @@
+/* src/components/TrashDetail.css */
+.trash-detail {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.trash-detail__topbar {
+  /* 상단바는 모든 화면에서 스크롤해도 보이게 고정한다. Mypage와 동일한 값. */
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.trash-detail__title {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  margin: 0;
+}
+
+.trash-detail__topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.trash-detail__back,
+.trash-detail__home {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.trash-detail__back:hover,
+.trash-detail__home:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.trash-detail__back:focus-visible,
+.trash-detail__home:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.trash-detail__main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.trash-detail__empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.trash-detail__error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-4);
+}
+
+.trash-detail__date {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-2);
+}
+
+.trash-detail__expiry {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-data);
+  margin: 0 0 var(--space-4);
+}
+
+.trash-detail__expiry--mid {
+  color: var(--color-focus-mid);
+}
+.trash-detail__expiry--low {
+  color: var(--color-focus-low);
+}
+.trash-detail__expiry--poor {
+  color: var(--color-focus-poor);
+}
+
+.trash-detail__score {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+
+.trash-detail__score-value {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.trash-detail__score-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.trash-detail__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.trash-detail__restore {
+  background-color: var(--color-accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  padding: var(--space-3) var(--space-6);
+  cursor: pointer;
+}
+
+.trash-detail__restore:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.trash-detail__restore:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.trash-detail__restore:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.trash-detail__purge {
+  background: none;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  padding: var(--space-3) var(--space-6);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo);
+}
+
+.trash-detail__purge:hover {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.trash-detail__purge:focus-visible {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+.trash-detail__purge:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.trash-detail__purge.is-confirming {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.trash-detail__back:active,
+.trash-detail__home:active,
+.trash-detail__restore:active,
+.trash-detail__purge:active {
+  transform: translateY(1px);
+}
+
+.trash-detail__back,
+.trash-detail__home,
+.trash-detail__restore,
+.trash-detail__purge {
+  transition: border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}

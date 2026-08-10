@@ -22,7 +22,7 @@
 }
 
 .confirm-dialog__title {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--text-lg);
   font-weight: 700;
   margin: 0 0 var(--space-2);
@@ -81,4 +81,17 @@
 .confirm-dialog__confirm:focus-visible {
   outline: 2px solid var(--color-danger);
   outline-offset: 2px;
+}
+
+.confirm-dialog__cancel,
+.confirm-dialog__confirm {
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.confirm-dialog__cancel:active,
+.confirm-dialog__confirm:active {
+  transform: translateY(1px);
 }

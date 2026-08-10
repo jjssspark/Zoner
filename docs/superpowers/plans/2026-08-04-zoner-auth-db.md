@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task (컨트롤러가 직접 순차 실행 — 비용 절감을 위해 subagent-driven-development는 이번엔 사용하지 않음). Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** Zoner의 가짜 회원가입/로그인(브라우저 메모리 mock)을 Supabase 기반 실제 인증+DB로 교체한다.
 
 **Architecture:** CRA 프론트엔드에서 `supabase-js`로 Supabase(Postgres + Auth)를 직접 호출한다. 커스텀 백엔드 서버 없음. `profiles` 테이블 하나로 표시 이름을 저장하고, `auth.users`는 Supabase가 관리한다.

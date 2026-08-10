@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** AI 채팅을 사용자당 대화 하나에서 여러 대화방으로 나누고, LLM 맥락도 대화 단위로 좁혀 과목이 섞이지 않게 한다.
 
 **Architecture:** `conversations` 테이블을 새로 만들고 `chat_messages.conversation_id`로 묶는다. 메시지 쓰기는 전부 Edge Function이 하므로 대화 소유권 검증·맥락 범위 축소·제목 생성·`updated_at` 갱신도 Edge Function이 맡는다. 대화 CRUD(생성·이름변경·삭제)는 RLS가 걸린 클라이언트가 직접 한다. 순수 로직(제목 계산)은 `src/lib/`에 두어 Jest로 테스트한다.

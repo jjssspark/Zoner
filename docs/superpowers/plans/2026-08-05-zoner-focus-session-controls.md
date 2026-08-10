@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** `/start-learning` 화면을 자동 시작·단일 종료 구조에서 사용자가 명시적으로 조작하는 시작/중지/재개/종료 상태 머신으로 바꾼다.
 
 **Architecture:** 캠 스트림과 AI 모델은 마운트 시 한 번만 획득하고 페이지를 벗어날 때까지 유지한다. "중지"는 분석 인터벌·경과 시간 인터벌만 멈추고, "재개"는 같은 비디오/모델 인스턴스로 인터벌만 재생성한다. `duration_seconds`는 벽시계 차이 대신 `RUNNING` 상태에서만 증가하는 `elapsedSeconds` 카운터 값을 그대로 저장한다.

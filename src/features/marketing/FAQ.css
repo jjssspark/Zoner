@@ -1,0 +1,194 @@
+.faq,
+.faq * {
+  box-sizing: border-box;
+}
+
+.faq {
+  min-height: 100vh;
+  background: radial-gradient(
+      ellipse 700px 420px at 15% -5%,
+      color-mix(in oklch, var(--color-accent) 14%, transparent),
+      transparent
+    ),
+    var(--color-bg);
+  color: var(--color-text);
+}
+
+.faq__main {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: var(--space-section) var(--space-6) var(--space-16);
+}
+
+/* 위계 — 머리말 블록은 크게, 목록은 조용하게 */
+.faq__intro {
+  max-width: 34rem;
+  margin-bottom: var(--space-16);
+}
+
+.faq__eyebrow {
+  margin: 0 0 var(--space-3);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.faq__title {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+.faq__lead {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+}
+
+.faq__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 카드를 나열하지 않는다. 얇은 구분선으로 이어 붙여 목록으로 읽히게 한다 */
+.faq__item {
+  border-top: 1px solid var(--color-border);
+}
+
+.faq__item:last-child {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.faq__question {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.faq__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-6) var(--space-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  transition: color var(--duration-fast) var(--ease-out-expo);
+}
+
+.faq__trigger:hover {
+  color: var(--color-accent);
+}
+
+.faq__trigger:active .faq__marker {
+  transform: scale(0.9);
+}
+
+.faq__trigger:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+
+.faq__question-text {
+  flex: 1 1 auto;
+}
+
+/* + 에서 × 로 도는 표식. 색만이 아니라 회전으로도 상태를 알린다 */
+.faq__marker {
+  position: relative;
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.faq__marker::before,
+.faq__marker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  margin-top: -1px;
+  background-color: currentColor;
+  border-radius: var(--radius-full);
+}
+
+.faq__marker::after {
+  transform: rotate(90deg);
+}
+
+.faq__trigger[aria-expanded='true'] .faq__marker {
+  transform: rotate(135deg);
+  color: var(--color-accent);
+}
+
+/* 열림/닫힘은 grid-template-rows 0fr → 1fr 로 움직인다. height: auto 는
+   전환되지 않는다.
+
+   설계 문서는 hidden 토글을 적었지만 hidden 은 display: none 이라 전환이
+   아예 재생되지 않는다. visibility 는 접근성 트리에서 빼주는 효과는 같으면서
+   전환 중에는 visible 로 유지돼 닫히는 모션을 끝까지 보여준다. */
+.faq__answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows var(--duration-normal) var(--ease-out-expo),
+    visibility var(--duration-normal) var(--ease-out-expo);
+}
+
+.faq__answer--open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+}
+
+.faq__answer-inner {
+  overflow: hidden;
+}
+
+.faq__answer-text {
+  margin: 0 0 var(--space-4);
+  padding: 0 var(--space-8) 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+}
+
+.faq__answer-text:last-child {
+  margin-bottom: var(--space-6);
+}
+
+@media (max-width: 767px) {
+  .faq__main {
+    padding: var(--space-12) var(--space-4);
+  }
+
+  .faq__intro {
+    margin-bottom: var(--space-8);
+  }
+
+  .faq__trigger {
+    padding: var(--space-4) 0;
+    font-size: var(--text-base);
+  }
+
+  .faq__answer-text {
+    padding: 0 var(--space-4) 0 0;
+  }
+}

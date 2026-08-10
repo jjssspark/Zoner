@@ -6,6 +6,7 @@
   --navy-700: oklch(30% 0.02 260);
   --navy-600: oklch(38% 0.02 260);
   --navy-550: oklch(48% 0.02 260);
+  --navy-500: oklch(56% 0.02 260);
   --navy-400: oklch(68% 0.02 260);
   --navy-200: oklch(85% 0.01 260);
   --navy-50: oklch(97% 0.005 260);
@@ -14,6 +15,8 @@
   --cyan-300: oklch(85% 0.12 200);
   --cyan-400: oklch(75% 0.14 200);
   --cyan-500: oklch(68% 0.15 200);
+  /* 흰 배경 위에서만 쓴다(인쇄). 화면용 cyan-400(75%)은 종이에서 거의 안 보인다. */
+  --cyan-700: oklch(50% 0.13 200);
 
   /* primitive - status */
   --red-500: oklch(66% 0.2 25);
@@ -26,11 +29,17 @@
   --color-surface: var(--navy-900);
   --color-surface-alt: var(--navy-800);
   --color-border: var(--navy-700);
-  --color-border-strong: var(--navy-550);
+  /* 인터랙티브 요소의 테두리. 이 테두리만으로 컨트롤이 식별되므로
+     WCAG 1.4.11(비텍스트 대비 3:1)을 만족해야 한다. navy-550(48%)은
+     surface 위 2.83:1 / surface-alt 위 2.52:1 로 미달이었다.
+     navy-500(56%)에서 3.97:1 / 3.54:1. */
+  --color-border-strong: var(--navy-500);
   --color-text: var(--navy-50);
   --color-text-muted: var(--navy-400);
   --color-accent: var(--cyan-400);
   --color-accent-hover: var(--cyan-300);
+  /* 강조색을 배경으로 깔았을 때 그 위에 얹는 글자색 */
+  --color-on-accent: var(--navy-950);
   --color-danger: var(--red-500);
 
   /* semantic - focus level (score band) */
@@ -48,8 +57,9 @@
   --color-reason-absent: var(--navy-550);
 
   /* typography (Pretendard covers both display and body — one font family) */
+  /* 제목도 본문과 같은 Pretendard를 쓴다. 제목용 서체를 따로 들일 때
+     --font-display 를 여기에 되살리고 제목 규칙만 그쪽으로 옮긴다. */
   --font-sans: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
-  --font-display: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
 
   --text-xs: clamp(0.75rem, 0.73rem + 0.1vw, 0.813rem);
