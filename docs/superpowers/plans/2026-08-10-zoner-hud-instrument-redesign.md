@@ -716,7 +716,7 @@ git commit -m "feat: 학습 화면에 노치·브래킷·눈금 게이지 적용
 **Files:**
 - Modify: `src/features/records/SessionReport.css` (`.session-report__video`, `.metric`, `.metric__value`, `.focus-breakdown__value`, `.weekday-bars__value`, 인쇄 블록)
 - Modify: `src/features/records/FocusChart.css` (`.focus-chart`)
-- Modify: `src/features/records/FocusChart.js` (루트 `className`)
+- Modify: `src/features/records/Read.js` (focus-chart 루트 `className`) — 계획 초안은 `FocusChart.js`로 잘못 적었다. 그런 파일은 없고 리포트 화면은 `Read.js`다
 - Test: 없음 (라우터 의존 화면). 인쇄는 Task 3의 테스트가 전역 해제를 지키고, 나머지는 육안 검증.
 
 **Interfaces:**
@@ -756,7 +756,9 @@ git commit -m "feat: 학습 화면에 노치·브래킷·눈금 게이지 적용
 
 - [ ] **Step 3: 리포트의 주 패널에 브래킷을 붙인다**
 
-`src/features/records/FocusChart.js`에서 루트 요소의 className을 바꾼다.
+`src/features/records/Read.js`(약 358행)에서 focus-chart 루트 요소의 className을 바꾼다.
+`Trashread.js`도 같은 `focus-chart`를 렌더하지만 브래킷은 화면당 1개이므로 건드리지 않는다
+— 노치는 공유 CSS라 자동으로 따라간다.
 
 ```jsx
 <div className="focus-chart hud-brackets">
@@ -814,7 +816,7 @@ Run: `npx react-scripts start` → 저장된 세션 리포트를 연다
 
 ```bash
 git add src/features/records/SessionReport.css src/features/records/FocusChart.css \
-  src/features/records/FocusChart.js
+  src/features/records/Read.js
 git commit -m "feat: 리포트 화면에 노치·브래킷 적용, 인쇄에서 해제 확인"
 ```
 
