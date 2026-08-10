@@ -186,7 +186,7 @@ export const Mypage = () => {
 
       <main className="mypage__main">
         <section
-          className="focus-gauge"
+          className="focus-gauge hud-brackets"
           aria-labelledby="focus-summary-heading"
         >
           <h2 id="focus-summary-heading" className="sr-only">
