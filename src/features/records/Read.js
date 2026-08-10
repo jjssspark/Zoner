@@ -355,7 +355,7 @@ export const Read = () => {
             )}
 
             <div
-              className="focus-chart"
+              className="focus-chart hud-brackets"
               role={canSeek ? undefined : 'img'}
               aria-label={
                 canSeek

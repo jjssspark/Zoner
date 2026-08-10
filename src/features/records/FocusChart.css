@@ -2,7 +2,7 @@
   padding: var(--space-4);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  clip-path: var(--notch-path);
   overflow-x: auto;
 }
 

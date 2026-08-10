@@ -224,6 +224,7 @@
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   text-align: right;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -256,7 +257,7 @@
 .session-report__video {
   width: 100%;
   max-width: 720px;
-  border-radius: var(--radius-md);
+  clip-path: var(--notch-path);
   background-color: var(--color-surface-alt);
   display: block;
 }
@@ -335,7 +336,7 @@
   padding: var(--space-3) var(--space-4);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  clip-path: var(--notch-path-sm);
 }
 
 .metric__label {
@@ -349,6 +350,7 @@
   font-size: var(--text-lg);
   font-weight: 700;
   color: var(--color-text);
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -419,6 +421,7 @@
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   text-align: right;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -523,12 +526,12 @@
     break-inside: avoid;
   }
 
-  /* 카드 테두리는 종이에서 과하다. 배경 대신 선 하나로 줄인다. */
+  /* 카드 테두리는 종이에서 과하다. 배경 대신 선 하나로 줄인다.
+     노치는 index.css의 인쇄 블록이 --notch-path를 none으로 덮어 이미 풀린다. */
   .session-report .metric {
     padding: var(--space-2) 0;
     border: none;
     border-top: 1px solid var(--color-border);
-    border-radius: 0;
   }
 
   .session-report .metric-grid {
