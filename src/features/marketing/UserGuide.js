@@ -100,7 +100,7 @@ export const UserGuide = () => {
           </ol>
         </section>
 
-        <section className="guide__outro" aria-labelledby="start-heading">
+        <section className="guide__outro hud-brackets" aria-labelledby="start-heading">
           <h2 id="start-heading" className="guide__outro-title">
             준비됐다면 바로 시작하세요
           </h2>

@@ -46,7 +46,7 @@ export const Login = () => {
       <NavBar />
 
       <main className="login__main">
-        <form className="login-card" onSubmit={handleLogin}>
+        <form className="login-card hud-brackets" onSubmit={handleLogin}>
           <h1 className="login-card__title">로그인</h1>
 
           <label className="login-card__label" htmlFor="login-email">

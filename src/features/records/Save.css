@@ -87,7 +87,7 @@
   flex: 1;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  clip-path: var(--notch-path);
   color: var(--color-text);
   font-size: var(--text-sm);
   padding: var(--space-4);
@@ -102,15 +102,16 @@
   transform: translateY(-2px);
 }
 
+/* clip-path가 바깥 outline을 잘라내므로 안쪽에 그린다. */
 .session-card__link:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
 .session-card__delete {
   background: none;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   padding: var(--space-2) var(--space-4);

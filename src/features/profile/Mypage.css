@@ -380,7 +380,6 @@
 .record-section__link:hover {
   border-color: var(--color-accent);
   background-color: color-mix(in oklch, var(--color-accent) 10%, transparent);
-  box-shadow: var(--shadow-glow);
 }
 
 .record-section__link:focus-visible {

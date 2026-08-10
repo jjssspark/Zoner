@@ -101,7 +101,7 @@ const SignUp = ({ closeSignUpModal }) => {
   return (
     <div className="signup-overlay">
       <div
-        className="signup-card"
+        className="signup-card hud-brackets"
         ref={modalRef}
         role="dialog"
         aria-modal="true"

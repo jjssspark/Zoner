@@ -67,7 +67,7 @@
   flex-direction: column;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  clip-path: var(--notch-path);
   padding: var(--space-6);
   transition: border-color var(--duration-normal) var(--ease-out-expo),
     transform var(--duration-normal) var(--ease-out-expo);
@@ -81,10 +81,9 @@
 .pricing__tier--featured {
   background-color: var(--color-surface-alt);
   border-color: var(--color-accent);
-  border-radius: var(--radius-lg);
+  clip-path: var(--notch-path);
   padding: var(--space-8);
   margin-top: calc(var(--space-8) * -1);
-  box-shadow: var(--shadow-glow);
 }
 
 .pricing__tier--featured:hover {
@@ -287,7 +286,7 @@
   max-width: 34rem;
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  clip-path: var(--notch-path-sm);
   background-color: var(--color-surface);
   color: var(--color-text-muted);
   font-size: var(--text-sm);

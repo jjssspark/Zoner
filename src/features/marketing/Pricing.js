@@ -96,7 +96,7 @@ export const Pricing = () => {
               <li
                 key={plan.id}
                 className={`pricing__tier ${
-                  plan.featured ? 'pricing__tier--featured' : ''
+                  plan.featured ? 'pricing__tier--featured hud-brackets' : ''
                 }`}
                 data-reveal
               >

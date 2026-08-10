@@ -222,7 +222,7 @@
   max-height: 8rem;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--color-text);
   font: inherit;
   padding: var(--space-3);
@@ -241,7 +241,7 @@
   background-color: var(--color-accent);
   color: var(--color-bg);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: var(--space-3) var(--space-6);
   font-weight: 600;
   cursor: pointer;
@@ -266,7 +266,7 @@
   gap: var(--space-3);
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  clip-path: var(--notch-path);
   padding: var(--space-4);
 }
 

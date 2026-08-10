@@ -16,7 +16,7 @@
 
 .skeleton__item {
   background-color: var(--color-surface-alt);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   animation: skeleton-pulse 1.4s var(--ease-in-out) infinite;
 }
 
@@ -27,12 +27,12 @@
 
 .skeleton__item--card {
   height: 5.5rem;
-  border-radius: var(--radius-lg);
+  clip-path: var(--notch-path);
 }
 
 .skeleton__item--metric {
   height: 12.5rem;
-  border-radius: var(--radius-lg);
+  clip-path: var(--notch-path);
 }
 
 @keyframes skeleton-pulse {

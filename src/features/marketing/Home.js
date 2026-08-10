@@ -54,7 +54,7 @@ export const Home = () => {
             시작하기
           </button>
         </div>
-        <figure className="home__preview">
+        <figure className="home__preview hud-brackets">
           <ScoreRing value={82} size="lg" label="종합" />
           <Sparkline
             data={PREVIEW_TREND}
