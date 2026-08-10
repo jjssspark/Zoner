@@ -54,4 +54,17 @@ describe('CSS 커스텀 프로퍼티', () => {
     }
     expect(dangling).toEqual([]);
   });
+
+  test('인쇄에서 HUD 레이어가 전부 무력화된다', () => {
+    const indexCss = read(path.join(SRC, 'index.css'));
+    const printBlock = indexCss.slice(indexCss.indexOf('@media print'));
+
+    // 노치·글로우는 선택자별로 지우지 않고 토큰을 덮어서 한 번에 끈다
+    expect(printBlock).toMatch(/--notch-path:\s*none/);
+    expect(printBlock).toMatch(/--notch-path-sm:\s*none/);
+    expect(printBlock).toMatch(/--glow-metric:\s*none/);
+    expect(printBlock).toMatch(/--color-grid:\s*transparent/);
+    expect(printBlock).toMatch(/background-image:\s*none/);
+    expect(printBlock).toMatch(/\.hud-brackets::before/);
+  });
 });

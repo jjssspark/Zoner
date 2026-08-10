@@ -170,3 +170,37 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* ── HUD 레이어 유틸리티 ────────────────────────────────────
+   화면당 주 패널 1개에만 .hud-brackets 를 붙인다. 전역에 한 번만 정의해서
+   화면마다 다르게 남발되는 것을 막는다. */
+
+.hud-brackets {
+  position: relative;
+}
+
+/* 좌상·우하에만 건다. 노치가 자르는 우상·좌하를 피한 대각선이다.
+   위치를 0으로 두는 것이 중요하다 — 음수로 두면 같은 요소의 clip-path가
+   의사요소를 잘라버려 브래킷이 사라진다. */
+.hud-brackets::before,
+.hud-brackets::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.hud-brackets::before {
+  top: 0;
+  left: 0;
+  border-top: 1px solid var(--color-accent);
+  border-left: 1px solid var(--color-accent);
+}
+
+.hud-brackets::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 1px solid var(--color-accent);
+  border-right: 1px solid var(--color-accent);
+}

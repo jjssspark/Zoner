@@ -23,6 +23,13 @@ summary,
 body {
   margin: 0;
   background-color: var(--color-bg);
+  /* 계측 격자. 화면 전체에 여기 한 번만 깐다 — 화면별 CSS에서 다시 깔지 않는다.
+     background-image로 넣으면 의사요소를 쓸 때 생기는 쌓임 순서 문제가 없다.
+     background-attachment는 기본값(scroll)으로 둔다. fixed는 긴 페이지에서
+     스크롤할 때마다 전체를 다시 칠하게 만든다. */
+  background-image: linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
+  background-size: 22px 22px;
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -62,16 +69,32 @@ code {
   outline-offset: 2px;
 }
 
-/* 인쇄에서 종이 자체를 희게 만든다.
-   화면은 다크라 body 배경이 navy-950 이다. 인쇄 대화상자에서 "배경 그래픽"
-   을 켜면(리포트의 막대 색을 남기려면 켜야 한다) 이 검은 배경까지 같이
-   찍혀서, 콘텐츠가 끝난 자리부터 페이지 끝까지 검게 나온다.
-   SessionReport.css 의 인쇄 블록은 .session-report 안쪽만 덮으므로
-   그 바깥인 body 는 여기서 처리해야 한다. */
+/* 인쇄에서 종이 자체를 희게 만들고 HUD 레이어를 전부 걷어낸다.
+   화면은 다크라 body 배경이 slate-950 이다. 인쇄 대화상자에서 "배경 그래픽"
+   을 켜면(리포트의 막대 색을 남기려면 켜야 한다) 이 검은 배경과 계측 격자까지
+   같이 찍힌다. SessionReport.css 의 인쇄 블록은 .session-report 안쪽만
+   덮으므로 그 바깥인 body 는 여기서 처리해야 한다 (TS-018).
+
+   노치와 글로우는 선택자마다 지우지 않고 토큰 자체를 덮는다 —
+   clip-path: var(--notch-path) 가 전부 clip-path: none 으로,
+   text-shadow: var(--glow-metric) 이 전부 text-shadow: none 으로 떨어진다. */
 @media print {
+  :root {
+    --notch-path: none;
+    --notch-path-sm: none;
+    --glow-metric: none;
+    --color-grid: transparent;
+  }
+
   html,
   body {
     background-color: white;
+    background-image: none;
     color: black;
+  }
+
+  .hud-brackets::before,
+  .hud-brackets::after {
+    display: none;
   }
 }
