@@ -454,12 +454,12 @@
   .session-report {
     --color-bg: white;
     --color-surface: white;
-    --color-surface-alt: var(--navy-50);
-    --color-border: var(--navy-200);
-    --color-border-strong: var(--navy-600);
-    --color-text: var(--navy-950);
-    --color-text-muted: var(--navy-600);
-    --color-accent: var(--cyan-700);
+    --color-surface-alt: var(--slate-50);
+    --color-border: var(--slate-200);
+    --color-border-strong: var(--slate-600); /* 흰 배경 위 9.57:1 */
+    --color-text: var(--slate-950); /* 흰 배경 위 20.10:1 */
+    --color-text-muted: var(--slate-600);
+    --color-accent: var(--ice-700); /* 흰 배경 위 5.51:1 */
   }
 
   /* 종이에 남길 이유가 없는 것들. 영상은 섹션째 지운다 —

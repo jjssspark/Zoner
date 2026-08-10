@@ -42,7 +42,7 @@
 
 .home__cta {
   background-color: var(--color-accent);
-  color: var(--navy-950);
+  color: var(--slate-950);
   border: none;
   border-radius: var(--radius-full);
   font-family: var(--font-sans);

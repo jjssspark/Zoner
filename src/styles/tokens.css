@@ -1,46 +1,55 @@
 :root {
-  /* primitive - neutrals (dark navy scale) */
-  --navy-950: oklch(15% 0.02 260);
-  --navy-900: oklch(19% 0.02 260);
-  --navy-800: oklch(24% 0.02 260);
-  --navy-700: oklch(30% 0.02 260);
-  --navy-600: oklch(38% 0.02 260);
-  --navy-550: oklch(48% 0.02 260);
-  --navy-500: oklch(56% 0.02 260);
-  --navy-400: oklch(68% 0.02 260);
-  --navy-200: oklch(85% 0.01 260);
-  --navy-50: oklch(97% 0.005 260);
+  /* primitive - neutrals (slate scale, hue 235)
+     기존 navy(hue 260)에서 옮겼다. 배경 채도를 낮춰야 신호색이 산다. */
+  --slate-950: oklch(13% 0.012 235);
+  --slate-900: oklch(17% 0.012 235);
+  --slate-850: oklch(21% 0.012 235);
+  --slate-800: oklch(25% 0.012 235);
+  --slate-700: oklch(31% 0.012 235);
+  --slate-600: oklch(39% 0.013 235);
+  --slate-500: oklch(56% 0.014 235);
+  --slate-400: oklch(68% 0.014 235);
+  --slate-200: oklch(86% 0.008 235);
+  --slate-50: oklch(97% 0.004 235);
 
-  /* primitive - accent (cyan) */
-  --cyan-300: oklch(85% 0.12 200);
-  --cyan-400: oklch(75% 0.14 200);
-  --cyan-500: oklch(68% 0.15 200);
-  /* 흰 배경 위에서만 쓴다(인쇄). 화면용 cyan-400(75%)은 종이에서 거의 안 보인다. */
-  --cyan-700: oklch(50% 0.13 200);
+  /* primitive - signal (ice blue, hue 250)
+     시안(200)에서 250으로 옮긴 이유는 집중도 밴드 "보통"과 색이 겹쳤기 때문이다.
+     화면의 파란색이 상태 표시인지 UI 장식인지 구분되지 않았다. */
+  --ice-300: oklch(84% 0.09 250);
+  --ice-400: oklch(76% 0.12 250);
+  --ice-500: oklch(72% 0.13 250);
+  /* 흰 배경 위에서만 쓴다(인쇄). 화면용 ice-500(72%)은 종이에서 거의 안 보인다.
+     흰 배경 위 5.51:1. */
+  --ice-700: oklch(52% 0.14 250);
 
   /* primitive - status */
   --red-500: oklch(66% 0.2 25);
   --lime-400: oklch(80% 0.16 145);
   --amber-400: oklch(80% 0.14 80);
   --orange-500: oklch(70% 0.17 50);
+  /* 시안은 이제 강조색이 아니다. 집중도 밴드 "보통"과 판정 원인 표시 전용이다. */
+  --cyan-400: oklch(75% 0.14 200);
+  --cyan-500: oklch(68% 0.15 200);
 
   /* semantic */
-  --color-bg: var(--navy-950);
-  --color-surface: var(--navy-900);
-  --color-surface-alt: var(--navy-800);
-  --color-border: var(--navy-700);
+  --color-bg: var(--slate-950);
+  --color-surface: var(--slate-900);
+  --color-surface-alt: var(--slate-850);
+  --color-border: var(--slate-700);
   /* 인터랙티브 요소의 테두리. 이 테두리만으로 컨트롤이 식별되므로
-     WCAG 1.4.11(비텍스트 대비 3:1)을 만족해야 한다. navy-550(48%)은
-     surface 위 2.83:1 / surface-alt 위 2.52:1 로 미달이었다.
-     navy-500(56%)에서 3.97:1 / 3.54:1. */
-  --color-border-strong: var(--navy-500);
-  --color-text: var(--navy-50);
-  --color-text-muted: var(--navy-400);
-  --color-accent: var(--cyan-400);
-  --color-accent-hover: var(--cyan-300);
-  /* 강조색을 배경으로 깔았을 때 그 위에 얹는 글자색 */
-  --color-on-accent: var(--navy-950);
+     WCAG 1.4.11(비텍스트 대비 3:1)을 만족해야 한다.
+     slate-500(56%)은 surface 위 4.12:1 / surface-alt 위 3.81:1. */
+  --color-border-strong: var(--slate-500);
+  --color-text: var(--slate-50); /* surface 위 17.52:1 */
+  --color-text-muted: var(--slate-400); /* surface-alt 위 6.16:1 */
+  --color-accent: var(--ice-500); /* surface 위 7.74:1 */
+  --color-accent-hover: var(--ice-400);
+  /* 강조색을 배경으로 깔았을 때 그 위에 얹는 글자색. ice-500 위 8.15:1 */
+  --color-on-accent: var(--slate-950);
   --color-danger: var(--red-500);
+  /* 계측 격자선. 정보를 담지 않는 배경 질감이라 대비 기준 대상이 아니다.
+     불투명도를 올리면 본문 대비를 깎으므로 0.024를 넘기지 않는다. */
+  --color-grid: oklch(97% 0.004 235 / 0.024);
 
   /* semantic - focus level (score band) */
   --color-focus-high: var(--lime-400); /* 80% 이상 */
@@ -54,7 +63,9 @@
   --color-reason-head-turned: var(--amber-400);
   --color-reason-looking-up: var(--orange-500);
   --color-reason-eyes-closed: var(--red-500);
-  --color-reason-absent: var(--navy-550);
+  /* 자리 비움은 무채색 점이다. slate-500은 surface 위 4.12:1로
+     기존 navy-550(2.83:1)보다 비텍스트 3:1 기준에 여유가 있다. */
+  --color-reason-absent: var(--slate-500);
 
   /* typography (Pretendard covers both display and body — one font family) */
   /* 제목도 본문과 같은 Pretendard를 쓴다. 제목용 서체를 따로 들일 때
@@ -91,15 +102,43 @@
   --space-16: 4rem;
   --space-section: clamp(3rem, 2rem + 5vw, 8rem);
 
-  /* radius / shadow */
+  /* radius / shadow / notch
+     균일 라운드가 "뻔함"의 가장 큰 원인이었다. 요소 종류마다 형태를 나눈다 —
+     패널은 노치, 버튼·입력·칩은 radius-sm, 링·아바타·상태점은 radius-full.
+     radius-md / radius-lg 는 이제 패널에 쓰지 않는다. */
   --radius-sm: 0.375rem;
   --radius-md: 0.75rem;
   --radius-lg: 1.25rem;
   --radius-full: 9999px;
 
+  --notch: 14px;
+  --notch-sm: 8px;
+  /* 우상·좌하 모서리를 자른다. 브래킷이 붙는 좌상·우하는 직각으로 남겨야
+     의사요소가 잘리지 않는다. 인쇄에서는 index.css가 이 값을 none으로 덮는다. */
+  --notch-path: polygon(
+    0 0,
+    calc(100% - var(--notch)) 0,
+    100% var(--notch),
+    100% 100%,
+    var(--notch) 100%,
+    0 calc(100% - var(--notch))
+  );
+  --notch-path-sm: polygon(
+    0 0,
+    calc(100% - var(--notch-sm)) 0,
+    100% var(--notch-sm),
+    100% 100%,
+    var(--notch-sm) 100%,
+    0 calc(100% - var(--notch-sm))
+  );
+
   --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.3);
   --shadow-md: 0 8px 24px oklch(0% 0 0 / 0.35);
-  --shadow-glow: 0 0 40px oklch(68% 0.15 200 / 0.25);
+  /* 테두리 글로우다. HUD 절제 규칙 3번이 금지하므로 Task 7에서 소비처 4곳과
+     함께 삭제한다. 여기서 먼저 지우면 그 사이 참조가 끊긴다. */
+  --shadow-glow: 0 0 40px oklch(72% 0.13 250 / 0.25);
+  /* 화면당 주 수치 하나에만 건다. 인쇄 블록이 none으로 덮어 종이에서는 사라진다. */
+  --glow-metric: 0 0 18px oklch(72% 0.13 250 / 0.3);
 
   /* motion */
   --duration-fast: 150ms;
