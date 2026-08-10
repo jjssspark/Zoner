@@ -1,5 +1,6 @@
 // src/components/Read.js
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
 import { softDeleteSession } from '../../lib/trash';
@@ -8,6 +9,7 @@ import { buildReportTitle } from '../../lib/reportTitle';
 import { computeSessionMetrics } from '../../lib/sessionMetrics';
 import { buildLearningProfile } from '../../lib/learningProfile';
 import { buildInsightPayload, fetchReportInsight } from '../../lib/reportInsight';
+import { isReportPrintReady } from '../../lib/reportPrintReady';
 import { MetricsGrid, ProfileSection, AdviceSection } from './ReportSections';
 import ReasonBadge, { REASON_LABELS } from '../../components/ui/ReasonBadge';
 import './SessionReport.css';
@@ -43,6 +45,14 @@ const formatClock = (isoString) => {
   return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 };
 
+// 인쇄물 머리말에 박는 저장 시각. 종이만 남았을 때 언제 뽑은 문서인지 알아야 한다.
+const formatStamp = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate()
+  ).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(
+    date.getMinutes()
+  ).padStart(2, '0')}`;
+
 export const Read = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -60,6 +70,7 @@ export const Read = () => {
   const [recentSessions, setRecentSessions] = useState(null);
   const [advice, setAdvice] = useState([]);
   const [adviceStatus, setAdviceStatus] = useState('idle');
+  const [printedAt, setPrintedAt] = useState(null);
 
   const metrics = useMemo(() => computeSessionMetrics(session), [session]);
   const profile = useMemo(
@@ -216,6 +227,18 @@ export const Read = () => {
     };
   }, [session, recentSessions, metrics, profile]);
 
+  // 인쇄 직전에 저장 시각을 박는다. 버튼이 아니라 beforeprint에 거는 이유는
+  // Cmd+P로 바로 인쇄해도 같은 경로를 타게 하기 위해서다.
+  //
+  // flushSync가 필요하다 — beforeprint는 동기 이벤트고, 브라우저는 핸들러가
+  // 반환하는 즉시 지면을 스냅샷한다. 일반 setState는 커밋이 그 뒤로 밀려
+  // 저장 시각이 빈 채로 인쇄된다.
+  useEffect(() => {
+    const stamp = () => flushSync(() => setPrintedAt(new Date()));
+    window.addEventListener('beforeprint', stamp);
+    return () => window.removeEventListener('beforeprint', stamp);
+  }, []);
+
   const handleDelete = async () => {
     setDeleteError(null);
     setIsDeleting(true);
@@ -247,6 +270,12 @@ export const Read = () => {
 
     window.print();
   };
+
+  // 성향·조언이 아직 안 붙었으면 그 섹션이 통째로 빠진 PDF가 나온다.
+  const canSavePdf = isReportPrintReady({
+    hasRecentSessions: recentSessions !== null,
+    adviceStatus,
+  });
 
   const canSeek = Boolean(videoUrl);
 
@@ -280,8 +309,9 @@ export const Read = () => {
               type="button"
               className="session-report__pdf"
               onClick={handleSavePdf}
+              disabled={!canSavePdf}
             >
-              PDF 저장
+              {canSavePdf ? 'PDF 저장' : '분석 준비 중…'}
             </button>
           )}
           {session && (
@@ -316,6 +346,23 @@ export const Read = () => {
                 {deleteError}
               </p>
             )}
+
+            {/* 인쇄에만 나오는 문서 머리말. 화면에서는 상단바가 같은 역할을
+                하므로 display:none이고, 그래서 접근성 트리에서도 빠진다. */}
+            <div className="report-doc">
+              <p className="report-doc__title">Zoner 학습 리포트</p>
+              <p className="report-doc__meta">
+                <span>{formatDate(session.started_at)} 세션</span>
+                {printedAt && <span>저장 {formatStamp(printedAt)}</span>}
+              </p>
+              {/* 버튼은 준비 전에 잠기지만 Cmd+P는 막을 수 없다.
+                  덜 채워진 PDF가 그렇다고 말은 하게 한다. */}
+              {!canSavePdf && (
+                <p className="report-doc__partial">
+                  일부 분석이 아직 준비되지 않은 상태로 인쇄되었습니다.
+                </p>
+              )}
+            </div>
 
             <p className="session-report__date">
               {formatDate(session.started_at)}
@@ -353,6 +400,12 @@ export const Read = () => {
                 )}
               </section>
             )}
+
+            {/* 화면에서는 그래프가 무엇인지 맥락으로 읽히지만, 종이에서는
+                제목 없는 그림이 문서 한가운데 떠 있게 된다. */}
+            <h2 className="session-report__section-title report-print-only">
+              분별 집중도
+            </h2>
 
             <div
               className="focus-chart hud-brackets"

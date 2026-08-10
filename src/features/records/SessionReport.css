@@ -107,6 +107,20 @@
   outline-offset: 2px;
 }
 
+/* 성향·조언이 도착하기 전에는 잠긴다. 강조 테두리까지 그대로 두면
+   눌러도 되는 것처럼 보인다. */
+.session-report__pdf:disabled {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  font-weight: 400;
+  cursor: progress;
+}
+
+.session-report__pdf:disabled:hover {
+  background: none;
+  color: var(--color-text-muted);
+}
+
 .session-report__error {
   color: var(--color-danger);
   font-size: var(--text-sm);
@@ -449,8 +463,39 @@
    화면은 다크, 종이는 라이트다. 의미 토큰만 다시 매핑하면 아래 규칙들이
    전부 따라온다 — 2계층 토큰을 쓰는 이유다. 이 블록은 인쇄에만 적용되므로
    화면 테마는 그대로다(라이트 테마를 추가한 것이 아니다). */
+
+/* 인쇄에만 나오는 요소들의 기본 상태. 아래 @media print에서 켠다. */
+.report-doc,
+.report-print-only {
+  display: none;
+}
+
+/* @page는 선택자로 좁힐 수 없다 — 문서 전체에 걸린다. 이 앱에서 인쇄하는
+   화면은 리포트뿐이라 그대로 둔다. 브라우저 기본 여백은 용지·로케일마다
+   달라서 같은 리포트가 환경마다 다른 폭으로 나온다. */
+@page {
+  size: A4;
+  margin: 16mm 14mm;
+}
+
 @media print {
+  /* 주의 — `.session-report`와 `:root`는 명시도가 같다(둘 다 0-1-0).
+     아래 토큰 재매핑이 tokens.css의 :root를 이기는 근거는 오직 소스 순서다.
+     App.js가 tokens.css를 먼저(4행) 불러오고 이 파일은 Read.js를 거쳐
+     나중에 실려서 성립한다. TS-019가 이 함정에 걸렸던 건이다. */
   .session-report {
+    /* --text-*는 전부 clamp(…vw…)다. 인쇄에서 vw는 용지 폭 기준으로 계산돼
+       화면에서 보던 크기와 어긋난다. 종이에서는 pt로 못박는다. */
+    --text-xs: 8pt;
+    --text-sm: 9pt;
+    --text-base: 10.5pt;
+    --text-lg: 12pt;
+    --text-xl: 14pt;
+    --text-2xl: 22pt;
+
+    font-size: 10.5pt;
+    line-height: 1.5;
+
     --color-bg: white;
     --color-surface: white;
     --color-surface-alt: var(--slate-50);
@@ -459,24 +504,72 @@
     --color-text: var(--slate-950); /* 흰 배경 위 20.10:1 */
     --color-text-muted: var(--slate-600);
     --color-accent: var(--ice-700); /* 흰 배경 위 5.51:1 */
+    --color-danger: var(--red-700); /* 흰 배경 위 7.23:1 */
   }
 
-  /* 종이에 남길 이유가 없는 것들. 영상은 섹션째 지운다 —
-     video만 숨기면 "학습 영상" 제목만 덩그러니 남는다. */
-  .session-report__topbar-actions,
-  .session-report__section--video {
+  /* 종이에 남길 이유가 없는 것들.
+     - 영상은 섹션째 지운다. video만 숨기면 "학습 영상" 제목만 덩그러니 남는다
+     - 상단바는 .report-doc가 대신한다. 남기면 제목이 두 번 찍힌다
+     - 날짜도 머리말로 올라갔다 */
+  .session-report__topbar,
+  .session-report__section--video,
+  .session-report__date {
     display: none;
-  }
-
-  /* 화면에서는 sticky다. 인쇄에서 sticky는 페이지마다 겹쳐 찍힐 수 있다. */
-  .session-report__topbar {
-    position: static;
-    padding: 0 0 var(--space-3);
   }
 
   .session-report__main {
     max-width: none;
-    padding: var(--space-6) 0 0;
+    padding: 0;
+  }
+
+  /* ── 문서 머리말 ─────────────────────────────────────── */
+
+  .report-print-only {
+    display: block;
+  }
+
+  .report-doc {
+    display: block;
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-2);
+    border-bottom: 2px solid var(--color-text);
+  }
+
+  .report-doc__title {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 15pt;
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .report-doc__meta {
+    display: flex;
+    gap: var(--space-4);
+    margin: var(--space-1) 0 0;
+    font-family: var(--font-mono);
+    font-size: 8.5pt;
+    color: var(--color-text-muted);
+  }
+
+  .report-doc__partial {
+    margin: var(--space-2) 0 0;
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: var(--color-danger);
+  }
+
+  /* ── 요약 ────────────────────────────────────────────── */
+
+  /* 화면에서는 점수와 학습 시간이 큰 여백으로 갈라져 있다. 종이에서는
+     한 덩어리로 읽히는 게 낫다. --duration의 음수 마진 보정도 여기서 푼다. */
+  .session-report__score {
+    margin-bottom: 0;
+  }
+
+  .session-report__duration {
+    margin: var(--space-1) 0 var(--space-6);
+    padding-top: 0;
   }
 
   /* 인쇄는 애니메이션이 재생되지 않는 매체다. fill-mode가 from 상태를
@@ -509,9 +602,17 @@
     break-inside: avoid;
   }
 
-  /* 알림 기록이 길면 여러 장으로 넘어간다. 각 장에서 제목이 다시 보이도록. */
+  /* 제목만 페이지 끝에 남고 내용이 다음 장으로 넘어가는 걸 막는다. */
   .session-report__section-title {
     break-after: avoid;
+    /* 종이에는 배경색이 없으니 섹션 경계를 선으로 긋는다. */
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-border);
+    margin-bottom: var(--space-3);
+  }
+
+  .session-report__section {
+    margin-top: var(--space-6);
   }
 
   /* 새 섹션도 페이지 경계에서 잘리지 않게 */
@@ -530,7 +631,11 @@
     border-top: 1px solid var(--color-border);
   }
 
+  /* 화면은 auto-fit이라 폭에 따라 열 수가 바뀐다. 인쇄 뷰포트 폭은
+     브라우저·용지·배율마다 달라서 그대로 두면 같은 리포트가 2열로도
+     4열로도 나온다. 종이에서는 3열로 못박는다. */
   .session-report .metric-grid {
+    grid-template-columns: repeat(3, 1fr);
     gap: 0 var(--space-6);
   }
 
