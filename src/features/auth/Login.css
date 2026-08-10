@@ -65,7 +65,7 @@
 
 .login-card__submit {
   background-color: var(--color-accent);
-  color: var(--slate-950);
+  color: var(--color-on-accent);
   border: none;
   border-radius: var(--radius-sm);
   font-weight: 700;

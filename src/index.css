@@ -75,17 +75,11 @@ code {
    같이 찍힌다. SessionReport.css 의 인쇄 블록은 .session-report 안쪽만
    덮으므로 그 바깥인 body 는 여기서 처리해야 한다 (TS-018).
 
-   노치와 글로우는 선택자마다 지우지 않고 토큰 자체를 덮는다 —
-   clip-path: var(--notch-path) 가 전부 clip-path: none 으로,
-   text-shadow: var(--glow-metric) 이 전부 text-shadow: none 으로 떨어진다. */
+   노치·글로우·격자 토큰(--notch-path 등)을 덮는 규칙은 여기 두지 않는다 —
+   tokens.css가 App.js에서 이 파일보다 나중에 import돼 같은 :root 선택자를
+   다시 선언하면 소스 순서상 tokens.css가 이긴다. 그 규칙은
+   src/styles/tokens.css 맨 끝의 @media print 블록에 있다 (TS-018). */
 @media print {
-  :root {
-    --notch-path: none;
-    --notch-path-sm: none;
-    --glow-metric: none;
-    --color-grid: transparent;
-  }
-
   html,
   body {
     background-color: white;
