@@ -6,7 +6,7 @@
 Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5초마다 집중 여부를 판정하고,
 끝나면 언제 무너졌는지·무엇이 방해했는지를 수치로 돌려준다.
 
-![데모](output/demo.gif)
+![랜딩 화면](output/screenshots/01-home.png)
 
 **▶ https://zoner-one.vercel.app**
 
@@ -24,6 +24,9 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 ### 1. 실시간 집중도 측정
 
 ![학습 화면](output/screenshots/02-start-learning.png)
+
+> 웹캠 권한을 받은 직후, 측정을 시작하기 전 화면이다.
+> 미리보기의 얼굴은 공개용으로 가렸다 — 실제로는 그대로 보인다.
 
 웹캠 프레임에서 얼굴 랜드마크를 뽑아 **5초마다** 한 번씩 판정한다. 결과는 6개 상태 중 하나다.
 
@@ -45,7 +48,7 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 
 ### 3. 세션 리포트
 
-![리포트](output/screenshots/04-report.png)
+![리포트](output/screenshots/03-report.png)
 
 저장된 세션 하나만 보고 파생 지표 9종을 계산한다 — 순 집중 시간, 최장 집중 지속, 첫 이탈 시점,
 전·후반 격차, 변동성(모표준편차), 최고/최저 구간, 시간당 알림, 최대 방해 원인.
@@ -55,16 +58,22 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 
 ### 4. PDF 저장
 
-![PDF](output/screenshots/05-report-pdf.png)
-
 리포트를 인쇄용 문서 레이아웃으로 재구성해 저장한다. 화면용 계측 장식(격자·노치·브래킷·글로우)은
 인쇄 시 일괄 해제된다.
 
-### 5. AI 튜터 채팅 · 6. 휴지통 복구
+### 5. AI 튜터 채팅
 
-![AI 채팅](output/screenshots/06-ai-chat.png)
+![AI 채팅](output/screenshots/05-ai-chat.png)
 
-대화별로 이력이 남는 학습 보조 채팅(1일 30메시지 제한). 삭제한 세션은 휴지통을 거쳐 복구할 수 있다.
+대화별로 이력이 남는 학습 보조 채팅(1일 30메시지 제한).
+
+### 6. 마이페이지 · 휴지통 복구
+
+![마이페이지](output/screenshots/04-mypage.png)
+
+평균 집중도와 최근 세션을 모아 보여준다. 삭제한 세션은 휴지통을 거쳐 복구할 수 있다.
+
+> 좌상단 사용자 이름은 공개용으로 가렸다.
 
 ---
 
@@ -91,7 +100,7 @@ MediaPipe FaceLandmarker를 WASM+GPU로 브라우저에서 실행해 **영상 �
 그대로 세면 "집중 지속 한계 약 0분" 같은 뜻 없는 값이 나온다. 워밍업은 이탈이 아니다.
 
 **권한을 앱 코드가 아니라 DB에서 막는다.**
-모든 테이블과 스토리지 버킷에 RLS를 켜고 정책 18개를 `auth.uid() = user_id`로 걸었다.
+모든 테이블과 스토리지 버킷에 RLS를 켜고 정책 17개를 `auth.uid() = user_id`로 걸었다.
 앱 코드에서 소유자 조건을 빠뜨려도 남의 데이터가 새지 않는다.
 
 **Anthropic API 키는 클라이언트에 없다.**
@@ -185,7 +194,10 @@ npm start        # http://localhost:3000
 ```
 
 DB 스키마가 필요하면 `supabase/migrations/`의 SQL 11개를 파일명 순서대로 실행한다.
+순서 의존이 있으니 [`docs/DATABASE.md`](docs/DATABASE.md)의 적용 순서 절을 먼저 읽는 편이 좋다.
+
 AI 기능(`/ai-chat`, 리포트 조언)까지 쓰려면 Edge Function 2개를 배포하고 `ANTHROPIC_API_KEY`를 설정해야 한다.
+두 함수의 요청·응답 계약은 [`docs/API.md`](docs/API.md)에 있다.
 
 ```bash
 supabase functions deploy ai-chat
@@ -214,7 +226,8 @@ npx react-scripts build                           # 프로덕션 빌드
 | `chat_messages` | 대화 메시지 | select / insert — 본인만 |
 | `session-videos` (Storage) | 세션 녹화 파일. 경로 첫 폴더가 `auth.uid()` | select / insert / update / delete — 본인만 |
 
-정책 18개가 전부 `auth.uid() = user_id` 기준이다. 원문은 `supabase/migrations/`에 있다.
+정책 17개가 전부 `auth.uid() = user_id` 기준이다. 원문은 `supabase/migrations/`에 있고,
+스키마·인덱스·마이그레이션 순서 의존은 [`docs/DATABASE.md`](docs/DATABASE.md)에 정리했다.
 
 ---
 
@@ -265,17 +278,22 @@ src/
 
 ---
 
-## 트러블슈팅
+## 문서
 
-붙잡았던 문제 19건을 증상·재현 조건·**실패한 시도**·근본 원인·검증까지 기록해 뒀다.
+| 문서 | 내용 |
+|---|---|
+| [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) | **왜 이렇게 만들었는가** — 판단이 갈린 지점 7개와 그 결과 |
+| [`docs/adr/`](docs/adr/README.md) | 기술 의사결정 5건. 결과 칸에 **틀린 예측을 그대로** 적었다 |
+| [`docs/TROUBLESHOOTING-TOP5.md`](docs/TROUBLESHOOTING-TOP5.md) | 트러블슈팅 5선 — 사고 과정이 남는 것 위주 |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~020 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
+| [`docs/API.md`](docs/API.md) | Edge Functions 2개의 요청·응답 계약 |
+| [`docs/DATABASE.md`](docs/DATABASE.md) | 스키마·RLS 17정책·마이그레이션 순서 의존 |
 
-→ [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
+트러블슈팅 20건 중 몇 가지만 꼽자면:
 
-몇 가지만 꼽자면:
-
-- **TS-003** — CRA 번들 Jest 리졸버가 `react-router-dom` v7의 exports 맵을 못 읽어, 테스트 전략 자체를 바꾼 건
-- **TS-018** — 리포트 인쇄에서 배경이 안 나오던 문제. 검증 하니스가 이 사각지대를 못 잡고 있었다
-- **TS-019** — 인쇄용 토큰 오버라이드가 CSS 소스 순서에 밀려 무력화된 건
+- **TS-010** — 로딩 해제를 보장하려고 넣은 가드가 StrictMode에서 화면을 영구히 멈춘 건. **독립 리뷰 3회를 통과했다**
+- **TS-012** — 테이블에 있는 컬럼이 뷰에는 없어서, 하루 넘게 에러 없이 반쪽만 살아 있던 건
+- **TS-020** — 로컬에서 되던 빌드가 배포에서만 깨진 건. 완료 기준이 CI 조건을 재현하지 않았다
 
 설계 문서(`docs/superpowers/specs/`)와 구현 계획(`docs/superpowers/plans/`)도 함께 남아 있다.
 
