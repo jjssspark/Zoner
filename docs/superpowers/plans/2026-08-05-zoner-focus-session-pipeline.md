@@ -64,7 +64,7 @@ create policy "study_sessions_insert_own"
 
 - [ ] **Step 2: Supabase SQL Editor에서 실행**
 
-프로젝트 `https://uptgtgckddgrnimuohwa.supabase.co`의 SQL Editor에 위 SQL을 그대로 붙여넣고 Run.
+프로젝트 `https://<project-ref>.supabase.co`의 SQL Editor에 위 SQL을 그대로 붙여넣고 Run.
 
 - [ ] **Step 3: 검증**
 

@@ -14,7 +14,7 @@ CRA 프론트엔드에서 `supabase-js` 클라이언트로 Supabase를 직접 �
 - **DB**: Postgres, `profiles` 테이블 1개만 신설. `auth.users`는 이메일/비밀번호/id만 가지고 이름이 없으므로, 표시 이름 저장용으로 필요.
 - **세션**: `supabase-js`가 브라우저 로컬스토리지에 세션을 자동 유지 — 새로고침해도 로그인 상태가 살아있는 것이 지금과 가장 큰 차이.
 
-Supabase 프로젝트: `https://uptgtgckddgrnimuohwa.supabase.co` (이미 생성됨, anon key 확보).
+Supabase 프로젝트: `https://<project-ref>.supabase.co` (이미 생성됨, anon key 확보).
 
 ## DB 스키마
 

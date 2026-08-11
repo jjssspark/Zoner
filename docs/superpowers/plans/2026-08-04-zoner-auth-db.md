@@ -61,7 +61,7 @@ create policy "가입 시 본인 프로필 생성"
 
 - [ ] **Step 2: Supabase 대시보드에서 실행**
 
-1. https://supabase.com/dashboard/project/uptgtgckddgrnimuohwa/sql/new 접속 (또는 대시보드 → SQL Editor → New query)
+1. https://supabase.com/dashboard/project/<project-ref>/sql/new 접속 (또는 대시보드 → SQL Editor → New query)
 2. Step 1의 SQL 전체를 붙여넣고 Run
 3. 왼쪽 메뉴 Table Editor에서 `profiles` 테이블이 생성됐는지, 컬럼이 `id`/`name`/`created_at`/`updated_at` 4개인지 확인
 4. `profiles` 테이블 우측 상단에 RLS가 "Enabled" 상태인지 확인 (초록 방패 아이콘)

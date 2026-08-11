@@ -53,7 +53,7 @@ create view active_study_sessions with (security_invoker = true) as select * fro
 
 - [ ] **Step 2: Supabase SQL Editor에서 실행**
 
-프로젝트 `https://uptgtgckddgrnimuohwa.supabase.co`의 SQL Editor에 위 SQL을 그대로 붙여넣고 Run.
+프로젝트 `https://<project-ref>.supabase.co`의 SQL Editor에 위 SQL을 그대로 붙여넣고 Run.
 
 **주의 (TS-001 재발 방지):** SQL Editor는 Monaco 기반이라 여는 괄호 뒤에 줄바꿈이 들어간 여러 줄 SQL을 자동화로 타이핑하면 괄호 자동완성 때문에 깨진다(`docs/TROUBLESHOOTING.md` TS-001). 위 SQL은 이미 괄호 내부 줄바꿈이 없는 한 줄짜리 statement로 평탄화돼 있다 — 이 형태 그대로 입력하고, 문장과 문장 사이(괄호가 모두 닫힌 지점)에서만 Enter를 쓴다.
 
