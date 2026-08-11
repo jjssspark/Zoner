@@ -21,6 +21,7 @@
 
 | ID | 날짜 | 문제 | 상태 |
 |---|---|---|---|
+| TS-020 | 2026-08-11 | 로컬에서 성공하던 빌드가 Vercel에서만 실패. CI 환경이 자동 설정하는 `CI=true` 때문에 CRA가 경고를 에러로 승격했고, 승격된 경고는 우리 코드가 아니라 `@mediapipe/tasks-vision` 의 동적 import 표현식에서 나왔다. 완료 기준의 빌드 검증이 CI 조건을 반영하지 않아 여태 안 드러났다 | 해결 |
 | TS-019 | 2026-08-10 | `@media print` 의 `:root` 토큰 오버라이드가 무력화됐다. `index.css` 가 `tokens.css` 보다 먼저 번들에 실려, 명시도가 같은 두 `:root` 중 나중 것(기본값)이 이겼다. 인쇄에서 노치가 살아남아 차트 오른쪽이 잘렸다. 가드 테스트는 소스 텍스트만 봐서 통과했다 | 해결 |
 | TS-018 | 2026-08-09 | PDF 아래쪽이 검게 인쇄됨. 인쇄 규칙이 `.session-report` 안쪽만 덮어 `body` 배경이 다크로 남았고, 막대 색을 살리려 켠 "배경 그래픽" 옵션이 그걸 같이 찍었다. 검증 하니스가 `body`에 흰 배경을 강제해 버그를 가리고 있었다 | 해결 |
 | TS-017 | 2026-08-07 | 진입 연출 폴백이 트랜지션에 의존해, 애니메이션이 억제된 환경에서 콘텐츠가 계속 투명했다. 첫 가설(명시도)은 틀렸고 계산값 판독 자체가 거짓이었다 | 해결 |
@@ -1394,3 +1395,146 @@ TS-018 과 같은 계열이다. 그때는 검증 하니스가 대상을 우회�
 마지막 리뷰에서야 잡혔다. 앞의 둘이 놓친 이유는 같다 — **둘 다 한 파일 안만
 봤다.** 파일 경계를 넘는 결함은 파일 단위로 자른 리뷰가 구조적으로 못 잡는다.
 전체를 한 번에 보는 리뷰가 형식적 절차가 아니라는 증거다.
+
+---
+
+## TS-020 — 로컬에서 되던 빌드가 배포에서만 깨졌다
+
+**날짜** 2026-08-11 · **상태** 해결
+
+### 증상
+
+포트폴리오용으로 Vercel에 첫 배포를 시도했다. 직전에 로컬에서
+`npx react-scripts build` 를 돌려 성공을 확인했고, 테스트 276개도 전부
+통과한 상태였다. 그런데 Vercel 빌드가 실패했다.
+
+```
+{
+  "status": "error",
+  "reason": "deploy_failed",
+  "message": "Command \"npm run build\" exited with 1",
+  "next": [
+    {
+      "command": "vercel deploy",
+      "when": "retry deploy"
+    }
+  ]
+}
+Error: Command "npm run build" exited with 1
+```
+
+Vercel이 뱉은 요약에는 **왜 실패했는지가 없다.** 같은 명령이 로컬에서는
+성공했으므로, 처음에는 원격 환경의 Node 버전이나 의존성 설치 문제를 의심할
+여지가 있었다.
+
+### 재현 조건
+
+- 로컬에서 `CI=true npx react-scripts build` — **항상 재현된다**
+- 로컬에서 `npx react-scripts build` (CI 미설정) — 성공한다
+- 즉 환경 차이는 Node 버전도 의존성도 아니고 **환경변수 하나**다
+
+### 원인
+
+`CI=true` 로 재현하자 원문이 나왔다.
+
+```
+Treating warnings as errors because process.env.CI = true.
+Most CI servers set it automatically.
+
+Failed to compile.
+
+Critical dependency: the request of a dependency is an expression
+```
+
+**표면**: `Critical dependency: the request of a dependency is an expression`
+컴파일 실패.
+
+**근본**: 원인이 두 겹으로 겹쳐 있어 메시지만 봐서는 안 이어진다.
+
+1. **Vercel을 포함한 CI 환경은 `CI=true` 를 자동으로 설정한다.** CRA는 이
+   변수를 보면 **경고를 에러로 승격**한다. 로컬에는 이 변수가 없어 같은
+   경고가 경고로만 남았다.
+2. **승격된 그 경고는 우리 코드에서 나온 게 아니다.**
+   `@mediapipe/tasks-vision/vision_bundle.mjs` 2941행이 웹팩이 정적으로
+   분석할 수 없는 동적 import 표현식을 쓴다. 라이브러리를 패치하지 않는 한
+   없앨 수 없다.
+
+에러 메시지는 "의존성이 이상하다"고 말하는데 실제로 고쳐야 할 것은
+**빌드 환경변수**였다. 둘 사이에 직관적인 연결이 없다.
+
+### 시도했지만 안 된 것 — 정확히는, 애초에 못 잡은 것
+
+실패한 수정 시도는 없었다. 가설이 첫 번에 맞았다. 대신 **왜 배포 전에
+못 잡았는지**가 더 중요하다.
+
+구현 계획의 "완료 기준"에는 이렇게 적혀 있었다.
+
+```
+- [ ] `npx react-scripts build` 성공
+```
+
+이 명령은 **CI 조건을 재현하지 않는다.** 로컬 셸에 `CI` 가 없으므로
+경고 승격이 일어나지 않고, 따라서 이 검증은 통과할 수밖에 없었다.
+검증이 실패할 수 없는 조건으로 짜여 있었던 것이다.
+
+TS-018과 같은 계열이다. 그때는 검증 하니스가 `body` 에 흰 배경을 강제해
+버그를 가렸고, 이번엔 검증 명령이 실제 실행 환경을 재현하지 않아 가렸다.
+**검증이 통과했다는 사실 자체는 아무것도 보장하지 않는다 — 무엇을 재현한
+검증인지가 전부다.**
+
+### 해결
+
+빌드 명령에만 범위를 좁혀 승격을 해제했다. `vercel.json` 에 넣는다.
+
+```json
+{
+  "buildCommand": "CI=false react-scripts build"
+}
+```
+
+CRACO를 도입해 웹팩 `ignoreWarnings` 로 그 경고만 골라 끄는 방법도 있으나,
+서드파티 경고 하나 때문에 새 빌드 의존성을 추가하는 비용이 더 크다고 봤다.
+`CI=false` 는 우리 코드의 lint 경고까지 함께 눈감아 주므로 **대가가 있는
+선택이다.** 대가를 알고 고른 것이지 몰라서 고른 것이 아니다.
+
+### 검증
+
+```bash
+# 1. CI 조건을 재현한 상태에서 수정이 실제로 듣는지
+CI=true bash -c 'CI=false npx react-scripts build'   # 성공
+
+# 2. 실제 배포
+npx vercel --prod --yes                              # ● Ready
+
+# 3. 배포본이 살아 있는지 + SPA 폴백이 걸렸는지
+curl -o /dev/null -w "%{http_code}" https://zoner-one.vercel.app/        # 200
+curl -o /dev/null -w "%{http_code}" https://zoner-one.vercel.app/read    # 200
+curl -o /dev/null -w "%{http_code}" https://zoner-one.vercel.app/mypage  # 200
+```
+
+`/read` 와 `/mypage` 가 200을 내는 것이 중요하다. `BrowserRouter` 를 쓰는
+SPA는 정적 호스팅에서 그 경로에 해당하는 파일이 없어 기본적으로 404가 난다.
+`vercel.json` 의 rewrite 폴백이 실제로 걸렸다는 증거다.
+
+배포별 URL(`zoner-brxjwar28-…`)은 302를 내는데 이건 버그가 아니다.
+Vercel이 배포별 주소에만 거는 SSO 보호이고, 프로덕션 대표 별칭
+(`zoner-one.vercel.app`)은 공개다. 처음엔 이걸 배포 실패로 오인할 뻔했다.
+
+### 추후 관리
+
+- **완료 기준의 빌드 검증을 `CI=true` 로 바꾼다.** 로컬 빌드 성공은
+  배포 성공을 보장하지 않는다.
+- `@mediapipe/tasks-vision` 을 올릴 때 이 경고가 사라졌는지 확인한다.
+  사라졌다면 `CI=false` 를 걷어낸다.
+- `CI=false` 로 가린 동안에는 우리 코드의 lint 경고도 배포를 막지 못한다.
+  테스트 실행은 여전히 `CI=true` 이므로 그쪽 그물은 살아 있다.
+
+### 배운 점
+
+**"로컬에서 됩니다"가 정확히 무엇을 의미하는지 따져야 한다.** 이번 건은
+Node 버전도, 의존성도, OS도 같았다. 환경변수 하나가 달랐을 뿐인데 빌드
+결과가 성공에서 실패로 뒤집혔다.
+
+그리고 배포는 그 자체가 **여태 없던 검증 계층**이었다. 3주 가까이 쌓인
+코드가 로컬 검증을 전부 통과했지만, 처음 배포하자마자 즉시 깨졌다.
+검증 환경과 실행 환경의 거리가 멀수록 통과의 의미는 약해진다.
