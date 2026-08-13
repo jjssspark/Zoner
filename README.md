@@ -264,6 +264,30 @@ CRA 번들 Jest 리졸버가 v7 exports 맵을 해석하지 못한다 (`docs/TRO
 | JS (main) | 150.78 kB |
 | CSS | 11.8 kB |
 
+### Lighthouse
+
+배포된 랜딩(`https://zoner-one.vercel.app`)을 Lighthouse 12.8.2로 측정한 값이다.
+
+| | 데스크톱 | 모바일 |
+|---|---|---|
+| Performance | 87 | 55 |
+| Accessibility | **100** | **100** |
+| Best Practices | **100** | **100** |
+| SEO | **100** | **100** |
+| LCP · TBT · CLS | 2.4 s · 0 ms · 0 | 16.6 s · 0 ms · 0 |
+
+```bash
+npx lighthouse https://zoner-one.vercel.app --preset=desktop --view
+npx lighthouse https://zoner-one.vercel.app --view   # 기본값이 모바일이다
+```
+
+**모바일 55점은 전부 렌더 블로킹이다** (예상 절감 10.9초). CRA SPA라 JS 151 kB가 실행돼야
+첫 화면이 그려지는데, 모바일 프리셋의 CPU 4배 감속과 느린 4G 시뮬레이션에서 그게 그대로
+지연으로 잡힌다. 데스크톱에서는 같은 항목이 240 ms다. 코드 스플리팅이나 Vite 이전이 해법이고,
+[ADR-003](docs/adr/003-keep-cra.md)에 **부채로 등록해 둔** 항목이다.
+
+측정은 랜딩까지만 가능하다 — 정작 무거운 화면(측정·리포트)은 로그인 뒤라 들어가지 못한다.
+
 ---
 
 ## 프로젝트 구조

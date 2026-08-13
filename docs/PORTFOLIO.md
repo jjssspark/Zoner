@@ -184,14 +184,38 @@ PDF 저장 기능을 만들면서 **인쇄**라는 두 번째 매체가 생겼�
 
 | 항목 | 값 |
 |---|---|
-| 기간 | 2026-08-04 ~ 08-11 (8일) · 커밋 172건 |
+| 기간 | 2026-08-04 ~ 08-13 (작업일 8일) · 커밋 180건 |
 | 코드 | `src/` 93개 파일 · JS+CSS 13,703줄 |
 | 테스트 | **22 스위트 276개 전부 통과** (`CI=true`) |
 | 번들 (gzip) | JS 150.78 kB · CSS 11.8 kB |
+| Lighthouse (데스크톱) | Performance 87 · **Accessibility 100 · Best Practices 100 · SEO 100** |
+| Lighthouse (모바일) | Performance 55 · 나머지 100. 렌더 블로킹 10.9초가 원인 — ADR-003의 대가다 |
+| Core Web Vitals (데스크톱) | LCP 2.4s · FCP 0.7s · **TBT 0ms · CLS 0** |
 | DB | 마이그레이션 11개 · 테이블 4 + 뷰 1 + 버킷 1 · **RLS 정책 17개** |
 | 백엔드 | Supabase Edge Function 2개 (Deno) |
 | 배포 | Vercel — SPA 폴백 rewrite + 보안 헤더. `/read`·`/mypage` 직접 접근 200 확인 |
 | 문서 | 설계 15건 · 구현 계획 13건 · 트러블슈팅 21건 · ADR 5건 |
+
+**모바일 55점은 숨기지 않는다.** Lighthouse 12.8.2로 `https://zoner-one.vercel.app`
+랜딩을 측정한 값이다 (데스크톱 프리셋 CPU 1x / 모바일 프리셋 CPU 4x + 느린 4G 시뮬레이션).
+
+```bash
+npx lighthouse https://zoner-one.vercel.app --preset=desktop --view
+npx lighthouse https://zoner-one.vercel.app --view   # 기본값이 모바일이다
+```
+
+두 조건의 차이는 전부 **렌더 블로킹**에서 나온다. CRA SPA라 JS 151 kB가 실행돼야
+첫 화면이 그려지는데, 느린 4G를 흉내 내면 그 지연이 10.9초로 잡히고 데스크톱에서는
+240 ms로 줄어든다. 코드 스플리팅이나 Vite 이전이 해법이고, 이미
+[ADR-003](adr/003-keep-cra.md)에 **부채로 등록해 둔** 항목이다. 점수가 그 대가를
+숫자로 확인해 줬다.
+
+**측정할 수 있는 건 랜딩까지다.** 정작 무거운 화면(측정·리포트)은 로그인 뒤라
+Lighthouse가 들어가지 못한다. 이 점수를 제품 전체의 성능으로 읽으면 안 된다.
+
+한편 **접근성·모범 사례·SEO는 두 조건 모두 100이고, TBT 0 ms · CLS 0이다.**
+브라우저에서 추론을 돌리면서도 초기 로드에서 메인 스레드를 막지 않고 레이아웃도
+흔들리지 않는다.
 
 **테스트는 커버리지 숫자를 올리는 대신 판단이 들어간 곳만 덮었다** —
 집중 판정 임계값 경계, 세션 집계, 파생 지표, 알림 규칙, 학습 성향 분류,
