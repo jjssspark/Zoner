@@ -1,6 +1,6 @@
 # 트러블슈팅 5선
 
-TS-001~020 중 다섯 건. 고른 기준은 **"고치는 데 오래 걸린 것"이 아니라 "사고 과정이 남는 것"**이다.
+TS-001~021 중 다섯 건. 고른 기준은 **"고치는 데 오래 걸린 것"이 아니라 "사고 과정이 남는 것"**이다.
 
 | 순 | 건 | 왜 골랐나 |
 |---|---|---|
@@ -359,5 +359,5 @@ duration_seconds: Math.round(accumulatedMsRef.current / 1000),
 
 ---
 
-전체 기록: [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) (TS-001~020)
+전체 기록: [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) (TS-001~021)
 의사결정 기록: [`adr/`](adr/README.md)

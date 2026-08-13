@@ -296,11 +296,11 @@ src/
 | [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) | **왜 이렇게 만들었는가** — 판단이 갈린 지점 7개와 그 결과 |
 | [`docs/adr/`](docs/adr/README.md) | 기술 의사결정 5건. 결과 칸에 **틀린 예측을 그대로** 적었다 |
 | [`docs/TROUBLESHOOTING-TOP5.md`](docs/TROUBLESHOOTING-TOP5.md) | 트러블슈팅 5선 — 사고 과정이 남는 것 위주 |
-| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~020 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~021 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
 | [`docs/API.md`](docs/API.md) | Edge Functions 2개의 요청·응답 계약 |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | 스키마·RLS 17정책·마이그레이션 순서 의존 |
 
-트러블슈팅 20건 중 몇 가지만 꼽자면:
+트러블슈팅 21건 중 몇 가지만 꼽자면:
 
 - **TS-010** — 로딩 해제를 보장하려고 넣은 가드가 StrictMode에서 화면을 영구히 멈춘 건. **독립 리뷰 3회를 통과했다**
 - **TS-012** — 테이블에 있는 컬럼이 뷰에는 없어서, 하루 넘게 에러 없이 반쪽만 살아 있던 건
