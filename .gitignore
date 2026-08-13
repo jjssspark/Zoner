@@ -31,3 +31,7 @@ yarn-error.log*
 
 # Vercel CLI 로컬 링크 정보. .env*로 넓히지 않는다 — .env.example이 함께 걸린다.
 .vercel
+
+# 데모 영상 원본 화질본 — 저장소에 넣지 않고 외부 호스팅에 올린다 (output/screenshots/README.md 참고)
+output/*.mp4
+output/*.mov
