@@ -1,5 +1,11 @@
 # Zoner
 
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%C2%B7%20RLS-3ECF8E?logo=supabase&logoColor=white)
+![MediaPipe](https://img.shields.io/badge/MediaPipe-FaceLandmarker-0097A7?logo=google&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-276%20passed-4C9A2A)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
 **웹캠으로 학습 집중도를 실시간으로 재고, 세션이 끝나면 근거가 붙은 리포트를 만들어 주는 웹 앱.**
 
 공부한 시간은 어디서나 기록되지만 "그 시간에 실제로 집중했는지"는 아무도 알려주지 않는다.
@@ -21,6 +27,14 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 >
 > 직접 돌려보려면 [로컬 실행](#로컬-실행)으로 3분이면 된다. 본인 Supabase 프로젝트가
 > 필요하고, 웹캠은 브라우저 정책상 `https` 또는 `localhost`에서만 열린다.
+
+---
+
+## 목차
+
+[핵심 기능](#핵심-기능) · [설계에서 신경 쓴 것](#설계에서-신경-쓴-것) · [기술 스택](#기술-스택) ·
+[아키텍처](#아키텍처) · [로컬 실행](#로컬-실행) · [데이터 모델](#데이터-모델) ·
+[테스트](#테스트) · [프로젝트 구조](#프로젝트-구조) · [문서](#문서) · [알려진 한계](#알려진-한계)
 
 ---
 
@@ -91,13 +105,14 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 ## 설계에서 신경 쓴 것
 
 자랑을 늘어놓기보다, 판단이 갈렸던 지점만 적는다.
+각 판단의 선택지·근거·치른 대가는 [`docs/adr/`](docs/adr/README.md)에 한 건씩 남겨 뒀다.
 
-**얼굴 추론을 서버가 아니라 브라우저에서 돌린다.**
+**얼굴 추론을 서버가 아니라 브라우저에서 돌린다.** ([ADR-001](docs/adr/001-in-browser-inference.md))
 학습 영상은 민감한 데이터다. 프레임을 서버로 보내면 전송·보관 양쪽에서 책임이 생기고 지연도 붙는다.
 MediaPipe FaceLandmarker를 WASM+GPU로 브라우저에서 실행해 **영상 프레임이 기기 밖으로 나가지 않게** 했다.
 서버에 올라가는 건 5초마다 한 번씩 나오는 판정 결과(집중 여부와 사유)뿐이다.
 
-**`looking_down`을 집중으로 집계한다.**
+**`looking_down`을 집중으로 집계한다.** ([ADR-006](docs/adr/006-error-direction.md))
 얼굴만 보는 모델로는 교재를 보는 것과 휴대폰을 보는 것을 구분할 수 없다.
 둘 중 하나로 정해야 한다면, **공부 중인 사용자를 딴짓으로 오판하는 쪽이 반대 방향 오차보다 비용이 크다**고 봤다.
 잘못 칭찬하면 넘어가지만, 잘못 혼내면 앱을 끈다.
@@ -110,7 +125,7 @@ MediaPipe FaceLandmarker를 WASM+GPU로 브라우저에서 실행해 **영상 �
 카메라가 얼굴을 잡고 자세를 잡는 동안이라 거의 모든 세션이 0분 구간에서 낮게 찍힌다.
 그대로 세면 "집중 지속 한계 약 0분" 같은 뜻 없는 값이 나온다. 워밍업은 이탈이 아니다.
 
-**권한을 앱 코드가 아니라 DB에서 막는다.**
+**권한을 앱 코드가 아니라 DB에서 막는다.** ([ADR-002](docs/adr/002-rls-authorization.md))
 모든 테이블과 스토리지 버킷에 RLS를 켜고 정책 17개를 `auth.uid() = user_id`로 걸었다.
 앱 코드에서 소유자 조건을 빠뜨려도 남의 데이터가 새지 않는다.
 
@@ -119,7 +134,7 @@ AI 기능은 전부 Supabase Edge Function을 거친다. 브라우저가 아는 
 그건 RLS로 보호된다. Edge Function은 클라이언트가 보낸 본문을 신뢰하지 않는다 —
 숫자는 `Number`로 강제 변환하고 라벨은 허용 목록으로만 받는다. 프롬프트 인젝션 방지다.
 
-**다크 단일 테마로 고정했다.**
+**다크 단일 테마로 고정했다.** ([ADR-004](docs/adr/004-dark-only-theme.md))
 라이트 테마를 추가하면 전 화면 대비비를 다시 검증해야 한다.
 두 테마를 어설프게 지원하느니 한쪽을 제대로 하는 편이 낫다고 판단했다.
 
@@ -138,6 +153,7 @@ AI 기능은 전부 Supabase Edge Function을 거친다. 브라우저가 아는 
 | **Edge Functions (Deno)** | API 키를 서버 쪽에 두기 위한 최소 백엔드. 별도 서버를 띄우지 않아도 된다 |
 | **Claude Haiku 4.5** | 조언 문단 생성·채팅 응답용. 응답 속도와 비용이 중요했고, 수치 계산은 어차피 앱이 하므로 상위 모델이 필요 없었다 |
 | **Jest + Testing Library** | CRA 번들 그대로. 순수 로직(`src/lib/`) 위주로 덮었다 |
+| **Vercel** | 푸시하면 재배포된다. SPA 폴백 rewrite와 보안 헤더 4종을 `vercel.json`에 뒀다. 빌드 명령의 `CI=false`는 대가를 알고 고른 값이다 ([ADR-005](docs/adr/005-ci-false-over-craco.md)) |
 
 ---
 
@@ -262,7 +278,9 @@ CRA 번들 Jest 리졸버가 v7 exports 맵을 해석하지 못한다 (`docs/TRO
 | | 크기 |
 |---|---|
 | JS (main) | 150.78 kB |
+| JS (분할 청크 3개) | 47.28 kB |
 | CSS | 11.8 kB |
+| **합계** | **209.86 kB** |
 
 ### Lighthouse
 
@@ -281,7 +299,7 @@ npx lighthouse https://zoner-one.vercel.app --preset=desktop --view
 npx lighthouse https://zoner-one.vercel.app --view   # 기본값이 모바일이다
 ```
 
-**모바일 55점은 전부 렌더 블로킹이다** (예상 절감 10.9초). CRA SPA라 JS 151 kB가 실행돼야
+**모바일 55점은 전부 렌더 블로킹이다** (예상 절감 10.9초). CRA SPA라 메인 청크 151 kB가 실행돼야
 첫 화면이 그려지는데, 모바일 프리셋의 CPU 4배 감속과 느린 4G 시뮬레이션에서 그게 그대로
 지연으로 잡힌다. 데스크톱에서는 같은 항목이 240 ms다. 코드 스플리팅이나 Vite 이전이 해법이고,
 [ADR-003](docs/adr/003-keep-cra.md)에 **부채로 등록해 둔** 항목이다.
@@ -337,10 +355,10 @@ src/
 
 아는 것과 모르는 것을 구분하는 게 더 중요하다.
 
-- **얼굴만 본다.** 교재를 보는지 휴대폰을 보는지 구분하지 못한다. 그래서 `looking_down`을 집중으로 집계하는 쪽을 택했다.
+- **얼굴만 본다.** 교재를 보는지 휴대폰을 보는지 구분하지 못한다. 그래서 `looking_down`을 집중으로 집계하는 쪽을 택했다 ([ADR-006](docs/adr/006-error-direction.md)).
 - **1인 기준.** `numFaces: 1`이라 여러 명이 잡히는 환경은 고려하지 않았다.
 - **외부 CDN 의존.** MediaPipe WASM·모델을 런타임에 받아 오므로 오프라인에서는 측정이 시작되지 않는다.
-- **CRA를 유지 중.** `react-scripts` 5.0.1은 유지보수가 멈춘 상태다. 이전 비용을 알면서 남겨 둔 부채다.
+- **CRA를 유지 중.** `react-scripts` 5.0.1은 유지보수가 멈춘 상태다. 이전 비용을 알면서 남겨 둔 부채다 ([ADR-003](docs/adr/003-keep-cra.md)).
 - **테스트가 로직에 치우쳐 있다.** 화면 단위 E2E가 없다. 위 리졸버 제약이 이유이지만, Playwright로 우회할 수 있는 문제이기도 하다.
 
 ---
