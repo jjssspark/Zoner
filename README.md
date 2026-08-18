@@ -317,7 +317,7 @@ src/
 
 | 문서 | 내용 |
 |---|---|
-| [`docs/adr/`](docs/adr/README.md) | 기술 의사결정 5건. 결과 칸에 **틀린 예측을 그대로** 적었다 |
+| [`docs/adr/`](docs/adr/README.md) | 기술 의사결정 6건. 결과 칸에 **틀린 예측을 그대로** 적었다 |
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~021 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
 | [`docs/API.md`](docs/API.md) | Edge Functions 2개의 요청·응답 계약 |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | 스키마·RLS 17정책·마이그레이션 순서 의존 |
