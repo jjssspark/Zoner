@@ -317,9 +317,7 @@ src/
 
 | 문서 | 내용 |
 |---|---|
-| [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) | **왜 이렇게 만들었는가** — 판단이 갈린 지점 7개와 그 결과 |
 | [`docs/adr/`](docs/adr/README.md) | 기술 의사결정 5건. 결과 칸에 **틀린 예측을 그대로** 적었다 |
-| [`docs/TROUBLESHOOTING-TOP5.md`](docs/TROUBLESHOOTING-TOP5.md) | 트러블슈팅 5선 — 사고 과정이 남는 것 위주 |
 | [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~021 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
 | [`docs/API.md`](docs/API.md) | Edge Functions 2개의 요청·응답 계약 |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | 스키마·RLS 17정책·마이그레이션 순서 의존 |
@@ -330,7 +328,8 @@ src/
 - **TS-012** — 테이블에 있는 컬럼이 뷰에는 없어서, 하루 넘게 에러 없이 반쪽만 살아 있던 건
 - **TS-020** — 로컬에서 되던 빌드가 배포에서만 깨진 건. 완료 기준이 CI 조건을 재현하지 않았다
 
-설계 문서(`docs/superpowers/specs/`)와 구현 계획(`docs/superpowers/plans/`)도 함께 남아 있다.
+구현 속도는 AI 도구로 올렸고, 판단은 내가 했다. 무엇을 왜 골랐는지는 `docs/adr/`에,
+무엇이 왜 틀렸는지는 `docs/TROUBLESHOOTING.md`에 있다.
 
 ---
 

@@ -328,7 +328,7 @@ AI는 리포트의 부가 요소이지 전제가 아니다.
 
 ## 자체 API 규약과 다른 점
 
-이 프로젝트의 표준(`~/.claude/standards/api-contract.md`)은 모든 응답에
+내가 쓰는 API 규약은 모든 응답에
 `{ success, data, error }` 봉투와 `AUTH_TOKEN_EXPIRED` 형태의 에러 코드를 요구한다.
 **두 함수 모두 이 규약을 따르지 않는다.** 있는 그대로 적는다.
 

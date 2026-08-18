@@ -28,6 +28,5 @@ flowchart LR
 
 ## 관련 문서
 
-- [../TROUBLESHOOTING-TOP5.md](../TROUBLESHOOTING-TOP5.md) — 위 표의 결과 칸이 실제로 어떻게 터졌는지
 - [../TROUBLESHOOTING.md](../TROUBLESHOOTING.md) — TS-001~021 전체
 - [../DATABASE.md](../DATABASE.md) · [../API.md](../API.md) — ADR-002·003이 만든 결과물

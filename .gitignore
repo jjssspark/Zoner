@@ -35,3 +35,9 @@ yarn-error.log*
 # 데모 영상 원본 화질본 — 저장소에 넣지 않고 외부 호스팅에 올린다 (output/screenshots/README.md 참고)
 output/*.mp4
 output/*.mov
+
+# 작업용 스크래치 문서 (설계/계획 초안)
+docs/superpowers/
+
+# 포트폴리오 슬라이드 — 저장소 밖(~/Project/Zoner/portfolio/)에서 관리
+output/slides/
