@@ -1,16 +1,39 @@
+<div align="center">
+
 # Zoner
+
+### 공부한 시간이 아니라, 집중한 시간
+
+웹캠으로 학습 집중도를 실시간으로 재고,<br />
+세션이 끝나면 근거가 붙은 리포트를 만들어 주는 웹 앱
+
+<br />
+
+[![Live](https://img.shields.io/badge/Live-zoner--one.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://zoner-one.vercel.app)
+[![Demo](https://img.shields.io/badge/Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/JEL13w3MUCg)
+[![ADR](https://img.shields.io/badge/ADR-6-3ECF8E?style=for-the-badge)](docs/adr/README.md)
+[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-21-F59E0B?style=for-the-badge)](docs/TROUBLESHOOTING.md)
+
+<br />
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%C2%B7%20RLS-3ECF8E?logo=supabase&logoColor=white)
 ![MediaPipe](https://img.shields.io/badge/MediaPipe-FaceLandmarker-0097A7?logo=google&logoColor=white)
+![Claude](https://img.shields.io/badge/Claude-Haiku%204.5-D97757?logo=anthropic&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?logo=vercel&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-276%20passed-4C9A2A)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-**웹캠으로 학습 집중도를 실시간으로 재고, 세션이 끝나면 근거가 붙은 리포트를 만들어 주는 웹 앱.**
+</div>
+
+---
 
 공부한 시간은 어디서나 기록되지만 "그 시간에 실제로 집중했는지"는 아무도 알려주지 않는다.
 Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5초마다 집중 여부를 판정하고,
 끝나면 언제 무너졌는지·무엇이 방해했는지를 수치로 돌려준다.
+
+> 2인팀 캡스톤 산출물을 이어받아, 남은 기능과 고도화를 혼자 진행했다.
+> 이 저장소의 커밋 184개는 2026-08-04 ~ 08-18 구간이다.
 
 ![데모](output/demo.gif)
 
@@ -19,22 +42,33 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 > 알림이 뜨는 순간과 저장 확인 대화상자는 등속으로 뒀다.
 > 원본 화질은 **[YouTube](https://youtu.be/JEL13w3MUCg)** 에서 볼 수 있다.
 
-**▶ https://zoner-one.vercel.app**
-
+> [!NOTE]
 > **신규 가입은 막아 뒀다.** 웹캠을 다루는 서비스라 불특정 다수의 계정을 받지 않았고,
 > AI 기능이 개인 API 키를 쓰기 때문이다. 화면과 동작은 위 데모 영상과 아래 스크린샷으로
-> 확인할 수 있다.
->
-> 직접 돌려보려면 [로컬 실행](#로컬-실행)으로 3분이면 된다. 본인 Supabase 프로젝트가
-> 필요하고, 웹캠은 브라우저 정책상 `https` 또는 `localhost`에서만 열린다.
+> 확인할 수 있다. 직접 돌려보려면 [로컬 실행](#로컬-실행)으로 3분이면 된다 —
+> 본인 Supabase 프로젝트가 필요하고, 웹캠은 브라우저 정책상 `https` 또는 `localhost`에서만 열린다.
 
 ---
 
+## 한눈에 보기
+
+| 항목 | 값 |
+|---|---|
+| 판정 | **5초 주기** · 상태 6종 · 최근 2분 이동 창 |
+| 리포트 | 파생 지표 **9종** + AI 조언 문단 (수치는 앱이 계산) |
+| 권한 | **RLS 정책 17개** — 앱 코드가 아니라 DB가 막는다 |
+| 영상 | 프레임은 브라우저 밖으로 안 나감. 녹화는 사용자가 켰을 때만 |
+| 테스트 | **276개** / 22 스위트 전부 통과 |
+| 문서 | ADR **6건** · 트러블슈팅 **21건** · API · DB 명세 |
+| 번들 | gzip **209.86 kB** (JS 198.06 + CSS 11.8) |
+
 ## 목차
 
-[핵심 기능](#핵심-기능) · [설계에서 신경 쓴 것](#설계에서-신경-쓴-것) · [기술 스택](#기술-스택) ·
-[아키텍처](#아키텍처) · [로컬 실행](#로컬-실행) · [데이터 모델](#데이터-모델) ·
-[테스트](#테스트) · [프로젝트 구조](#프로젝트-구조) · [문서](#문서) · [알려진 한계](#알려진-한계)
+| | |
+|---|---|
+| **무엇을 하는가** | [핵심 기능](#핵심-기능) · [알려진 한계](#알려진-한계) |
+| **왜 이렇게 만들었는가** | [설계에서 신경 쓴 것](#설계에서-신경-쓴-것) · [기술 스택](#기술-스택) · [아키텍처](#아키텍처) · [문서](#문서) |
+| **어떻게 돌아가는가** | [데이터 모델](#데이터-모델) · [테스트](#테스트) · [프로젝트 구조](#프로젝트-구조) · [로컬 실행](#로컬-실행) |
 
 ---
 
@@ -50,7 +84,7 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 웹캠 프레임에서 얼굴 랜드마크를 뽑아 **5초마다** 한 번씩 판정한다. 결과는 6개 상태 중 하나다.
 
 | 상태 | 판정 기준 | 집중으로 집계 |
-|---|---|---|
+|---|---|:---:|
 | `focused` | 정면 응시 | ✅ |
 | `looking_down` | 고개 숙임(pitch < −20°) 또는 시선 하향 | ✅ |
 | `head_turned` | 고개 좌우 회전(yaw 절댓값 > 30°) | ❌ |
@@ -107,34 +141,41 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 자랑을 늘어놓기보다, 판단이 갈렸던 지점만 적는다.
 각 판단의 선택지·근거·치른 대가는 [`docs/adr/`](docs/adr/README.md)에 한 건씩 남겨 뒀다.
 
-**얼굴 추론을 서버가 아니라 브라우저에서 돌린다.** ([ADR-001](docs/adr/001-in-browser-inference.md))
+#### 얼굴 추론을 서버가 아니라 브라우저에서 돌린다 · [ADR-001](docs/adr/001-in-browser-inference.md)
+
 학습 영상은 민감한 데이터다. 프레임을 서버로 보내면 전송·보관 양쪽에서 책임이 생기고 지연도 붙는다.
 MediaPipe FaceLandmarker를 WASM+GPU로 브라우저에서 실행해 **영상 프레임이 기기 밖으로 나가지 않게** 했다.
 서버에 올라가는 건 5초마다 한 번씩 나오는 판정 결과(집중 여부와 사유)뿐이다.
 
-**`looking_down`을 집중으로 집계한다.** ([ADR-006](docs/adr/006-error-direction.md))
+#### `looking_down`을 집중으로 집계한다 · [ADR-006](docs/adr/006-error-direction.md)
+
 얼굴만 보는 모델로는 교재를 보는 것과 휴대폰을 보는 것을 구분할 수 없다.
 둘 중 하나로 정해야 한다면, **공부 중인 사용자를 딴짓으로 오판하는 쪽이 반대 방향 오차보다 비용이 크다**고 봤다.
 잘못 칭찬하면 넘어가지만, 잘못 혼내면 앱을 끈다.
 
-**눈 감김은 연속 2회일 때만 졸음으로 본다.**
+#### 눈 감김은 연속 2회일 때만 졸음으로 본다
+
 깜빡임은 0.1~0.4초다. 5초 샘플링으로는 깜빡임과 졸음을 한 번에 구분할 수 없다.
 샘플링 주기를 줄이는 대신 연속성 조건을 붙였다 — 배터리와 발열을 덜 쓰는 쪽을 골랐다.
 
-**리포트의 "무너짐" 판정에서 앞 2분을 뺀다.**
+#### 리포트의 "무너짐" 판정에서 앞 2분을 뺀다
+
 카메라가 얼굴을 잡고 자세를 잡는 동안이라 거의 모든 세션이 0분 구간에서 낮게 찍힌다.
 그대로 세면 "집중 지속 한계 약 0분" 같은 뜻 없는 값이 나온다. 워밍업은 이탈이 아니다.
 
-**권한을 앱 코드가 아니라 DB에서 막는다.** ([ADR-002](docs/adr/002-rls-authorization.md))
+#### 권한을 앱 코드가 아니라 DB에서 막는다 · [ADR-002](docs/adr/002-rls-authorization.md)
+
 모든 테이블과 스토리지 버킷에 RLS를 켜고 정책 17개를 `auth.uid() = user_id`로 걸었다.
 앱 코드에서 소유자 조건을 빠뜨려도 남의 데이터가 새지 않는다.
 
-**Anthropic API 키는 클라이언트에 없다.**
+#### Anthropic API 키는 클라이언트에 없다
+
 AI 기능은 전부 Supabase Edge Function을 거친다. 브라우저가 아는 건 Supabase anon 키뿐이고,
 그건 RLS로 보호된다. Edge Function은 클라이언트가 보낸 본문을 신뢰하지 않는다 —
 숫자는 `Number`로 강제 변환하고 라벨은 허용 목록으로만 받는다. 프롬프트 인젝션 방지다.
 
-**다크 단일 테마로 고정했다.** ([ADR-004](docs/adr/004-dark-only-theme.md))
+#### 다크 단일 테마로 고정했다 · [ADR-004](docs/adr/004-dark-only-theme.md)
+
 라이트 테마를 추가하면 전 화면 대비비를 다시 검증해야 한다.
 두 테마를 어설프게 지원하느니 한쪽을 제대로 하는 편이 낫다고 판단했다.
 
@@ -220,10 +261,18 @@ cp .env.example .env
 npm start        # http://localhost:3000
 ```
 
+> [!IMPORTANT]
+> **웹캠 권한이 필요하다.** 브라우저 정책상 `localhost` 또는 `https`에서만 카메라가 열린다.
+
 DB 스키마가 필요하면 `supabase/migrations/`의 SQL 11개를 파일명 순서대로 실행한다.
 순서 의존이 있으니 [`docs/DATABASE.md`](docs/DATABASE.md)의 적용 순서 절을 먼저 읽는 편이 좋다.
 
-AI 기능(`/ai-chat`, 리포트 조언)까지 쓰려면 Edge Function 2개를 배포하고 `ANTHROPIC_API_KEY`를 설정해야 한다.
+<details>
+<summary><b>AI 기능까지 쓰려면</b> — Edge Function 배포</summary>
+
+<br />
+
+`/ai-chat`과 리포트 조언을 쓰려면 Edge Function 2개를 배포하고 `ANTHROPIC_API_KEY`를 설정해야 한다.
 두 함수의 요청·응답 계약은 [`docs/API.md`](docs/API.md)에 있다.
 
 ```bash
@@ -232,14 +281,19 @@ supabase functions deploy report-insight
 supabase secrets set ANTHROPIC_API_KEY=<key>
 ```
 
-**웹캠 권한이 필요하다.** 브라우저 정책상 `localhost` 또는 `https`에서만 카메라가 열린다.
+</details>
 
-### 기타 명령
+<details>
+<summary><b>기타 명령</b></summary>
+
+<br />
 
 ```bash
 CI=true npx react-scripts test --watchAll=false   # 테스트 전체
 npx react-scripts build                           # 프로덕션 빌드
 ```
+
+</details>
 
 ---
 
@@ -287,17 +341,12 @@ CRA 번들 Jest 리졸버가 v7 exports 맵을 해석하지 못한다 (`docs/TRO
 배포된 랜딩(`https://zoner-one.vercel.app`)을 Lighthouse 12.8.2로 측정한 값이다.
 
 | | 데스크톱 | 모바일 |
-|---|---|---|
+|---|:---:|:---:|
 | Performance | 87 | 55 |
 | Accessibility | **100** | **100** |
 | Best Practices | **100** | **100** |
 | SEO | **100** | **100** |
 | LCP · TBT · CLS | 2.4 s · 0 ms · 0 | 16.6 s · 0 ms · 0 |
-
-```bash
-npx lighthouse https://zoner-one.vercel.app --preset=desktop --view
-npx lighthouse https://zoner-one.vercel.app --view   # 기본값이 모바일이다
-```
 
 **모바일 55점은 전부 렌더 블로킹이다** (예상 절감 10.9초). CRA SPA라 메인 청크 151 kB가 실행돼야
 첫 화면이 그려지는데, 모바일 프리셋의 CPU 4배 감속과 느린 4G 시뮬레이션에서 그게 그대로
@@ -305,6 +354,18 @@ npx lighthouse https://zoner-one.vercel.app --view   # 기본값이 모바일이
 [ADR-003](docs/adr/003-keep-cra.md)에 **부채로 등록해 둔** 항목이다.
 
 측정은 랜딩까지만 가능하다 — 정작 무거운 화면(측정·리포트)은 로그인 뒤라 들어가지 못한다.
+
+<details>
+<summary>재현 명령</summary>
+
+<br />
+
+```bash
+npx lighthouse https://zoner-one.vercel.app --preset=desktop --view
+npx lighthouse https://zoner-one.vercel.app --view   # 기본값이 모바일이다
+```
+
+</details>
 
 ---
 
@@ -360,9 +421,14 @@ src/
 - **외부 CDN 의존.** MediaPipe WASM·모델을 런타임에 받아 오므로 오프라인에서는 측정이 시작되지 않는다.
 - **CRA를 유지 중.** `react-scripts` 5.0.1은 유지보수가 멈춘 상태다. 이전 비용을 알면서 남겨 둔 부채다 ([ADR-003](docs/adr/003-keep-cra.md)).
 - **테스트가 로직에 치우쳐 있다.** 화면 단위 E2E가 없다. 위 리졸버 제약이 이유이지만, Playwright로 우회할 수 있는 문제이기도 하다.
+- **1분 넘게 일시정지하면** 리포트 그래프 x축 라벨이 건너뛴다. 고칠 범위가 다른 파일로 번져 미뤄 뒀다.
 
 ---
 
-## 라이선스
+<div align="center">
 
-[MIT](LICENSE)
+**[라이브](https://zoner-one.vercel.app)** · **[데모 영상](https://youtu.be/JEL13w3MUCg)** · **[ADR](docs/adr/README.md)** · **[트러블슈팅](docs/TROUBLESHOOTING.md)**
+
+[MIT](LICENSE) © jjssspark
+
+</div>
