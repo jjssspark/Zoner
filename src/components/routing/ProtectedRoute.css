@@ -1,0 +1,5 @@
+.protected-route {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  padding: var(--space-8) var(--space-6);
+}

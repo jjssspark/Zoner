@@ -92,6 +92,8 @@ export const StartLearning = () => {
   const [pendingSave, setPendingSave] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [videoSaveError, setVideoSaveError] = useState(null);
+  // 저장 실패의 원인. 네트워크와 로그아웃은 사용자가 할 수 있는 일이 다르다.
+  const [saveFailReason, setSaveFailReason] = useState(null);
   // 업로드는 실패했지만 학습 기록은 저장된 상태. 사용자가 리포트로 갈 수 있게 id를 쥐고 있는다.
   const [savedSessionId, setSavedSessionId] = useState(null);
 
@@ -421,6 +423,15 @@ export const StartLearning = () => {
       data: { user },
     } = await supabase.auth.getUser();
 
+    // 세션이 만료됐거나 로그아웃된 상태. 그냥 두면 아래 user.id에서 터지는데,
+    // 이 함수는 이벤트 핸들러라 ErrorBoundary가 잡지 못한다 — 화면이 멈춘 것처럼
+    // 보이고 측정한 기록은 조용히 사라진다. 상태로 바꿔서 알린다.
+    if (!user) {
+      setSaveFailReason("signed_out");
+      setStatus(STATUS.SAVE_ERROR);
+      return;
+    }
+
     // 휴지통에 있는 영상도 용량은 실제로 차지하므로 뷰가 아니라 테이블에서 센다.
     const { data: videoSessions } = await supabase
       .from('study_sessions')
@@ -457,6 +468,13 @@ export const StartLearning = () => {
         data: { user },
       } = await supabase.auth.getUser();
 
+      // 학습 세션이 토큰 수명보다 길면 여기서 만료된 채로 도착할 수 있다.
+      if (!user) {
+        setSaveFailReason("signed_out");
+        setStatus(STATUS.SAVE_ERROR);
+        return;
+      }
+
       // 표시용 elapsedSeconds는 setInterval 틱 개수라 백그라운드 탭에서
       // 브라우저가 타이머를 스로틀링하면 실제보다 적게 세어진다. 저장값은
       // 활동 구간마다 누적한 벽시계 시간(accumulatedMsRef)을 사용해
@@ -477,6 +495,7 @@ export const StartLearning = () => {
         .single();
 
       if (error) {
+        setSaveFailReason("network");
         setStatus(STATUS.SAVE_ERROR);
         return;
       }
@@ -504,6 +523,7 @@ export const StartLearning = () => {
       confirmedVideoRef.current = null;
       navigate(`/read?session=${data.id}`);
     } catch (error) {
+      setSaveFailReason("network");
       setStatus(STATUS.SAVE_ERROR);
     }
   };
@@ -569,7 +589,14 @@ export const StartLearning = () => {
 
         {status === STATUS.SAVE_ERROR && (
           <p className="start-learning__error" role="alert">
-            저장에 실패했습니다. 네트워크를 확인하고 다시 시도해주세요.{' '}
+            {saveFailReason === 'signed_out' ? (
+              <>
+                로그인이 풀려 저장하지 못했습니다. 이 탭을 닫지 말고 다른 탭에서
+                다시 로그인한 뒤 눌러주세요.{' '}
+              </>
+            ) : (
+              <>저장에 실패했습니다. 네트워크를 확인하고 다시 시도해주세요.{' '}</>
+            )}
             <button type="button" onClick={handleStop}>
               다시 저장
             </button>
