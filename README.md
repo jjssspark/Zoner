@@ -21,6 +21,7 @@
 ![MediaPipe](https://img.shields.io/badge/MediaPipe-FaceLandmarker-0097A7?logo=google&logoColor=white)
 ![Claude](https://img.shields.io/badge/Claude-Haiku%204.5-D97757?logo=anthropic&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?logo=vercel&logoColor=white)
+[![CI](https://github.com/jjssspark/Zoner/actions/workflows/ci.yml/badge.svg)](https://github.com/jjssspark/Zoner/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-276%20passed-4C9A2A)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -60,7 +61,7 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 | 영상 | 프레임은 브라우저 밖으로 안 나감. 녹화는 사용자가 켰을 때만 |
 | 테스트 | **276개** / 22 스위트 전부 통과 |
 | 문서 | ADR **6건** · 트러블슈팅 **21건** · API · DB 명세 |
-| 번들 | gzip **209.86 kB** (JS 198.06 + CSS 11.8) |
+| 번들 | gzip **209.13 kB** (JS 197.33 + CSS 11.8) |
 
 ## 목차
 
@@ -319,6 +320,10 @@ Test Suites: 22 passed, 22 total
 Tests:       276 passed, 276 total
 ```
 
+푸시와 PR마다 CI가 lint · 테스트 · 배포 빌드를 재현한다
+([`ci.yml`](.github/workflows/ci.yml)). 빌드 단계는 `vercel.json`의 명령과 같다 —
+로컬에서 되던 빌드가 배포에서만 깨진 TS-020의 재발을 막는 게 목적이다.
+
 화면 컴포넌트가 아니라 **판단이 들어간 순수 로직**을 덮었다 — 집중 판정 임계값 경계,
 세션 집계, 파생 지표, 알림 규칙, 학습 성향 분류, 휴지통 상태 전이, 녹화 상태 전이,
 그리고 CSS 토큰 참조 정합성.
@@ -331,10 +336,10 @@ CRA 번들 Jest 리졸버가 v7 exports 맵을 해석하지 못한다 (`docs/TRO
 
 | | 크기 |
 |---|---|
-| JS (main) | 150.78 kB |
-| JS (분할 청크 3개) | 47.28 kB |
+| JS (main) | 152.05 kB |
+| JS (분할 청크 2개) | 45.28 kB |
 | CSS | 11.8 kB |
-| **합계** | **209.86 kB** |
+| **합계** | **209.13 kB** |
 
 ### Lighthouse
 
