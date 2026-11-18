@@ -18,6 +18,7 @@ erDiagram
     auth_users ||--o{ conversations : user_id
     auth_users ||--o{ chat_messages : user_id
     conversations ||--o{ chat_messages : conversation_id
+    auth_users ||--o{ ai_usage : user_id
 
     profiles {
         uuid id PK "auth.users(id), cascade"
@@ -53,6 +54,13 @@ erDiagram
         text role "user | assistant"
         text content
         timestamptz created_at
+    }
+    ai_usage {
+        uuid user_id PK "복합 PK"
+        date usage_date PK "KST 기준"
+        text kind PK "chat | report"
+        int used
+        timestamptz updated_at
     }
 ```
 
@@ -280,6 +288,74 @@ create policy "session_videos_select_own"
 
 ---
 
+## ai_usage — AI 사용량
+
+AI 호출 횟수를 하루 단위로 센다. **정책이 하나도 없는 유일한 테이블**이다.
+
+```sql
+create table ai_usage (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  usage_date date not null,
+  kind text not null check (kind in ('chat', 'report')),
+  used int not null default 0 check (used >= 0),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, usage_date, kind)
+);
+
+alter table ai_usage enable row level security;
+-- 정책 없음
+```
+
+**RLS를 켜고 정책을 두지 않는 것이 여기서는 가장 강한 설정이다.** 정책이 없는
+RLS 테이블은 클라이언트가 select조차 못 한다. 이 테이블을 만지는 것은 service_role로
+도는 Edge Function뿐이다. 사용자가 자기 사용량을 지우거나 고칠 수 있으면 제한이
+의미를 잃는다 — 다른 테이블은 "본인 것만"이 맞지만, 여기서는 "본인 것도 안 된다"가 맞다.
+
+### 한도 차감 — 한 문장이어야 하는 이유
+
+```sql
+create or replace function consume_ai_quota(p_user_id uuid, p_kind text, p_limit int)
+returns int language sql security definer as $
+  insert into ai_usage (user_id, usage_date, kind, used, updated_at)
+  select p_user_id, (now() at time zone 'Asia/Seoul')::date, p_kind, 1, now()
+  where p_limit > 0
+  on conflict (user_id, usage_date, kind) do update
+    set used = ai_usage.used + 1, updated_at = now()
+    where ai_usage.used < p_limit
+  returning used;
+$;
+```
+
+`on conflict ... do update`는 충돌한 행에 잠금을 잡는다. 동시에 들어온 요청은 줄을 서서
+차례로 `used`를 읽으므로, 한도 판단과 증가 사이에 끼어들 틈이 없다. 한도에 걸리면
+`where`가 거짓이 되어 갱신도 반환도 일어나지 않는다 — 호출 쪽은 **NULL을 거절로 읽는다.**
+
+세고 나서 넣는 두 단계와 비교해 재봤다. 한도 20, 동시 요청 50건:
+
+| 방식 | 통과한 요청 |
+|---|---|
+| 세고 나서 넣기 | **50건 전부** |
+| 위 한 문장 | **정확히 20건** |
+
+측정 방법은 [TROUBLESHOOTING TS-023](TROUBLESHOOTING.md)에 있다.
+
+`select ... where p_limit > 0`인 이유는 `values`를 쓰면 **그날 첫 호출**이 insert 경로로
+빠지면서 한도 검사를 건너뛰기 때문이다. 한도 0이 0건이 아니라 1건이 된다.
+
+### 실행 권한
+
+```sql
+revoke all on function consume_ai_quota(uuid, text, int) from public, anon, authenticated;
+grant execute on function consume_ai_quota(uuid, text, int) to service_role;
+-- refund_ai_quota도 같다
+```
+
+**이게 빠지면 제한이 통째로 무력해진다.** `security definer` 함수는 기본적으로 `public`이
+실행할 수 있다. 그대로 두면 클라이언트가 anon 키로 `refund_ai_quota`를 직접 불러
+자기 사용량을 0으로 되돌릴 수 있다.
+
+---
+
 ## 정책 17개 한눈에
 
 | 대상 | select | insert | update | delete | 계 |
@@ -289,6 +365,7 @@ create policy "session_videos_select_own"
 | `conversations` | ✅ | ✅ | ✅ | ✅ | 4 |
 | `chat_messages` | ✅ | ✅ | — | — | 2 |
 | `storage.objects` (session-videos) | ✅ | ✅ | ✅ | ✅ | 4 |
+| `ai_usage` | — | — | — | — | **0 (의도)** |
 | | | | | | **17** |
 
 `profiles`는 `auth.uid() = id`, 나머지 3개 테이블은 `auth.uid() = user_id`,
@@ -301,7 +378,7 @@ Storage는 `(storage.foldername(name))[1] = auth.uid()::text`가 기준이다.
 
 ## 마이그레이션 적용 순서
 
-11개를 파일명 순서대로 실행한다. **순서를 지켜야 하는 이유가 실제로 있다.**
+12개를 파일명 순서대로 실행한다. **순서를 지켜야 하는 이유가 실제로 있다.**
 
 | # | 파일 | 하는 일 |
 |---|---|---|
@@ -316,6 +393,7 @@ Storage는 `(storage.foldername(name))[1] = auth.uid()::text`가 기준이다.
 | 9 | `20260806140000_add_alerts…` | `alerts` 추가 + **뷰에 `focus_breakdown`·`alerts` 반영** |
 | 10 | `20260806150000_add_video_path…` | `video_path` 추가 + 뷰 갱신 |
 | 11 | `20260806160000_create_session_videos_bucket` | 버킷 + Storage RLS 4 |
+| 12 | `20261119090000_create_ai_usage_quota` | ai_usage(정책 0) + 차감·환불 함수 + 실행 권한 |
 
 ### 7번은 한 번만 실행할 수 있다
 

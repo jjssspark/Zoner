@@ -12,7 +12,7 @@
 [![Live](https://img.shields.io/badge/Live-zoner--one.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://zoner-one.vercel.app)
 [![Demo](https://img.shields.io/badge/Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/JEL13w3MUCg)
 [![ADR](https://img.shields.io/badge/ADR-6-3ECF8E?style=for-the-badge)](docs/adr/README.md)
-[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-22-F59E0B?style=for-the-badge)](docs/TROUBLESHOOTING.md)
+[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-23-F59E0B?style=for-the-badge)](docs/TROUBLESHOOTING.md)
 
 <br />
 
@@ -61,7 +61,7 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 | 권한 | **RLS 정책 17개** — 앱 코드가 아니라 DB가 막는다 |
 | 영상 | 프레임은 브라우저 밖으로 안 나감. 녹화는 사용자가 켰을 때만 |
 | 테스트 | 단위 **281개** / 23 스위트 · E2E **30개** 전부 통과 |
-| 문서 | ADR **6건** · 트러블슈팅 **22건** · API · DB 명세 |
+| 문서 | ADR **6건** · 트러블슈팅 **23건** · API · DB 명세 |
 | 번들 | gzip **209.13 kB** (JS 197.33 + CSS 11.8) |
 
 ## 목차
@@ -266,7 +266,7 @@ npm start        # http://localhost:3000
 > [!IMPORTANT]
 > **웹캠 권한이 필요하다.** 브라우저 정책상 `localhost` 또는 `https`에서만 카메라가 열린다.
 
-DB 스키마가 필요하면 `supabase/migrations/`의 SQL 11개를 파일명 순서대로 실행한다.
+DB 스키마가 필요하면 `supabase/migrations/`의 SQL 12개를 파일명 순서대로 실행한다.
 순서 의존이 있으니 [`docs/DATABASE.md`](docs/DATABASE.md)의 적용 순서 절을 먼저 읽는 편이 좋다.
 
 <details>
@@ -403,11 +403,11 @@ src/
 | 문서 | 내용 |
 |---|---|
 | [`docs/adr/`](docs/adr/README.md) | 기술 의사결정 6건. 결과 칸에 **틀린 예측을 그대로** 적었다 |
-| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~022 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~023 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
 | [`docs/API.md`](docs/API.md) | Edge Functions 2개의 요청·응답 계약 |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | 스키마·RLS 17정책·마이그레이션 순서 의존 |
 
-트러블슈팅 22건 중 몇 가지만 꼽자면:
+트러블슈팅 23건 중 몇 가지만 꼽자면:
 
 - **TS-010** — 로딩 해제를 보장하려고 넣은 가드가 StrictMode에서 화면을 영구히 멈춘 건. **독립 리뷰 3회를 통과했다**
 - **TS-012** — 테이블에 있는 컬럼이 뷰에는 없어서, 하루 넘게 에러 없이 반쪽만 살아 있던 건

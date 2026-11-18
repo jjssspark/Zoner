@@ -17,6 +17,11 @@ const MODEL = 'claude-haiku-4-5-20251001';
 const MAX_TOKENS = 700;
 const MAX_ADVICE_ITEMS = 4;
 
+// 하루에 허용하는 조언 생성 횟수. 세션 하나당 한 번 부르는 기능이라 정상
+// 사용자는 여기에 닿지 않는다. 막는 대상은 반복 호출이다 — 이 함수에는
+// 제한이 아예 없어서, 로그인만 하면 Anthropic API를 무한정 태울 수 있었다.
+const DAILY_REPORT_LIMIT = 20;
+
 // ⚠️ src/lib/sessionMetrics.js의 WARMUP_MINUTES와 같은 값이어야 한다.
 // 프롬프트가 지표의 정의를 잘못 설명하면 모델이 그 전제로 조언을 쓴다.
 const WARMUP_MINUTES = 2;
@@ -201,6 +206,16 @@ Deno.serve(async (req) => {
     if (userError || !userData?.user) {
       return jsonResponse({ error: '인증이 필요합니다.' }, 401);
     }
+    const userId = userData.user.id;
+
+    // 모델에 닿지 못한 실패는 사용자 책임이 아니므로 차감을 되돌린다.
+    const refundQuota = async () => {
+      const { error } = await supabase.rpc('refund_ai_quota', {
+        p_user_id: userId,
+        p_kind: 'report',
+      });
+      if (error) console.error('사용량 환불 실패:', error);
+    };
 
     let body: { session?: unknown; profile?: unknown };
     try {
@@ -227,9 +242,33 @@ Deno.serve(async (req) => {
         : []),
     ].join('\n');
 
-    const anthropicResponse = await fetch(
-      'https://api.anthropic.com/v1/messages',
-      {
+    // 모델을 부르기 전에 한도를 깎는다. 통과한 뒤에 깎으면 동시에 들어온
+    // 요청이 전부 모델을 먼저 부르고 나서 줄을 선다 — 막으려던 비용이 이미 나간다.
+    //
+    // 세고 나서 넣는 두 단계로 하지 않는 이유는 측정해 뒀다. 한도 20에 동시 50건을
+    // 넣으면 두 단계 방식은 50건이 전부 통과하고, 이 한 문장 방식은 정확히 20건에서
+    // 멈춘다 (TROUBLESHOOTING TS-023). 한도 판단과 증가가 같은 문장 안에 있어야 한다.
+    const { data: used, error: quotaError } = await supabase.rpc('consume_ai_quota', {
+      p_user_id: userId,
+      p_kind: 'report',
+      p_limit: DAILY_REPORT_LIMIT,
+    });
+
+    if (quotaError) {
+      return jsonResponse({ error: '조언을 만들지 못했습니다.' }, 500);
+    }
+
+    // 한도에 걸리면 함수가 아무 행도 반환하지 않는다(null).
+    if (used === null) {
+      return jsonResponse(
+        { error: '오늘 사용 가능한 조언 생성 횟수를 다 썼어요. 내일 다시 이용해주세요.' },
+        429
+      );
+    }
+
+    let anthropicResponse: Response;
+    try {
+      anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -242,10 +281,17 @@ Deno.serve(async (req) => {
           system: SYSTEM_PROMPT,
           messages: [{ role: 'user', content: userPrompt }],
         }),
-      }
-    );
+      });
+    } catch (fetchError) {
+      // 모델에 닿지도 못했다. 깎은 한도를 돌려준다.
+      await refundQuota();
+      console.error('Anthropic 호출 실패:', fetchError);
+      return jsonResponse({ error: '조언을 만들지 못했습니다.' }, 502);
+    }
 
     if (!anthropicResponse.ok) {
+      // 모델이 응답을 거부했다. 조언을 못 받았으므로 칸도 깎지 않는다.
+      await refundQuota();
       return jsonResponse({ error: '조언을 만들지 못했습니다.' }, 502);
     }
 
