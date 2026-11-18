@@ -1,0 +1,28 @@
+// 빌드 산출물을 vercel.json의 rewrite와 같은 규칙으로 서빙한다.
+// 의존성을 하나도 더 늘리지 않으려고 직접 띄운다.
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import url from 'node:url';
+
+const ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..', 'build');
+const PORT = Number(process.env.E2E_PORT || 5179);
+
+const TYPES = {
+  '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
+  '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json',
+  '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json',
+};
+
+http
+  .createServer((req, res) => {
+    const pathname = decodeURIComponent(req.url.split('?')[0]);
+    let file = path.join(ROOT, pathname);
+    // 정적 파일이 없으면 index.html로 떨어뜨린다 (SPA 폴백).
+    if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+      file = path.join(ROOT, 'index.html');
+    }
+    res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream' });
+    fs.createReadStream(file).pipe(res);
+  })
+  .listen(PORT, () => console.log(`e2e static server on http://localhost:${PORT}`));

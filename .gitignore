@@ -41,3 +41,8 @@ docs/superpowers/
 
 # 포트폴리오 슬라이드 — 저장소 밖(~/Project/Zoner/portfolio/)에서 관리
 output/slides/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
