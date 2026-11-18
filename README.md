@@ -12,7 +12,7 @@
 [![Live](https://img.shields.io/badge/Live-zoner--one.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://zoner-one.vercel.app)
 [![Demo](https://img.shields.io/badge/Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/JEL13w3MUCg)
 [![ADR](https://img.shields.io/badge/ADR-6-3ECF8E?style=for-the-badge)](docs/adr/README.md)
-[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-21-F59E0B?style=for-the-badge)](docs/TROUBLESHOOTING.md)
+[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-22-F59E0B?style=for-the-badge)](docs/TROUBLESHOOTING.md)
 
 <br />
 
@@ -22,7 +22,8 @@
 ![Claude](https://img.shields.io/badge/Claude-Haiku%204.5-D97757?logo=anthropic&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?logo=vercel&logoColor=white)
 [![CI](https://github.com/jjssspark/Zoner/actions/workflows/ci.yml/badge.svg)](https://github.com/jjssspark/Zoner/actions/workflows/ci.yml)
-![Tests](https://img.shields.io/badge/tests-276%20passed-4C9A2A)
+![Tests](https://img.shields.io/badge/tests-281%20passed-4C9A2A)
+![E2E](https://img.shields.io/badge/e2e-30%20passed-2EAD33)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 </div>
@@ -59,8 +60,8 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 | 리포트 | 파생 지표 **9종** + AI 조언 문단 (수치는 앱이 계산) |
 | 권한 | **RLS 정책 17개** — 앱 코드가 아니라 DB가 막는다 |
 | 영상 | 프레임은 브라우저 밖으로 안 나감. 녹화는 사용자가 켰을 때만 |
-| 테스트 | **276개** / 22 스위트 전부 통과 |
-| 문서 | ADR **6건** · 트러블슈팅 **21건** · API · DB 명세 |
+| 테스트 | 단위 **281개** / 23 스위트 · E2E **30개** 전부 통과 |
+| 문서 | ADR **6건** · 트러블슈팅 **22건** · API · DB 명세 |
 | 번들 | gzip **209.13 kB** (JS 197.33 + CSS 11.8) |
 
 ## 목차
@@ -316,8 +317,8 @@ npx react-scripts build                           # 프로덕션 빌드
 ## 테스트
 
 ```
-Test Suites: 22 passed, 22 total
-Tests:       276 passed, 276 total
+Test Suites: 23 passed, 23 total
+Tests:       281 passed, 281 total
 ```
 
 푸시와 PR마다 CI가 lint · 테스트 · 배포 빌드를 재현한다
@@ -402,11 +403,11 @@ src/
 | 문서 | 내용 |
 |---|---|
 | [`docs/adr/`](docs/adr/README.md) | 기술 의사결정 6건. 결과 칸에 **틀린 예측을 그대로** 적었다 |
-| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~021 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~022 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
 | [`docs/API.md`](docs/API.md) | Edge Functions 2개의 요청·응답 계약 |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | 스키마·RLS 17정책·마이그레이션 순서 의존 |
 
-트러블슈팅 21건 중 몇 가지만 꼽자면:
+트러블슈팅 22건 중 몇 가지만 꼽자면:
 
 - **TS-010** — 로딩 해제를 보장하려고 넣은 가드가 StrictMode에서 화면을 영구히 멈춘 건. **독립 리뷰 3회를 통과했다**
 - **TS-012** — 테이블에 있는 컬럼이 뷰에는 없어서, 하루 넘게 에러 없이 반쪽만 살아 있던 건
@@ -425,7 +426,8 @@ src/
 - **1인 기준.** `numFaces: 1`이라 여러 명이 잡히는 환경은 고려하지 않았다.
 - **외부 CDN 의존.** MediaPipe WASM·모델을 런타임에 받아 오므로 오프라인에서는 측정이 시작되지 않는다.
 - **CRA를 유지 중.** `react-scripts` 5.0.1은 유지보수가 멈춘 상태다. 이전 비용을 알면서 남겨 둔 부채다 ([ADR-003](docs/adr/003-keep-cra.md)).
-- **테스트가 로직에 치우쳐 있다.** 화면 단위 E2E가 없다. 위 리졸버 제약이 이유이지만, Playwright로 우회할 수 있는 문제이기도 하다.
+- **E2E 범위가 아직 좁다.** Playwright로 공개 라우트 렌더·가로 넘침, 보호 라우트의 로그인 리다이렉트, 404까지는 덮었지만
+  (`e2e/`), 측정→저장→리포트로 이어지는 실제 흐름은 아직 덮지 않았다. 웹캠과 Supabase 쓰기가 끼어 있어 준비가 더 필요하다.
 - **1분 넘게 일시정지하면** 리포트 그래프 x축 라벨이 건너뛴다. 고칠 범위가 다른 파일로 번져 미뤄 뒀다.
 
 ---
