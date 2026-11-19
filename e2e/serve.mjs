@@ -11,9 +11,14 @@ const PORT = Number(process.env.E2E_PORT || 5179);
 
 const TYPES = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json',
-  '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json',
+  '.png': 'image/png', '.webp': 'image/webp', '.ico': 'image/x-icon',
+  '.json': 'application/json', '.svg': 'image/svg+xml', '.txt': 'text/plain',
+  '.webmanifest': 'application/manifest+json',
 };
+
+// Vercel은 텍스트 자원을 압축해서 보낸다. 압축하지 않고 재면 CSS·JS가 실제보다
+// 7배 크게 잡혀서 Lighthouse 측정이 프로덕션과 달라진다.
+const COMPRESSIBLE = /^(text\/|application\/(javascript|json|manifest))/;
 
 http
   .createServer((req, res) => {
@@ -24,13 +29,9 @@ http
       file = path.join(ROOT, 'index.html');
     }
     const type = TYPES[path.extname(file)] || 'application/octet-stream';
-
-    // Vercel은 텍스트 자원을 압축해서 보낸다. 압축하지 않고 재면 CSS·JS가
-    // 실제보다 7배 크게 잡혀서 측정이 프로덕션과 달라진다.
-    const compressible = /^(text/|application/(javascript|json|manifest))/.test(type);
     const acceptsGzip = (req.headers['accept-encoding'] || '').includes('gzip');
 
-    if (compressible && acceptsGzip) {
+    if (COMPRESSIBLE.test(type) && acceptsGzip) {
       res.writeHead(200, { 'Content-Type': type, 'Content-Encoding': 'gzip' });
       fs.createReadStream(file).pipe(zlib.createGzip()).pipe(res);
       return;

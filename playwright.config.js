@@ -43,7 +43,11 @@ module.exports = defineConfig({
   webServer: {
     command: 'node e2e/serve.mjs',
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
+    // 항상 새로 띄운다. 기본값(!process.env.CI)은 로컬에서 이미 떠 있는 서버에
+    // 붙는데, 그 서버가 지금 코드로 돈다는 보장이 없다. 실제로 서버 파일에
+    // 문법 오류를 넣고도 로컬 e2e 36개가 전부 통과한 적이 있다 — 측정하느라
+    // 띄워 둔 수정 전 서버에 붙어 있었다 (TS-024). CI에서만 깨졌다.
+    reuseExistingServer: false,
     timeout: 60_000,
   },
 });

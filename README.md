@@ -12,7 +12,7 @@
 [![Live](https://img.shields.io/badge/Live-zoner--one.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://zoner-one.vercel.app)
 [![Demo](https://img.shields.io/badge/Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/JEL13w3MUCg)
 [![ADR](https://img.shields.io/badge/ADR-6-3ECF8E?style=for-the-badge)](docs/adr/README.md)
-[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-23-F59E0B?style=for-the-badge)](docs/TROUBLESHOOTING.md)
+[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-24-F59E0B?style=for-the-badge)](docs/TROUBLESHOOTING.md)
 
 <br />
 
@@ -61,7 +61,7 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 | 권한 | **RLS 정책 17개** — 앱 코드가 아니라 DB가 막는다 |
 | 영상 | 프레임은 브라우저 밖으로 안 나감. 녹화는 사용자가 켰을 때만 |
 | 테스트 | 단위 **281개** / 23 스위트 · E2E **36개** 전부 통과 |
-| 문서 | ADR **6건** · 트러블슈팅 **23건** · API · DB 명세 |
+| 문서 | ADR **6건** · 트러블슈팅 **24건** · API · DB 명세 |
 | 번들 | gzip **210.46 kB** (JS 198.33 + CSS 12.13) |
 
 ## 목차
@@ -367,25 +367,25 @@ CRA 번들 Jest 리졸버가 v7 exports 맵을 해석하지 못한다 (`docs/TRO
 | 이미지 3장 (904px PNG → 760px WebP) | 1,346 kB | **53 kB** |
 | JS (gzip) | 153 kB | 153 kB |
 | CSS (gzip) | 12 kB | 12 kB |
-| **페이지 전체** | **4,014 kB** | **994 kB** |
+| **페이지 전체** | **3,553 kB** | **533 kB** |
 
 렌더 블로킹이라는 진단 자체는 맞았지만, 블로킹하던 것이 JS가 아니라 **2 MB짜리 폰트**였다.
 표시 폭이 최대 390px인 자리에 904px PNG를 세 장 놓고 있던 것도 몰랐다.
 
 | | 수정 전 | 수정 후 |
 |---|:---:|:---:|
-| Performance (모바일) | 55 | **67** |
-| LCP | 18.7 s | **6.8 s** |
-| 렌더 블로킹 절감 추정 | 11,240 ms | 2,540 ms |
+| Performance (모바일) | 55 | **79** |
+| LCP | 16.2 s | **4.0 s** |
+| 렌더 블로킹 절감 추정 | 10,660 ms | 1,860 ms |
 
 로컬 빌드를 **gzip으로 서빙해** 같은 조건에서 두 번 쟀다(`e2e/serve.mjs`). 압축 없이 재면
-CSS·JS가 실제보다 7배 크게 잡혀 프로덕션과 달라진다. 이 하니스의 "수정 전" 값(55점 · LCP 18.7초)이
+CSS·JS가 실제보다 7배 크게 잡혀 프로덕션과 달라진다. 이 하니스의 "수정 전" 값(55점 · LCP 16.2초)이
 배포본에서 쟀던 값(55점 · LCP 16.6초)과 거의 일치해서, 비교 기준으로 쓸 만하다고 봤다.
 
-남은 2,540 ms는 여전히 `main.css`(gzip 12 kB)와 폰트 CSS가 렌더를 막는 몫이다.
+남은 1,860 ms는 여전히 `main.css`(gzip 12 kB)와 폰트 CSS가 렌더를 막는 몫이다.
 코드 스플리팅이나 Vite 이전은 [ADR-003](docs/adr/003-keep-cra.md)에 **부채로 등록해 둔** 항목이다.
 
-**배포본 재측정은 머지 뒤에 한다.** 위 55 → 67은 로컬 동일 조건 비교값이다.
+**배포본 재측정은 머지 뒤에 한다.** 위 55 → 79는 로컬 동일 조건 비교값이다.
 
 측정은 랜딩까지만 가능하다 — 정작 무거운 화면(측정·리포트)은 로그인 뒤라 들어가지 못한다.
 
@@ -435,11 +435,11 @@ src/
 | 문서 | 내용 |
 |---|---|
 | [`docs/adr/`](docs/adr/README.md) | 기술 의사결정 6건. 결과 칸에 **틀린 예측을 그대로** 적었다 |
-| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~023 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~024 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
 | [`docs/API.md`](docs/API.md) | Edge Functions 2개의 요청·응답 계약 |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | 스키마·RLS 17정책·마이그레이션 순서 의존 |
 
-트러블슈팅 23건 중 몇 가지만 꼽자면:
+트러블슈팅 24건 중 몇 가지만 꼽자면:
 
 - **TS-010** — 로딩 해제를 보장하려고 넣은 가드가 StrictMode에서 화면을 영구히 멈춘 건. **독립 리뷰 3회를 통과했다**
 - **TS-012** — 테이블에 있는 컬럼이 뷰에는 없어서, 하루 넘게 에러 없이 반쪽만 살아 있던 건
