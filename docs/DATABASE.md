@@ -290,7 +290,13 @@ create policy "session_videos_select_own"
 
 ## ai_usage — AI 사용량
 
-AI 호출 횟수를 하루 단위로 센다. **정책이 하나도 없는 유일한 테이블**이다.
+AI 호출 횟수를 하루 단위로 센다. `ai-chat`(30건/일)과 `report-insight`(20건/일)가
+같은 함수를 쓴다. **정책이 하나도 없는 유일한 테이블**이다.
+
+**왜 메시지를 세지 않고 별도 테이블을 두는가.** 예전에 채팅 한도는 `chat_messages`의
+오늘 행을 세어 판단했다. 그런데 `chat_messages`는 `conversations`에 cascade로 묶여
+있고 대화 삭제는 사용자에게 허용된 동작이다 — **지우면 한도가 리셋된다.**
+세는 대상을 사용자가 지울 수 있으면 그건 한도가 아니다.
 
 ```sql
 create table ai_usage (
