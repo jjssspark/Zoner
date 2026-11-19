@@ -95,6 +95,12 @@ async function mockApi(context, { signedIn = true } = {}) {
     const rows = trashed ? [{ ...sessions[0], deleted_at: '2026-11-17T00:00:00Z' }] : sessions;
     return json(route, rows, rows.length);
   });
+  // 리포트·저장 화면은 테이블이 아니라 active_study_sessions 뷰를 읽는다.
+  // 뷰에는 deleted_at 이 없다 — TS-012가 났던 자리라 모양을 다르게 둔다.
+  await context.route('**/rest/v1/active_study_sessions*', (route) => {
+    const rows = sessions.map(({ deleted_at, ...rest }) => rest);
+    return json(route, rows, rows.length);
+  });
   await context.route('**/rest/v1/conversations*', (route) =>
     json(route, [{
       id: '22222222-2222-4222-8222-222222222222',

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
+import { useAuth } from '../../components/routing/AuthContext';
 import { softDeleteSession } from '../../lib/trash';
 import { focusLevel } from '../../lib/focusLevel';
 import Skeleton from '../../components/ui/Skeleton';
@@ -42,6 +43,8 @@ const formatDuration = (seconds) => {
 
 export const Save = () => {
   const navigate = useNavigate();
+  // ProtectedRoute가 이미 확인한 사용자. 화면이 다시 묻지 않는다.
+  const { user } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteError, setDeleteError] = useState(null);
@@ -50,15 +53,6 @@ export const Save = () => {
     let isMounted = true;
 
     const loadSessions = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
       const { data } = await supabase
         .from('active_study_sessions')
         .select('id, started_at, duration_seconds, focus_score')
@@ -76,7 +70,7 @@ export const Save = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, [user.id, navigate]);
 
   const handleDelete = async (session) => {
     setDeleteError(null);

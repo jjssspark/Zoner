@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
 import Skeleton from '../ui/Skeleton';
+import { AuthContext } from './AuthContext';
 import './ProtectedRoute.css';
 
 // 로그인이 필요한 화면을 라우트 단계에서 막는다.
@@ -15,6 +16,8 @@ export function ProtectedRoute({ children }) {
   // checking -> 아직 모름. 이 동안 /login으로 보내면 새로고침마다 로그인
   // 화면이 한 번 번쩍인다.
   const [status, setStatus] = useState('checking');
+  // 통과시킨 사용자를 자식에게 내려 준다. 화면마다 getUser()를 다시 부르지 않게.
+  const [user, setUser] = useState(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -24,7 +27,9 @@ export function ProtectedRoute({ children }) {
     supabase.auth
       .getSession()
       .then(({ data }) => {
-        if (!cancelled) setStatus(data?.session ? 'signedIn' : 'signedOut');
+        if (cancelled) return;
+        setUser(data?.session?.user ?? null);
+        setStatus(data?.session ? 'signedIn' : 'signedOut');
       })
       .catch(() => {
         if (!cancelled) setStatus('signedOut');
@@ -36,8 +41,13 @@ export function ProtectedRoute({ children }) {
     // 만료된 세션으로 저장을 시도하는 경우는 저장 쪽에서 따로 처리한다.
     const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
-      if (event === 'SIGNED_OUT') setStatus('signedOut');
-      else if (session) setStatus('signedIn');
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setStatus('signedOut');
+      } else if (session) {
+        setUser(session.user);
+        setStatus('signedIn');
+      }
     });
 
     return () => {
@@ -59,7 +69,7 @@ export function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  return children;
+  return <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>;
 }
 
 export default ProtectedRoute;

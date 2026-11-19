@@ -4,7 +4,18 @@ const { signIn, mockApi } = require('./fixtures');
 // 인증이 필요한 화면들. 실제 Supabase 프로젝트 없이, 가짜 세션을 localStorage에
 // 넣고 REST를 가로채 렌더한다.
 
-const PROTECTED = ['/mypage', '/ai-chat', '/trash', '/start-learning'];
+// 세션 id를 요구하는 화면은 쿼리까지 붙여야 실제 경로를 탄다.
+const SESSION_ID = '11111111-1111-4111-8111-111111111111';
+
+const PROTECTED = [
+  '/mypage',
+  '/ai-chat',
+  '/trash',
+  '/start-learning',
+  '/save',
+  `/read?session=${SESSION_ID}`,
+  `/trashread?session=${SESSION_ID}`,
+];
 
 test.describe('로그인 상태', () => {
   test.beforeEach(async ({ context }) => {
@@ -17,7 +28,8 @@ test.describe('로그인 상태', () => {
       // 측정 화면은 카메라와 모델 로딩이 끼어 있어 조금 더 기다린다.
       await page.waitForTimeout(path === '/start-learning' ? 2500 : 500);
 
-      expect(page.url(), `${path}에서 로그인으로 튕겼다`).toContain(path);
+      const pathname = path.split('?')[0];
+      expect(new URL(page.url()).pathname, `${path}에서 로그인으로 튕겼다`).toBe(pathname);
       await expect(page.locator('#root')).not.toBeEmpty();
 
       const { scrollWidth, clientWidth } = await page.evaluate(() => ({

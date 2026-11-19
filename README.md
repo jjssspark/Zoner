@@ -23,7 +23,7 @@
 ![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?logo=vercel&logoColor=white)
 [![CI](https://github.com/jjssspark/Zoner/actions/workflows/ci.yml/badge.svg)](https://github.com/jjssspark/Zoner/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-281%20passed-4C9A2A)
-![E2E](https://img.shields.io/badge/e2e-30%20passed-2EAD33)
+![E2E](https://img.shields.io/badge/e2e-36%20passed-2EAD33)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 </div>
@@ -60,9 +60,9 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 | 리포트 | 파생 지표 **9종** + AI 조언 문단 (수치는 앱이 계산) |
 | 권한 | **RLS 정책 17개** — 앱 코드가 아니라 DB가 막는다 |
 | 영상 | 프레임은 브라우저 밖으로 안 나감. 녹화는 사용자가 켰을 때만 |
-| 테스트 | 단위 **281개** / 23 스위트 · E2E **30개** 전부 통과 |
+| 테스트 | 단위 **281개** / 23 스위트 · E2E **36개** 전부 통과 |
 | 문서 | ADR **6건** · 트러블슈팅 **23건** · API · DB 명세 |
-| 번들 | gzip **209.13 kB** (JS 197.33 + CSS 11.8) |
+| 번들 | gzip **210.46 kB** (JS 198.33 + CSS 12.13) |
 
 ## 목차
 
@@ -337,10 +337,10 @@ CRA 번들 Jest 리졸버가 v7 exports 맵을 해석하지 못한다 (`docs/TRO
 
 | | 크기 |
 |---|---|
-| JS (main) | 152.05 kB |
+| JS (main) | 153.05 kB |
 | JS (분할 청크 2개) | 45.28 kB |
-| CSS | 11.8 kB |
-| **합계** | **209.13 kB** |
+| CSS | 12.13 kB |
+| **합계** | **210.46 kB** |
 
 ### Lighthouse
 

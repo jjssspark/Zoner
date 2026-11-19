@@ -419,6 +419,11 @@ export const StartLearning = () => {
       return;
     }
 
+    // ⚠️ 여기만 useAuth()가 아니라 getUser()를 그대로 쓴다.
+    // 다른 화면은 ProtectedRoute가 통과시킨 사용자를 컨텍스트에서 받지만,
+    // 그 값은 "마운트 시점에 로그인돼 있었다"는 뜻이다. 이 함수는 측정이 끝난
+    // 뒤에 불린다 — 학습이 토큰 수명(1시간)보다 길면 그 사이에 만료될 수 있고,
+    // 캐시된 값을 믿으면 저장 직전에야 터진다. 저장 직전에는 서버에 다시 묻는다.
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -464,6 +469,7 @@ export const StartLearning = () => {
     );
 
     try {
+      // runStop과 같은 이유로 여기서도 서버에 다시 묻는다.
       const {
         data: { user },
       } = await supabase.auth.getUser();
