@@ -1,0 +1,82 @@
+/* 전역 모션 유틸리티. 화면 CSS에서 중복 정의하지 않는다.
+   토큰은 tokens.css, 라우트 진입 페이드는 index.css에 있다. */
+
+/* ── 스크롤 진입 ────────────────────────────────────────────────
+   숨김은 opt-in이다. .reveal-enabled 는 useRevealOnScroll 이 JS가 돌고
+   대상을 찾은 뒤에야 붙인다. 스크립트가 죽으면 아무것도 숨지 않는다.
+   (TS-007: 관찰자 미발화로 랜딩이 영구히 빈 화면이 된 적이 있다) */
+.reveal-enabled [data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--duration-slow) var(--ease-in-out),
+    transform var(--duration-slow) var(--ease-in-out);
+  /* 형제 순서대로 조금씩 늦게 들어온다. 훅이 --reveal-index 를 넣어준다.
+     4개까지만 누적하고 그 뒤로는 고정 — 긴 목록에서 마지막 항목을
+     몇 초씩 기다리게 만들지 않는다. */
+  transition-delay: calc(min(var(--reveal-index, 0), 4) * 70ms);
+}
+
+/* 숨김 규칙(.reveal-enabled [data-reveal])과 명시도가 같으면 순서에만
+   기대게 된다. 번들러가 스타일시트를 어떻게 합치든 이쪽이 이겨야 하므로
+   .reveal-enabled 를 함께 적어 명시도를 한 단계 올린다.
+   이걸 빼면 콘텐츠가 영구히 안 보이는 상태로 남는다. */
+.reveal-enabled [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── 콘텐츠 교체 ────────────────────────────────────────────────
+   스켈레톤이 빠지고 실제 데이터가 들어올 때.
+
+   비동기로 그려지는 목록에는 위의 스크롤 진입을 쓸 수 없다. 훅은 마운트
+   시점에 한 번만 대상을 찾는데, 그때 목록은 아직 비어 있다. 이쪽은
+   요소가 마운트되는 순간 자기가 알아서 재생한다.
+
+   fill-mode 와 지연은 쓰지 않는다. `both` 는 애니메이션이 진행되지 않는
+   환경에서 from 상태(opacity 0)를 붙들어 목록이 통째로 사라진다 —
+   Sparkline 과 같은 함정이고 뿌리는 TS-017이다. fill 없이 두면 재생이
+   안 될 때 그냥 처음부터 보인다.
+
+   지연도 뺐다. fill 없이 지연을 주면 지연 동안 보였다가 애니메이션이
+   시작하며 투명해져 깜빡인다. 순차 등장을 포기하고 동시 등장을 택했다. */
+.fade-in-content {
+  animation: fade-in-content var(--duration-normal) var(--ease-out-expo);
+}
+
+@keyframes fade-in-content {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── 누를 수 있는 표면 ──────────────────────────────────────────
+   카드·행처럼 클릭 가능한 블록의 공통 반응. 색은 각 화면이 정한다. */
+.pressable {
+  transition: transform var(--duration-fast) var(--ease-out-expo),
+    border-color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    box-shadow var(--duration-fast) var(--ease-out-expo);
+}
+
+.pressable:hover {
+  transform: translateY(-2px);
+}
+
+.pressable:active {
+  transform: translateY(1px);
+}
+
+/* tokens.css의 전역 블록이 duration을 0.01ms로 죽이지만, 그것만으로는
+   transition-delay 가 남아 항목이 순서대로 늦게 나타난다. 지연도 없앤다. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-enabled [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0ms !important;
+  }
+}

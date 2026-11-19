@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task (컨트롤러가 worktree 없이 main에서 직접 순차 실행, 비용 절감을 위해 서브에이전트 다중 디스패치 없음). Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** `/save` 목록과 `/read` 상세에서 학습 세션을 삭제하면 휴지통(`/trash`)으로 이동하고, `/trashread`에서 복구하거나 영구삭제할 수 있게 만든다. 삭제 30일 후에는 자동으로 영구삭제된다.
 
 **Architecture:** 프론트엔드(CRA)에서 Supabase를 직접 호출하는 기존 구조 그대로. 삭제는 소프트 삭제(`study_sessions.deleted_at`)로 처리하고, 활성 세션 조회는 `deleted_at is null`만 보여주는 Postgres 뷰 `active_study_sessions`를 거친다. 완전 삭제는 사용자의 수동 "영구삭제" 클릭 또는 `/trash` 진입 시 30일 지난 항목을 지우는 lazy hard-delete 둘 다로 지원한다. 백엔드 스케줄러(pg_cron 등)는 쓰지 않는다.

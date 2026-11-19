@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** Home, Login, SignUp, Mypage 4개 페이지를 "다크 테크 대시보드" 톤(시안 강조색)의 반응형·접근성 준수 UI로 재작성한다.
 
 **Architecture:** 기존 React 상태/라우팅 로직은 그대로 두고, 절대좌표(`position: absolute`, 1440px 고정) 마크업을 flexbox/grid 기반 시맨틱 마크업 + CSS 커스텀 프로퍼티 토큰으로 교체한다. Home/Login이 공유하는 로고+메뉴 블록은 신규 `NavBar` 컴포넌트로 추출한다.

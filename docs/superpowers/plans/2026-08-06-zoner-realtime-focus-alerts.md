@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** 비집중이 15초 이어지면 학습 화면에서 배너와 알림음으로 즉시 알리고, 그 알림들을 세션에 저장해 리포트에서 다시 볼 수 있게 한다.
 
 **Architecture:** 알림 판단을 UI에서 분리한다. `focusTracker`가 5초마다 내보내는 틱을 받아 알림 이벤트로 변환하는 순수 상태 기계를 `src/lib/alertEngine.js`에 두고, `StartLearning.js`는 그 결과를 배너와 소리로 표현만 한다. 세션 종료 시 알림 배열을 `study_sessions.alerts`에 저장하고 `Read.js`가 읽어 목록으로 보여준다.

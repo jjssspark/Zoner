@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** 학습 세션을 웹캠으로 녹화해 Supabase Storage에 저장하고, 리포트에서 알림 기록·집중도 그래프를 눌러 해당 장면으로 건너뛰며 다시 볼 수 있게 한다.
 
 **Architecture:** 순수 로직(`sessionRecorder`, `sessionVideos`)을 `src/lib/`에 두고 화면은 그것을 호출만 한다. 녹화는 이미 열려 있는 카메라 스트림을 재사용하고, 일시정지 시 레코더도 함께 멈춰 **영상 시간축 = 순수 학습 시간**을 만든다. 그 시간축에 맞추기 위해 집중도 틱에 `elapsedMs`를 실어 timeline 버킷과 알림 오프셋을 모두 경과 시간 기준으로 바꾼다.

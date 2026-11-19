@@ -1,5 +1,5 @@
 import React from 'react';
-import { focusLevel } from './ScoreRing';
+import { focusLevel } from '../../lib/focusLevel';
 import './Sparkline.css';
 
 const STROKE = 1.5;
@@ -36,7 +36,11 @@ export function Sparkline({ data, width = 96, height = 24, ariaLabel }) {
         ariaLabel ?? `집중도 추이, 평균 ${Math.round(average * 100)}퍼센트`
       }
     >
-      <polyline className="sparkline__line" points={points} />
+      <polyline
+        className="sparkline__line"
+        points={points}
+        pathLength="100"
+      />
     </svg>
   );
 }

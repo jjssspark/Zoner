@@ -13,7 +13,7 @@ export const REASON = {
 // 집중으로 집계하는 reason. looking_down이 여기 있는 이유는 얼굴만 보는
 // 모델로 교재와 휴대폰을 구분할 수 없기 때문 - 공부 중인 사용자를 딴짓으로
 // 오판하는 쪽이 반대 방향 오차보다 비용이 크다.
-const FOCUSED_REASONS = [REASON.FOCUSED, REASON.LOOKING_DOWN];
+export const FOCUSED_REASONS = [REASON.FOCUSED, REASON.LOOKING_DOWN];
 
 export const THRESHOLDS = {
   maxYawDeg: 30,
@@ -212,6 +212,35 @@ export async function loadFaceLandmarker() {
   })();
 
   return cachedFaceLandmarkerPromise;
+}
+
+// 실시간 표시용 이동 창 기본값. 누적 평균은 세션이 길어질수록 둔해져서
+// 30분쯤 지나면 고개를 들어도 숫자가 거의 움직이지 않는다. 최근 구간만 본다.
+export const ROLLING_WINDOW_MS = 120000;
+
+/**
+ * 최근 windowMs 구간의 집중률(0~100). 창에 틱이 하나도 없으면 null.
+ *
+ * aggregateSession이 elapsedMs(일시정지를 들어낸 학습 경과)를 쓰는 것과 달리
+ * 여기서는 벽시계인 timestampMs를 쓴다. 일시정지 후 재개하면 창이 비어 null이
+ * 되고 화면이 "측정 중"으로 돌아가는 것이 맞기 때문이다. elapsedMs로 재면
+ * 정지 직전 점수가 재개 직후에 그대로 남아 현재 상태를 잘못 알린다.
+ *
+ * @param {Array<{ timestampMs: number, focused: boolean }>} ticks
+ * @param {number} nowMs
+ * @param {number} [windowMs]
+ * @returns {number | null}
+ */
+export function computeRollingFocus(ticks, nowMs, windowMs = ROLLING_WINDOW_MS) {
+  const cutoffMs = nowMs - windowMs;
+  const recent = ticks.filter((tick) => (tick.timestampMs ?? 0) >= cutoffMs);
+
+  if (recent.length === 0) {
+    return null;
+  }
+
+  const focusedCount = recent.filter((tick) => tick.focused).length;
+  return Math.round((focusedCount / recent.length) * 100);
 }
 
 export function createFocusTracker({

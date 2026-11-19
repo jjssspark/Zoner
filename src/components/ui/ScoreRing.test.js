@@ -1,30 +1,30 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import ScoreRing, { focusLevel } from './ScoreRing';
+import ScoreRing from './ScoreRing';
 
-describe('focusLevel', () => {
-  test('80 이상은 high', () => {
-    expect(focusLevel(80)).toBe('high');
-    expect(focusLevel(100)).toBe('high');
-  });
-
-  test('50~79는 mid', () => {
-    expect(focusLevel(79)).toBe('mid');
-    expect(focusLevel(50)).toBe('mid');
-  });
-
-  test('30~49는 low', () => {
-    expect(focusLevel(49)).toBe('low');
-    expect(focusLevel(30)).toBe('low');
-  });
-
-  test('30 미만은 poor', () => {
-    expect(focusLevel(29)).toBe('poor');
-    expect(focusLevel(0)).toBe('poor');
-  });
-});
+// focusLevel 테스트는 함수와 함께 lib/focusLevel.test.js 로 옮겼다.
 
 describe('ScoreRing', () => {
+  // 가운데 숫자는 마운트 시 0에서 올라간다. 최종값을 단언하는 아래
+  // 테스트들이 프레임 타이밍에 흔들리지 않도록 모션 감소를 켜 둔다 —
+  // 이 설정 자체가 prefers-reduced-motion 대응을 검증한다.
+  beforeEach(() => {
+    window.matchMedia = jest.fn().mockReturnValue({ matches: true });
+  });
+
+  test('모션 감소가 꺼져 있으면 0에서 시작한다', () => {
+    window.matchMedia = jest.fn().mockReturnValue({ matches: false });
+
+    render(<ScoreRing value={73} />);
+
+    expect(screen.getByText('0')).toBeInTheDocument();
+    // 값 자체는 처음부터 aria-label로 전달되므로 스크린리더는 기다리지 않는다
+    expect(screen.getByRole('img')).toHaveAttribute(
+      'aria-label',
+      '집중도 73퍼센트'
+    );
+  });
+
   test('점수를 숫자로 표시한다', () => {
     render(<ScoreRing value={73} />);
     expect(screen.getByText('73')).toBeInTheDocument();

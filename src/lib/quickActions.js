@@ -1,4 +1,4 @@
-import { focusLevel } from '../components/ui/ScoreRing';
+import { focusLevel } from './focusLevel';
 
 const EMPTY_SCORE_TEXT = '첫 세션을 시작하세요';
 const EMPTY_RECORDS_TEXT = '아직 기록이 없습니다';

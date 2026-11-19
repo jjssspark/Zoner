@@ -1,0 +1,310 @@
+.pricing,
+.pricing * {
+  box-sizing: border-box;
+}
+
+.pricing {
+  min-height: 100vh;
+  background: radial-gradient(
+      ellipse 900px 500px at 50% -10%,
+      color-mix(in oklch, var(--color-accent) 14%, transparent),
+      transparent
+    ),
+    var(--color-bg);
+  color: var(--color-text);
+}
+
+.pricing__main {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--space-section) var(--space-6) var(--space-16);
+}
+
+.pricing__intro {
+  max-width: 34rem;
+  margin-bottom: var(--space-16);
+}
+
+.pricing__eyebrow {
+  margin: 0 0 var(--space-3);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pricing__title {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+.pricing__lead {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+}
+
+/* 균일 3열을 쓰지 않는다. 추천 등급이 넓고, 위로 올라와 있고, 테두리가
+   강조색이다 — 크기·배치·색 세 가지가 함께 위계를 만든다. */
+.pricing__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1.32fr 1fr;
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.pricing__tier {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  transition: border-color var(--duration-normal) var(--ease-out-expo),
+    transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.pricing__tier:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-4px);
+}
+
+.pricing__tier--featured {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-accent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  margin-top: calc(var(--space-8) * -1);
+  box-shadow: var(--shadow-glow);
+}
+
+.pricing__tier--featured:hover {
+  border-color: var(--color-accent-hover);
+  transform: translateY(-8px);
+}
+
+.pricing__badge {
+  position: absolute;
+  top: calc(var(--space-3) * -1);
+  left: var(--space-8);
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.pricing__icon {
+  display: block;
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-3);
+}
+
+.pricing__name {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.pricing__tier--featured .pricing__name {
+  color: var(--color-accent);
+}
+
+.pricing__price {
+  margin: 0 0 var(--space-3);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.pricing__amount {
+  font-family: var(--font-sans);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+}
+
+.pricing__tier--featured .pricing__amount {
+  font-size: var(--text-2xl);
+}
+
+.pricing__period {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.pricing__tagline {
+  margin: 0 0 var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+.pricing__features {
+  list-style: none;
+  margin: 0 0 var(--space-6);
+  padding: 0;
+  flex: 1 1 auto;
+}
+
+.pricing__feature {
+  position: relative;
+  padding-left: var(--space-6);
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+.pricing__tier--featured .pricing__feature {
+  color: var(--color-text);
+}
+
+/* 표식은 pseudo-element 로만 그린다. 문자를 넣으면 스크린리더가 읽는다 */
+.pricing__feature::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: var(--space-3);
+  height: 2px;
+  background-color: var(--color-accent);
+  border-radius: var(--radius-full);
+}
+
+.pricing__target {
+  margin: 0 0 var(--space-6);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-body);
+}
+
+.pricing__target-label {
+  display: inline-block;
+  margin-right: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  letter-spacing: 0.06em;
+}
+
+.pricing__cta {
+  width: 100%;
+  padding: var(--space-3) var(--space-6);
+  background: none;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    border-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.pricing__cta:hover {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.pricing__cta:active {
+  transform: translateY(1px);
+}
+
+.pricing__cta:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.pricing__tier--featured .pricing__cta {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-base);
+  padding: var(--space-4) var(--space-8);
+}
+
+.pricing__tier--featured .pricing__cta:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  color: var(--color-on-accent);
+}
+
+@media (max-width: 1023px) {
+  .pricing__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+
+  .pricing__tier--featured {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .pricing__main {
+    padding: var(--space-12) var(--space-4);
+  }
+
+  .pricing__intro {
+    margin-bottom: var(--space-8);
+  }
+
+  .pricing__tier,
+  .pricing__tier--featured {
+    padding: var(--space-6);
+  }
+
+  .pricing__badge {
+    left: var(--space-6);
+  }
+}
+
+/* 지금 되는 것과 계획을 구분한다. 결제 화면이라 이 구분이 흐리면 안 된다. */
+.pricing__notice {
+  margin: var(--space-4) auto 0;
+  max-width: 34rem;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+/* 흐리게만 처리하면 대비비가 떨어지고, 색각 이상 사용자에게는 아무 차이도
+   없다. 아래 "준비 중" 글자가 실제 구분을 맡는다. */
+.pricing__feature--planned {
+  color: var(--color-text-muted);
+}
+
+.pricing__planned {
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}

@@ -1,0 +1,211 @@
+.guide,
+.guide * {
+  box-sizing: border-box;
+}
+
+.guide {
+  min-height: 100vh;
+  background: radial-gradient(
+      ellipse 800px 460px at 85% -5%,
+      color-mix(in oklch, var(--color-accent) 14%, transparent),
+      transparent
+    ),
+    var(--color-bg);
+  color: var(--color-text);
+}
+
+.guide__main {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--space-section) var(--space-6) var(--space-16);
+}
+
+.guide__intro {
+  max-width: 36rem;
+  margin-bottom: var(--space-16);
+}
+
+.guide__eyebrow {
+  margin: 0 0 var(--space-3);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.guide__title {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+.guide__lead {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+}
+
+.guide__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 단계마다 글과 그림이 좌우로 번갈아 놓인다. 균일 나열이 아니라
+   읽는 흐름이 지그재그로 내려간다. */
+.guide__step {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-16) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.guide__step:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.guide__step:nth-child(even) .guide__text {
+  order: 2;
+}
+
+.guide__step-number {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-metric-sm);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: var(--tracking-data);
+  color: var(--color-accent);
+}
+
+.guide__step-title {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+.guide__step-lead {
+  margin: 0 0 var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+}
+
+.guide__details {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guide__detail {
+  position: relative;
+  padding-left: var(--space-6);
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+/* 표식은 pseudo-element 로만 그린다. 문자를 넣으면 스크린리더가 읽는다 */
+.guide__detail::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: var(--space-3);
+  height: 2px;
+  background-color: var(--color-accent);
+  border-radius: var(--radius-full);
+}
+
+.guide__figure {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.guide__outro {
+  margin-top: var(--space-16);
+  padding: var(--space-12) var(--space-8);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.guide__outro-title {
+  margin: 0 0 var(--space-6);
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.guide__cta {
+  padding: var(--space-4) var(--space-8);
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 700;
+  box-shadow: var(--shadow-glow);
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.guide__cta:hover {
+  background-color: var(--color-accent-hover);
+  transform: translateY(-2px);
+}
+
+.guide__cta:active {
+  transform: translateY(1px);
+}
+
+.guide__cta:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1023px) {
+  .guide__step {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    padding: var(--space-12) 0;
+  }
+
+  /* 한 열로 접히면 지그재그가 의미를 잃는다. 글이 항상 먼저 온다 */
+  .guide__step:nth-child(even) .guide__text {
+    order: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .guide__main {
+    padding: var(--space-12) var(--space-4);
+  }
+
+  .guide__intro {
+    margin-bottom: var(--space-8);
+  }
+
+  .guide__outro {
+    padding: var(--space-8) var(--space-4);
+  }
+}
