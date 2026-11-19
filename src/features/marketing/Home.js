@@ -4,9 +4,9 @@ import NavBar from '../../components/layout/NavBar';
 import useRevealOnScroll from '../../hooks/useRevealOnScroll';
 import ScoreRing from '../../components/ui/ScoreRing';
 import Sparkline from '../../components/ui/Sparkline';
-import image2 from './image-2.png';
-import image3 from './image-3.png';
-import image4 from './image-4.png';
+import image2 from './image-2.webp';
+import image3 from './image-3.webp';
+import image4 from './image-4.webp';
 import './Home.css';
 
 const FEATURES = [
@@ -91,9 +91,31 @@ export const Home = () => {
           Our Vision
         </h2>
         <div className="home__vision-gallery">
-          <img alt="" src={image2} data-reveal />
-          <img alt="" src={image3} data-reveal />
-          <img alt="" src={image4} data-reveal />
+          {/* 화면 아래쪽이라 lazy로 미룬다. 원본은 904px PNG였는데 표시 폭은
+              최대 390px다 — 2배 해상도인 760px WebP로 줄였다 (1.35MB -> 53KB).
+              alt을 비워 두면 이 섹션은 스크린 리더에게 통째로 없는 것이 된다.
+              이미지 안에 문구가 박혀 있으므로 그 문구를 그대로 옮긴다. */}
+          <img
+            src={image2}
+            alt="Zoner: 집중도를 측정하고 학습 리포트 생성"
+            loading="lazy"
+            decoding="async"
+            data-reveal
+          />
+          <img
+            src={image3}
+            alt="Zoner: 집중도 분석으로 학습 효율성 향상"
+            loading="lazy"
+            decoding="async"
+            data-reveal
+          />
+          <img
+            src={image4}
+            alt="자기주도 학습 어시스트: 집중도 측정과 자기성찰"
+            loading="lazy"
+            decoding="async"
+            data-reveal
+          />
         </div>
       </section>
 
