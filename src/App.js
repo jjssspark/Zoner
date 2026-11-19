@@ -14,6 +14,7 @@ import Home from './features/marketing/Home';
 import UserGuide from './features/marketing/UserGuide';
 import Pricing from './features/marketing/Pricing';
 import FAQ from './features/marketing/FAQ';
+import NotFound from './features/marketing/NotFound';
 import Login from './features/auth/Login';
 import Mypage from './features/profile/Mypage';
 import StartLearning from './features/learning/StartLearning';
@@ -23,6 +24,8 @@ import Trash from './features/records/Trash';
 import Trashread from './features/records/Trashread';
 import SignUp from './features/auth/SignUp';
 import AiChat from './features/chat/AiChat';
+import ErrorBoundary from './components/ui/ErrorBoundary';
+import ProtectedRoute from './components/routing/ProtectedRoute';
 /* eslint-enable react/jsx-pascal-case */
 
 // 화면이 바뀔 때 툭 끊기지 않도록 진입 페이드를 준다. pathname을 key로 주면
@@ -41,25 +44,38 @@ function AnimatedRoutes({ children }) {
   );
 }
 
+// 로그인이 필요한 화면을 한 줄로 감싼다. 가드를 화면마다 복사하지 않는다.
+const protect = (element) => <ProtectedRoute>{element}</ProtectedRoute>;
+
 function App() {
   return (
-    <Router>
-      <AnimatedRoutes>
-        <Route path="/" element={<Home />} />
-        <Route path="/guide" element={<UserGuide />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/mypage" element={<Mypage />} />
-        <Route path="/start-learning" element={<StartLearning />} />
-        <Route path="/save" element={<Save />} />
-        <Route path="/read" element={<Read />} />
-        <Route path="/trash" element={<Trash />} />
-        <Route path="/trashread" element={<Trashread />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/ai-chat" element={<AiChat />} />
-      </AnimatedRoutes>
-    </Router>
+    // 렌더 중 터진 예외를 여기서 받는다. 없으면 흰 화면만 남는다.
+    // Router 바깥에 두어 라우팅 자체가 깨져도 안내가 나오게 한다.
+    <ErrorBoundary>
+      <Router>
+        <AnimatedRoutes>
+          {/* 공개 */}
+          <Route path="/" element={<Home />} />
+          <Route path="/guide" element={<UserGuide />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+
+          {/* 로그인 필요 */}
+          <Route path="/mypage" element={protect(<Mypage />)} />
+          <Route path="/start-learning" element={protect(<StartLearning />)} />
+          <Route path="/save" element={protect(<Save />)} />
+          <Route path="/read" element={protect(<Read />)} />
+          <Route path="/trash" element={protect(<Trash />)} />
+          <Route path="/trashread" element={protect(<Trashread />)} />
+          <Route path="/ai-chat" element={protect(<AiChat />)} />
+
+          {/* 어디에도 걸리지 않은 주소 */}
+          <Route path="*" element={<NotFound />} />
+        </AnimatedRoutes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

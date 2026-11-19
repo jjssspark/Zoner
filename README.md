@@ -12,7 +12,7 @@
 [![Live](https://img.shields.io/badge/Live-zoner--one.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://zoner-one.vercel.app)
 [![Demo](https://img.shields.io/badge/Demo-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/JEL13w3MUCg)
 [![ADR](https://img.shields.io/badge/ADR-6-3ECF8E?style=for-the-badge)](docs/adr/README.md)
-[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-21-F59E0B?style=for-the-badge)](docs/TROUBLESHOOTING.md)
+[![Troubleshooting](https://img.shields.io/badge/Troubleshooting-24-F59E0B?style=for-the-badge)](docs/TROUBLESHOOTING.md)
 
 <br />
 
@@ -21,7 +21,9 @@
 ![MediaPipe](https://img.shields.io/badge/MediaPipe-FaceLandmarker-0097A7?logo=google&logoColor=white)
 ![Claude](https://img.shields.io/badge/Claude-Haiku%204.5-D97757?logo=anthropic&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?logo=vercel&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-276%20passed-4C9A2A)
+[![CI](https://github.com/jjssspark/Zoner/actions/workflows/ci.yml/badge.svg)](https://github.com/jjssspark/Zoner/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/badge/tests-281%20passed-4C9A2A)
+![E2E](https://img.shields.io/badge/e2e-36%20passed-2EAD33)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 </div>
@@ -58,9 +60,9 @@ Zoner는 학습 중 웹캠 영상을 **브라우저 안에서만** 분석해 5�
 | 리포트 | 파생 지표 **9종** + AI 조언 문단 (수치는 앱이 계산) |
 | 권한 | **RLS 정책 17개** — 앱 코드가 아니라 DB가 막는다 |
 | 영상 | 프레임은 브라우저 밖으로 안 나감. 녹화는 사용자가 켰을 때만 |
-| 테스트 | **276개** / 22 스위트 전부 통과 |
-| 문서 | ADR **6건** · 트러블슈팅 **21건** · API · DB 명세 |
-| 번들 | gzip **209.86 kB** (JS 198.06 + CSS 11.8) |
+| 테스트 | 단위 **281개** / 23 스위트 · E2E **36개** 전부 통과 |
+| 문서 | ADR **6건** · 트러블슈팅 **24건** · API · DB 명세 |
+| 번들 | gzip **210.46 kB** (JS 198.33 + CSS 12.13) |
 
 ## 목차
 
@@ -264,7 +266,7 @@ npm start        # http://localhost:3000
 > [!IMPORTANT]
 > **웹캠 권한이 필요하다.** 브라우저 정책상 `localhost` 또는 `https`에서만 카메라가 열린다.
 
-DB 스키마가 필요하면 `supabase/migrations/`의 SQL 11개를 파일명 순서대로 실행한다.
+DB 스키마가 필요하면 `supabase/migrations/`의 SQL 12개를 파일명 순서대로 실행한다.
 순서 의존이 있으니 [`docs/DATABASE.md`](docs/DATABASE.md)의 적용 순서 절을 먼저 읽는 편이 좋다.
 
 <details>
@@ -315,9 +317,13 @@ npx react-scripts build                           # 프로덕션 빌드
 ## 테스트
 
 ```
-Test Suites: 22 passed, 22 total
-Tests:       276 passed, 276 total
+Test Suites: 23 passed, 23 total
+Tests:       281 passed, 281 total
 ```
+
+푸시와 PR마다 CI가 lint · 테스트 · 배포 빌드를 재현한다
+([`ci.yml`](.github/workflows/ci.yml)). 빌드 단계는 `vercel.json`의 명령과 같다 —
+로컬에서 되던 빌드가 배포에서만 깨진 TS-020의 재발을 막는 게 목적이다.
 
 화면 컴포넌트가 아니라 **판단이 들어간 순수 로직**을 덮었다 — 집중 판정 임계값 경계,
 세션 집계, 파생 지표, 알림 규칙, 학습 성향 분류, 휴지통 상태 전이, 녹화 상태 전이,
@@ -331,10 +337,10 @@ CRA 번들 Jest 리졸버가 v7 exports 맵을 해석하지 못한다 (`docs/TRO
 
 | | 크기 |
 |---|---|
-| JS (main) | 150.78 kB |
-| JS (분할 청크 3개) | 47.28 kB |
-| CSS | 11.8 kB |
-| **합계** | **209.86 kB** |
+| JS (main) | 153.05 kB |
+| JS (분할 청크 2개) | 45.28 kB |
+| CSS | 12.13 kB |
+| **합계** | **210.46 kB** |
 
 ### Lighthouse
 
@@ -348,10 +354,38 @@ CRA 번들 Jest 리졸버가 v7 exports 맵을 해석하지 못한다 (`docs/TRO
 | SEO | **100** | **100** |
 | LCP · TBT · CLS | 2.4 s · 0 ms · 0 | 16.6 s · 0 ms · 0 |
 
-**모바일 55점은 전부 렌더 블로킹이다** (예상 절감 10.9초). CRA SPA라 메인 청크 151 kB가 실행돼야
-첫 화면이 그려지는데, 모바일 프리셋의 CPU 4배 감속과 느린 4G 시뮬레이션에서 그게 그대로
-지연으로 잡힌다. 데스크톱에서는 같은 항목이 240 ms다. 코드 스플리팅이나 Vite 이전이 해법이고,
-[ADR-003](docs/adr/003-keep-cra.md)에 **부채로 등록해 둔** 항목이다.
+> 위 표는 **2026-11-19 수정 이전**의 배포본 값이다. 아래가 그 뒤에 쟀고 고친 내용이다.
+
+#### 모바일 55점의 원인을 다시 찾았다
+
+처음에는 "CRA 메인 청크 151 kB가 실행돼야 첫 화면이 그려져서"라고 적었다. 그런데 실제로
+모바일 390px에서 랜딩이 받는 바이트를 재보니 **JS는 전체의 4%**였다.
+
+| | 수정 전 | 수정 후 |
+|---|---:|---:|
+| 폰트 (Pretendard 통짜 → dynamic-subset) | 2,009 kB | **289 kB** |
+| 이미지 3장 (904px PNG → 760px WebP) | 1,346 kB | **53 kB** |
+| JS (gzip) | 153 kB | 153 kB |
+| CSS (gzip) | 12 kB | 12 kB |
+| **페이지 전체** | **3,553 kB** | **533 kB** |
+
+렌더 블로킹이라는 진단 자체는 맞았지만, 블로킹하던 것이 JS가 아니라 **2 MB짜리 폰트**였다.
+표시 폭이 최대 390px인 자리에 904px PNG를 세 장 놓고 있던 것도 몰랐다.
+
+| | 수정 전 | 수정 후 |
+|---|:---:|:---:|
+| Performance (모바일) | 55 | **79** |
+| LCP | 16.2 s | **4.0 s** |
+| 렌더 블로킹 절감 추정 | 10,660 ms | 1,860 ms |
+
+로컬 빌드를 **gzip으로 서빙해** 같은 조건에서 두 번 쟀다(`e2e/serve.mjs`). 압축 없이 재면
+CSS·JS가 실제보다 7배 크게 잡혀 프로덕션과 달라진다. 이 하니스의 "수정 전" 값(55점 · LCP 16.2초)이
+배포본에서 쟀던 값(55점 · LCP 16.6초)과 거의 일치해서, 비교 기준으로 쓸 만하다고 봤다.
+
+남은 1,860 ms는 여전히 `main.css`(gzip 12 kB)와 폰트 CSS가 렌더를 막는 몫이다.
+코드 스플리팅이나 Vite 이전은 [ADR-003](docs/adr/003-keep-cra.md)에 **부채로 등록해 둔** 항목이다.
+
+**배포본 재측정은 머지 뒤에 한다.** 위 55 → 79는 로컬 동일 조건 비교값이다.
 
 측정은 랜딩까지만 가능하다 — 정작 무거운 화면(측정·리포트)은 로그인 뒤라 들어가지 못한다.
 
@@ -363,6 +397,10 @@ CRA 번들 Jest 리졸버가 v7 exports 맵을 해석하지 못한다 (`docs/TRO
 ```bash
 npx lighthouse https://zoner-one.vercel.app --preset=desktop --view
 npx lighthouse https://zoner-one.vercel.app --view   # 기본값이 모바일이다
+
+# 로컬 빌드로 같은 조건 비교 (gzip 서빙)
+npx react-scripts build && node e2e/serve.mjs &
+npx lighthouse http://localhost:5179 --view
 ```
 
 </details>
@@ -397,11 +435,11 @@ src/
 | 문서 | 내용 |
 |---|---|
 | [`docs/adr/`](docs/adr/README.md) | 기술 의사결정 6건. 결과 칸에 **틀린 예측을 그대로** 적었다 |
-| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~021 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | TS-001~024 전문. 증상·재현 조건·**실패한 시도**·근본 원인·검증 |
 | [`docs/API.md`](docs/API.md) | Edge Functions 2개의 요청·응답 계약 |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | 스키마·RLS 17정책·마이그레이션 순서 의존 |
 
-트러블슈팅 21건 중 몇 가지만 꼽자면:
+트러블슈팅 24건 중 몇 가지만 꼽자면:
 
 - **TS-010** — 로딩 해제를 보장하려고 넣은 가드가 StrictMode에서 화면을 영구히 멈춘 건. **독립 리뷰 3회를 통과했다**
 - **TS-012** — 테이블에 있는 컬럼이 뷰에는 없어서, 하루 넘게 에러 없이 반쪽만 살아 있던 건
@@ -420,7 +458,8 @@ src/
 - **1인 기준.** `numFaces: 1`이라 여러 명이 잡히는 환경은 고려하지 않았다.
 - **외부 CDN 의존.** MediaPipe WASM·모델을 런타임에 받아 오므로 오프라인에서는 측정이 시작되지 않는다.
 - **CRA를 유지 중.** `react-scripts` 5.0.1은 유지보수가 멈춘 상태다. 이전 비용을 알면서 남겨 둔 부채다 ([ADR-003](docs/adr/003-keep-cra.md)).
-- **테스트가 로직에 치우쳐 있다.** 화면 단위 E2E가 없다. 위 리졸버 제약이 이유이지만, Playwright로 우회할 수 있는 문제이기도 하다.
+- **E2E 범위가 아직 좁다.** Playwright로 공개 라우트 렌더·가로 넘침, 보호 라우트의 로그인 리다이렉트, 404까지는 덮었지만
+  (`e2e/`), 측정→저장→리포트로 이어지는 실제 흐름은 아직 덮지 않았다. 웹캠과 Supabase 쓰기가 끼어 있어 준비가 더 필요하다.
 - **1분 넘게 일시정지하면** 리포트 그래프 x축 라벨이 건너뛴다. 고칠 범위가 다른 파일로 번져 미뤄 뒀다.
 
 ---

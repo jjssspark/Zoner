@@ -1,5 +1,4 @@
 export const MAX_MESSAGE_LENGTH = 4000;
-export const DAILY_MESSAGE_LIMIT = 30;
 
 export function isValidMessage(content) {
   const trimmed = content.trim();

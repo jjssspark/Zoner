@@ -35,15 +35,6 @@ function jsonResponse(body: unknown, status: number) {
   });
 }
 
-function startOfTodayKST() {
-  const now = new Date();
-  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  const y = kst.getUTCFullYear();
-  const m = kst.getUTCMonth();
-  const d = kst.getUTCDate();
-  const kstMidnightUtcMs = Date.UTC(y, m, d) - 9 * 60 * 60 * 1000;
-  return new Date(kstMidnightUtcMs).toISOString();
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -99,23 +90,39 @@ Deno.serve(async (req) => {
     }
 
     // 일일 제한은 사용자 단위를 유지한다. 대화 단위로 바꾸면 방을 새로 파서 우회할 수 있다.
-    const { count, error: countError } = await supabase
-      .from('chat_messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('role', 'user')
-      .gte('created_at', startOfTodayKST());
+    //
+    // 예전에는 오늘 저장된 user 메시지 행을 세어 판단했다. 구멍이 둘 있었다.
+    //   1) 세는 것과 넣는 것이 두 번의 왕복이라 동시 요청이 전부 같은 수를 본다.
+    //      한도 20에 동시 50건을 넣어 재보니 50건이 전부 통과했다 (TS-023).
+    //   2) chat_messages는 conversations에 cascade로 묶여 있다. 사용자가 자기 대화를
+    //      지우면 오늘 센 행도 함께 사라져서 한도가 0으로 되돌아간다.
+    // 사용량을 메시지와 분리된 테이블에 두고, 판단과 증가를 한 문장에서 끝낸다.
+    const { data: used, error: quotaError } = await supabase.rpc('consume_ai_quota', {
+      p_user_id: userId,
+      p_kind: 'chat',
+      p_limit: DAILY_MESSAGE_LIMIT,
+    });
 
-    if (countError) {
+    if (quotaError) {
       return jsonResponse({ error: '요청을 처리하지 못했습니다.' }, 500);
     }
 
-    if ((count ?? 0) >= DAILY_MESSAGE_LIMIT) {
+    // 한도에 걸리면 함수가 아무 행도 반환하지 않는다(null).
+    if (used === null) {
       return jsonResponse(
         { error: '오늘 사용 가능한 메시지 횟수를 다 썼어요. 내일 다시 이용해주세요.' },
         429
       );
     }
+
+    // 모델에 닿지 못한 실패는 사용자 책임이 아니므로 차감을 되돌린다.
+    const refundQuota = async () => {
+      const { error } = await supabase.rpc('refund_ai_quota', {
+        p_user_id: userId,
+        p_kind: 'chat',
+      });
+      if (error) console.error('사용량 환불 실패:', error);
+    };
 
     // 제목 자동 생성 여부를 판단하려면 user 메시지를 넣기 "전"에 세어야 한다.
     const { count: conversationMessageCount, error: conversationCountError } = await supabase
@@ -179,23 +186,33 @@ Deno.serve(async (req) => {
       messages.shift();
     }
 
-    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT,
-        messages,
-        stream: true,
-      }),
-    });
+    let anthropicResponse: Response;
+    try {
+      anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 1024,
+          system: SYSTEM_PROMPT,
+          messages,
+          stream: true,
+        }),
+      });
+    } catch (fetchError) {
+      await refundQuota();
+      console.error('Anthropic 호출 실패:', fetchError);
+      return jsonResponse({ error: 'AI 응답을 받지 못했습니다.' }, 502);
+    }
 
     if (!anthropicResponse.ok || !anthropicResponse.body) {
+      // 스트림이 시작되지도 않았다. 받은 답이 없으니 칸도 돌려준다.
+      // (스트림 도중 끊기는 경우는 환불하지 않는다 — 모델은 이미 돌았다.)
+      await refundQuota();
       return jsonResponse({ error: 'AI 응답을 받지 못했습니다.' }, 502);
     }
 

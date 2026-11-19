@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
+import { useAuth } from '../../components/routing/AuthContext';
 import ScoreRing from '../../components/ui/ScoreRing';
 import { focusLevel } from '../../lib/focusLevel';
 import Skeleton from '../../components/ui/Skeleton';
@@ -71,6 +72,8 @@ function MypageTopbar({ userName, onBack, onHome, onLogout }) {
 
 export const Mypage = () => {
   const navigate = useNavigate();
+  // ProtectedRoute가 이미 확인한 사용자. 화면이 다시 묻지 않는다.
+  const { user } = useAuth();
   const pageRef = useRef(null);
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -83,15 +86,6 @@ export const Mypage = () => {
 
     const loadUser = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          navigate('/login');
-          return;
-        }
-
         const { data: profile } = await supabase
           .from('profiles')
           .select('name')
@@ -124,7 +118,7 @@ export const Mypage = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, [user.id, navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

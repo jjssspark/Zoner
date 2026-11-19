@@ -85,7 +85,32 @@ npx vercel --prod --yes                              # ● Ready
 그래서 결정과 함께 완료 기준도 바꿨다 — 빌드 검증은 `CI=true`로 한다.
 결정 하나보다 이쪽이 재발을 더 많이 막는다.
 
+## 후속 — 2026-11-18 재검증
+
+이 결정의 대가를 실제로 쟀고, 그물을 하나 다시 쳤다.
+
+**1. 대가는 현재 0이다.** 승격을 켜고(`CI=true npx react-scripts build`) 올라오는 경고를
+전부 확인했다. MediaPipe의 `Critical dependency` 하나뿐이고 우리 코드에서 나온 경고는 없다.
+`npx eslint src --max-warnings 0`도 앱 코드 0건이다.
+"우리 코드 경고까지 함께 끈다"는 대가는 아직 아무것도 가리고 있지 않다.
+
+**2. 되돌리는 조건 1번은 미충족이다.** `@mediapipe/tasks-vision`을 1.2.3으로 올려
+같은 빌드를 돌렸으나 `Critical dependency` 경고는 그대로였다.
+올릴 이유가 사라져 1.0.1로 되돌렸고, `CI=false`는 계속 유효하다.
+
+**3. 대가를 CRACO 없이 상쇄했다.** 승격을 못 쓰는 이유는 그것이 MediaPipe의 수정 불가능한
+경고까지 같이 올리기 때문이다. eslint를 `src`에만 직접 걸면 그 경고는 애초에 대상이 아니므로,
+우리 코드의 경고만 정확히 막을 수 있다. 이 검사를 CI의 독립 단계로 넣었다
+([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)).
+**A안(CRACO + `ignoreWarnings`)이 주려던 정밀함을, 빌드 도구를 하나도 더 얹지 않고 얻었다.**
+
+남은 공백은 테스트 파일이다. CRA 빌드는 테스트 파일을 lint하지 않아 지금까지 한 번도
+검사된 적이 없었고, 지금 걸면 testing-library 규칙 22건이 나온다
+(`no-node-access` 15, `no-container` 7). role이 없는 SVG를 다루는 테스트가 섞여 있어
+일괄 수정 대상이 아니라고 보고 CI에서 제외해 뒀다. 정리하면 그 제외를 걷어낸다.
+
 ## 되돌리는 조건
 
 - `@mediapipe/tasks-vision`을 올릴 때 이 경고가 사라졌는지 확인한다. 사라졌으면 `CI=false`를 걷어낸다
+  (1.2.3까지 확인함 — 경고 잔존. 위 후속 참고)
 - 우리 코드의 lint 경고가 실제로 문제를 일으킨 사례가 한 번이라도 나오면, 그때는 A안(CRACO + `ignoreWarnings`)의 비용이 정당해진다

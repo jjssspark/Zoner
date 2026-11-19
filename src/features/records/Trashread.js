@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
+import { useAuth } from '../../components/routing/AuthContext';
 import { restoreSession, hardDeleteSession, daysUntilPurge, expiryLevel } from '../../lib/trash';
 import Skeleton from '../../components/ui/Skeleton';
 import './TrashDetail.css';
@@ -33,6 +34,8 @@ const formatDate = (iso) => {
 
 export const Trashread = () => {
   const navigate = useNavigate();
+  // ProtectedRoute가 이미 확인한 사용자. 화면이 다시 묻지 않는다.
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session');
   const [session, setSession] = useState(null);
@@ -47,15 +50,6 @@ export const Trashread = () => {
     let isMounted = true;
 
     const loadSession = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
       if (!sessionId) {
         if (isMounted) {
           setNotFound(true);
@@ -87,7 +81,7 @@ export const Trashread = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate, sessionId]);
+  }, [user.id, navigate, sessionId]);
 
   const handleRestore = async () => {
     setActionError(null);

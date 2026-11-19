@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
+import { useAuth } from '../../components/routing/AuthContext';
 import { sendChatMessage, isValidMessage, MAX_MESSAGE_LENGTH } from '../../lib/aiChat';
 import { buildConversationTitle, DEFAULT_CONVERSATION_TITLE } from '../../lib/conversations';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
@@ -11,6 +12,8 @@ const MAX_TITLE_INPUT_LENGTH = 60;
 
 export const AiChat = () => {
   const navigate = useNavigate();
+  // ProtectedRoute가 이미 확인한 사용자. 화면이 다시 묻지 않는다.
+  const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -88,14 +91,6 @@ export const AiChat = () => {
   const loadConversations = useCallback(
     async ({ selectFirstOnLoad = false } = {}) => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          navigate('/login');
-          return;
-        }
 
         const { data, error } = await supabase
           .from('conversations')
@@ -130,7 +125,7 @@ export const AiChat = () => {
         }
       }
     },
-    [navigate, loadMessages]
+    [user.id, loadMessages]
   );
 
   useEffect(() => {
@@ -178,14 +173,6 @@ export const AiChat = () => {
 
   const createConversation = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate('/login');
-        return null;
-      }
 
       const { data, error } = await supabase
         .from('conversations')

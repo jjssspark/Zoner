@@ -1,0 +1,80 @@
+# 푸시와 PR마다 테스트·빌드를 재현한다.
+#
+# 이 파일이 생긴 이유는 TS-020이다. 로컬에서 되던 빌드가 배포에서만 깨졌고,
+# 원인은 완료 기준이 CI 조건을 재현하지 않았다는 것이었다 (ADR-005).
+# 그래서 여기서는 "로컬에서 돌리는 명령"이 아니라 "실제로 깨질 수 있는 조건"을 돌린다.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+# 같은 브랜치에 연달아 푸시하면 이전 실행은 취소한다.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    # CRA는 빌드 시점에 이 값을 번들에 박는다. 실제 프로젝트에 붙지 않는
+    # 더미지만, e2e가 가짜 세션을 넣을 localStorage 키를 여기서 유도하므로
+    # 빌드 단계와 e2e 단계가 같은 값을 봐야 한다.
+    env:
+      REACT_APP_SUPABASE_URL: https://e2e-local.supabase.co
+      REACT_APP_SUPABASE_ANON_KEY: e2e-anon-key
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 로컬 개발 런타임과 같은 메이저를 쓴다. CI와 로컬이 다른 Node에서
+      # 돌면 "여기서만 되는" 문제가 다시 생긴다.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      # install이 아니라 ci다. lockfile 그대로를 설치해야 재현이 된다.
+      - name: 의존성 설치
+        run: npm ci
+
+      # ADR-005에서 CI=false로 꺼버린 그물을 여기서 되살린다.
+      # react-scripts build의 경고 승격은 MediaPipe의 수정 불가능한 경고까지
+      # 함께 올려서 못 쓴다. eslint를 src에만 직접 걸면 그 경고는 애초에
+      # 대상이 아니므로, 우리 코드의 경고만 정확히 막을 수 있다.
+      #
+      # 테스트 파일은 아직 제외한다 — testing-library 규칙 22건이 남아 있고
+      # (no-node-access 15, no-container 7), SVG처럼 role이 없는 요소를
+      # 다루는 테스트가 섞여 있어 일괄 수정 대상이 아니다. 정리한 뒤 이 줄을 뺀다.
+      - name: Lint (앱 코드, 경고 0건 기준)
+        run: npx eslint src --max-warnings 0 --ignore-pattern "**/*.test.js"
+
+      - name: 테스트
+        run: npx react-scripts test --watchAll=false
+        env:
+          CI: true
+
+      # Vercel이 실제로 실행하는 명령과 같아야 한다 (vercel.json의 buildCommand).
+      # 배포에서만 깨지는 일을 막는 게 이 단계의 목적이다.
+      - name: 배포 빌드 재현
+        run: CI=false npx react-scripts build
+
+      # 브라우저는 e2e 단계에서만 필요하다. chromium 하나만 받는다.
+      - name: Playwright 브라우저 설치
+        run: npx playwright install --with-deps chromium
+
+      # 위에서 만든 build/를 그대로 서빙해 돌린다. 공개 라우트 렌더·가로 넘침,
+      # 보호 라우트의 로그인 리다이렉트, 404를 확인한다.
+      - name: E2E
+        run: npx playwright test
+
+      - name: 실패했을 때 흔적 남기기
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-trace
+          path: test-results/
+          retention-days: 7

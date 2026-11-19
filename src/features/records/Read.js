@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import supabase from '../../lib/supabaseClient';
+import { useAuth } from '../../components/routing/AuthContext';
 import { softDeleteSession } from '../../lib/trash';
 import { SESSION_VIDEO_BUCKET } from '../../lib/sessionVideos';
 import { buildReportTitle } from '../../lib/reportTitle';
@@ -55,6 +56,8 @@ const formatStamp = (date) =>
 
 export const Read = () => {
   const navigate = useNavigate();
+  // ProtectedRoute가 이미 확인한 사용자. 화면이 다시 묻지 않는다.
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session');
   const [session, setSession] = useState(null);
@@ -82,14 +85,6 @@ export const Read = () => {
     let isMounted = true;
 
     const loadSession = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        navigate('/login');
-        return;
-      }
 
       if (!sessionId) {
         if (isMounted) {
@@ -123,7 +118,7 @@ export const Read = () => {
     return () => {
       isMounted = false;
     };
-  }, [navigate, sessionId]);
+  }, [user.id, navigate, sessionId]);
 
   useEffect(() => {
     if (!session?.video_path) return undefined;
@@ -155,10 +150,6 @@ export const Read = () => {
     let isMounted = true;
 
     const loadRecent = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
 
       const { data } = await supabase
         .from('active_study_sessions')
@@ -178,7 +169,7 @@ export const Read = () => {
     return () => {
       isMounted = false;
     };
-  }, [session]);
+  }, [session, user.id]);
 
   // 조언은 지표와 성향이 다 모인 뒤 한 번만 부른다. 유료 호출이라
   // 최근 기록이 도착하기 전에 미리 부르면 같은 리포트에 두 번 과금된다.
