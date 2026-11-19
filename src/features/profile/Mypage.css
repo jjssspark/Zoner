@@ -1,0 +1,735 @@
+.mypage {
+  --spotlight-x: 50%;
+  --spotlight-y: 30%;
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  background-image: linear-gradient(
+      color-mix(in oklch, var(--color-accent) 5%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--color-accent) 5%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 48px 48px;
+  color: var(--color-text);
+  animation: mypage-grid-drift 60s linear infinite;
+}
+
+.mypage::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    560px circle at var(--spotlight-x) var(--spotlight-y),
+    color-mix(in oklch, var(--color-accent) 10%, transparent),
+    transparent 70%
+  );
+}
+
+.mypage__main {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes mypage-grid-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 48px 48px;
+  }
+}
+
+.mypage__topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.mypage__topbar::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent),
+    transparent
+  );
+  animation: mypage-topbar-scan 6s ease-in-out infinite;
+}
+
+@keyframes mypage-topbar-scan {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.mypage__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.mypage__user {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--text-base);
+  margin: 0;
+}
+
+.mypage__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  animation: mypage-status-pulse 2s ease-out infinite;
+}
+
+@keyframes mypage-status-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-accent) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.mypage__badge {
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+}
+
+.mypage__topbar-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.mypage__topbar-link,
+.mypage__logout {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.mypage__topbar-link:hover,
+.mypage__logout:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.mypage__topbar-link:focus-visible,
+.mypage__logout:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.mypage__main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.mypage__main > section {
+  animation: mypage-fade-in-up 0.5s var(--ease-out-expo) both;
+}
+
+.mypage__main > section:nth-of-type(1) {
+  animation-delay: 0.05s;
+}
+.mypage__main > section:nth-of-type(2) {
+  animation-delay: 0.12s;
+}
+.mypage__main > section:nth-of-type(3) {
+  animation-delay: 0.19s;
+}
+.mypage__main > section:nth-of-type(4) {
+  animation-delay: 0.26s;
+}
+.mypage__main > section:nth-of-type(5) {
+  animation-delay: 0.33s;
+}
+
+@keyframes mypage-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.focus-gauge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-12);
+  flex-wrap: wrap;
+}
+
+.focus-gauge__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.focus-gauge__stats {
+  display: flex;
+  gap: var(--space-6);
+  margin: 0;
+}
+
+.focus-gauge__stats dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-1);
+}
+
+.focus-gauge__stat-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-metric-sm);
+  letter-spacing: var(--tracking-data);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+@keyframes mypage-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.focus-gauge__scanner {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  animation: mypage-breathe 3s var(--ease-in-out) infinite;
+}
+
+.focus-gauge__scanner-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  border: 2px dashed var(--color-accent);
+  opacity: 0.5;
+  animation: mypage-scanner-spin 6s linear infinite;
+}
+
+.focus-gauge__scanner-core {
+  position: absolute;
+  inset: 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  opacity: 0.7;
+  animation: mypage-scanner-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes mypage-scanner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mypage-scanner-pulse {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+
+.focus-gauge__empty-title {
+  font-weight: 700;
+  margin: 0 0 var(--space-1);
+}
+
+.focus-gauge__empty-desc {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.record-section {
+  margin-bottom: var(--space-12);
+}
+
+.record-section__title {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  margin: 0 0 var(--space-2);
+}
+
+.record-section__desc {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-4);
+}
+
+.record-section__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+}
+
+.record-section__header .record-section__title {
+  margin-bottom: var(--space-1);
+}
+
+.record-section__header .record-section__desc {
+  margin-bottom: 0;
+}
+
+.record-section__link {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  /* 스크롤 시 고정되는 상단바 뒤로 포커스가 숨지 않도록 여유를 둔다
+     (WCAG 2.2 focus not obscured). */
+  scroll-margin-top: calc(var(--space-16) * 2);
+  transition: border-color var(--duration-normal) var(--ease-out-expo),
+    background-color var(--duration-normal) var(--ease-out-expo),
+    box-shadow var(--duration-normal) var(--ease-out-expo);
+}
+
+.record-section__link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    color-mix(in oklch, var(--color-accent) 35%, transparent),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left var(--duration-slow) var(--ease-out-expo);
+}
+
+.record-section__link:hover::before {
+  left: 130%;
+}
+
+.record-section__link:hover {
+  border-color: var(--color-accent);
+  background-color: color-mix(in oklch, var(--color-accent) 10%, transparent);
+  box-shadow: var(--shadow-glow);
+}
+
+.record-section__link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.record-section__arrow {
+  display: inline-block;
+  transition: transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.record-section__link:hover .record-section__arrow {
+  transform: translateX(3px);
+}
+
+.record-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-4);
+}
+
+.record-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-6);
+  min-height: 44px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  /* 스크롤 시 고정되는 상단바 뒤로 포커스가 숨지 않도록 여유를 둔다
+     (WCAG 2.2 focus not obscured). */
+  scroll-margin-top: calc(var(--space-16) * 2);
+  transition: border-color var(--duration-normal) var(--ease-out-expo),
+    transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.record-card__date {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.record-card__score {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: var(--tracking-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.record-card__score--high {
+  color: var(--color-focus-high);
+}
+.record-card__score--mid {
+  color: var(--color-focus-mid);
+}
+.record-card__score--low {
+  color: var(--color-focus-low);
+}
+.record-card__score--poor {
+  color: var(--color-focus-poor);
+}
+
+.record-card:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.record-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.record-grid__empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  grid-column: 1 / -1;
+}
+
+.quick-actions {
+  margin-bottom: var(--space-12);
+}
+
+.quick-actions__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+.quick-action {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 140px;
+  padding: var(--space-6);
+  background-color: var(--color-surface);
+  background-image: repeating-linear-gradient(
+      0deg,
+      oklch(75% 0.14 200 / 0.03) 0 1px,
+      transparent 1px 24px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      oklch(75% 0.14 200 / 0.03) 0 1px,
+      transparent 1px 24px
+    );
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  /* 스크롤 시 고정되는 상단바 뒤로 포커스가 숨지 않도록 여유를 둔다
+     (WCAG 2.2 focus not obscured). */
+  scroll-margin-top: calc(var(--space-16) * 2);
+  transition: border-color var(--duration-normal) var(--ease-out-expo),
+    transform var(--duration-normal) var(--ease-out-expo);
+}
+
+/* 코너 브래킷 — 두 의사요소가 각각 대각선 두 모서리를 그린다.
+   호버 시 translate로 바깥으로 벌어져 "조준선이 잠기는" 인상을 만든다. */
+.quick-action::before,
+.quick-action::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--color-accent);
+  border-style: solid;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.quick-action::before {
+  top: 8px;
+  left: 8px;
+  border-width: 1px 0 0 1px;
+}
+
+.quick-action::after {
+  right: 8px;
+  bottom: 8px;
+  border-width: 0 1px 1px 0;
+}
+
+.quick-action:hover,
+.quick-action:focus-visible {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.quick-action:hover::before,
+.quick-action:focus-visible::before {
+  opacity: 1;
+  transform: translate(-4px, -4px);
+}
+
+.quick-action:hover::after,
+.quick-action:focus-visible::after {
+  opacity: 1;
+  transform: translate(4px, 4px);
+}
+
+.quick-action:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* 스캔 라인 — 호버당 1회만 통과한다. 상시 반복하면 타일 4개가 계속
+   움직여 정작 집중도 요약에서 시선을 뺏는다. */
+/* 요소를 타일 높이 전체(height: 100%)로 두고 2px 밴드는 배경으로 그린다.
+   그래야 translateY(100%)가 "타일 높이만큼"이 되어, 타일이 min-height보다
+   커져도 스캔이 중간에 멈추지 않는다. 고정 px를 쓰면 그 지점에서 끊긴다. */
+.quick-action__scan {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent),
+    transparent
+  );
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+.quick-action:hover .quick-action__scan,
+.quick-action:focus-visible .quick-action__scan {
+  animation: quick-action-scan var(--duration-slow) var(--ease-out-expo) 1;
+}
+
+@keyframes quick-action-scan {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.quick-action__icon {
+  font-size: var(--text-2xl);
+  line-height: 1;
+  color: var(--color-accent);
+  transition: filter var(--duration-normal) var(--ease-out-expo),
+    transform var(--duration-normal) var(--ease-out-expo);
+}
+
+.quick-action:hover .quick-action__icon,
+.quick-action:focus-visible .quick-action__icon {
+  filter: drop-shadow(0 0 6px var(--color-accent));
+  transform: scale(1.08);
+}
+
+.quick-action__label {
+  margin-top: auto;
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.quick-action__meta {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.quick-action__meta--high {
+  color: var(--color-focus-high);
+}
+
+.quick-action__meta--mid {
+  color: var(--color-focus-mid);
+}
+
+.quick-action__meta--low {
+  color: var(--color-focus-low);
+}
+
+.quick-action__meta--poor {
+  color: var(--color-focus-poor);
+}
+
+@media (max-width: 480px) {
+  .quick-actions__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 정보는 유지하고 움직임만 제거한다. 브래킷이 나타나는 것 자체는
+   호버/포커스 상태를 알리는 신호이므로 없애지 않는다. */
+@media (prefers-reduced-motion: reduce) {
+  .quick-action:hover,
+  .quick-action:focus-visible {
+    transform: none;
+  }
+
+  .quick-action:hover::before,
+  .quick-action:focus-visible::before,
+  .quick-action:hover::after,
+  .quick-action:focus-visible::after {
+    transform: none;
+  }
+
+  .quick-action:hover .quick-action__scan,
+  .quick-action:focus-visible .quick-action__scan {
+    animation: none;
+    opacity: 0;
+  }
+
+  .quick-action:hover .quick-action__icon,
+  .quick-action:focus-visible .quick-action__icon {
+    transform: none;
+  }
+}
+
+.recommended-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+.recommended-card {
+  background-color: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: center;
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 767px) {
+  .mypage__topbar {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .mypage__main {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .focus-gauge {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .record-section__header {
+    flex-direction: column;
+  }
+
+  .record-section__link {
+    align-self: flex-start;
+  }
+}
+
+.mypage__logout,
+.mypage__topbar-link,
+.record-section__link {
+  transition: color var(--duration-fast) var(--ease-out-expo),
+    border-color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.mypage__logout:active,
+.mypage__topbar-link:active,
+.record-section__link:active,
+.quick-action:active,
+.record-card:active {
+  transform: translateY(1px);
+}

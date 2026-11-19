@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** Mypage 퀵액션의 "AI 채팅" 버튼(`/ai-chat`)을 눌렀을 때, Anthropic Claude와 스트리밍으로 실시간 질의응답할 수 있는 학습 보조 채팅 화면을 제공한다.
 
 **Architecture:** 브라우저(React)가 Supabase Edge Function(`ai-chat`)을 직접 `fetch`로 호출한다. Edge Function이 사용자 인증·일일 메시지 한도를 확인한 뒤 Anthropic Messages API를 스트리밍 호출하고, 응답을 단순화된 SSE(`data: {"text": "..."}\n\n` → `data: [DONE]\n\n`)로 그대로 중계한다. 스트림 종료 시 user/assistant 메시지를 `chat_messages` 테이블에 저장한다. Claude API 키는 Edge Function 환경변수(secret)에만 존재한다.

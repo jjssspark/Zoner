@@ -2,6 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task (컨트롤러가 worktree 없이 main에서 직접 순차 실행, 비용 절감을 위해 서브에이전트 다중 디스패치 없음). Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **상태 (2026-08-07 확인)**: 이 계획의 기능은 구현되어 코드베이스에 있다.
+> **아래 체크박스는 실행 중에 갱신되지 않았다 — 진행 표시로 신뢰하지 말 것.**
+> 미체크는 "안 했다"가 아니라 "표시를 안 했다"이다. 실제 반영 여부는 `src/`
+> 코드와 테스트(214건 통과)로 확인한다.
+
 **Goal:** Mypage의 "학습 시작" 버튼을 눌러 웹캠 기반 실시간 집중도 세션을 진행하고, 종료 시 결과가 저장되어 "학습 기록" 목록과 개별 리포트에서 실제 데이터로 확인되게 만든다.
 
 **Architecture:** 프론트엔드(CRA)에서 Supabase를 직접 호출하는 기존 구조 그대로. 웹캠 프레임은 브라우저를 벗어나지 않고, `@mediapipe/tasks-vision`의 `FaceLandmarker`가 5초 간격으로 얼굴 방향을 분석해 집중/비집중 틱만 메모리에 쌓는다. 세션 종료 시 그 틱을 집계한 결과(종합 점수 + 1분 단위 타임라인)만 `study_sessions` 테이블에 저장한다.

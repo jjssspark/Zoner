@@ -1,0 +1,543 @@
+.session-report {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.session-report__topbar {
+  /* 상단바는 모든 화면에서 스크롤해도 보이게 고정한다. Mypage와 동일한 값. */
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.session-report__title {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  margin: 0;
+}
+
+.session-report__back,
+.session-report__home {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.session-report__back:hover,
+.session-report__home:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.session-report__back:focus-visible,
+.session-report__home:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.session-report__topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.session-report__delete {
+  background: none;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.session-report__delete:hover {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.session-report__delete:focus-visible {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+.session-report__delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 이 화면의 주된 행동이므로 뒤로가기·목록으로와 같은 무게로 두지 않는다. */
+.session-report__pdf {
+  background: none;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.session-report__pdf:hover {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.session-report__pdf:active {
+  transform: translateY(1px);
+}
+
+.session-report__pdf:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.session-report__error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-4);
+}
+
+.session-report__main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.session-report__empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.session-report__date {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-4);
+}
+
+.session-report__score {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+
+.session-report__score-value {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.session-report__score-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* 점수 바로 아래. 점수와 한 덩어리로 읽히도록 위쪽 여백을 붙인다. */
+.session-report__duration {
+  margin: calc(var(--space-8) * -1) 0 var(--space-8);
+  padding-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ── 원인별 비율 / 알림 기록 ─────────────────────────────── */
+
+.session-report__section {
+  margin-top: var(--space-8);
+}
+
+.session-report__section-title {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-4);
+}
+
+.focus-breakdown,
+.alert-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.focus-breakdown__row {
+  display: grid;
+  grid-template-columns: minmax(6rem, auto) minmax(0, 1fr) 3rem;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.focus-breakdown__track {
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.focus-breakdown__bar {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--color-text-muted);
+}
+
+.focus-breakdown__bar--focused {
+  background-color: var(--color-reason-focused);
+}
+.focus-breakdown__bar--looking-down {
+  background-color: var(--color-reason-looking-down);
+}
+.focus-breakdown__bar--head-turned {
+  background-color: var(--color-reason-head-turned);
+}
+.focus-breakdown__bar--looking-up {
+  background-color: var(--color-reason-looking-up);
+}
+.focus-breakdown__bar--eyes-closed {
+  background-color: var(--color-reason-eyes-closed);
+}
+.focus-breakdown__bar--absent {
+  background-color: var(--color-reason-absent);
+}
+
+.focus-breakdown__value {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.alert-log__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+}
+
+.alert-log__time {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.alert-log__duration {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 학습 영상 ─────────────────────────────────────────── */
+
+.session-report__video {
+  width: 100%;
+  max-width: 720px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-alt);
+  display: block;
+}
+
+.session-report__video-error {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+/* 알림 행이 seek 버튼이 될 때. 행 전체가 눌리도록 편다. */
+.alert-log__seek {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: var(--space-2);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out-expo);
+}
+
+.alert-log__seek:hover {
+  background-color: var(--color-surface-alt);
+}
+
+.alert-log__seek:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.session-report__back:active,
+.session-report__home:active,
+.session-report__delete:active,
+.alert-log__seek:active {
+  transform: translateY(1px);
+}
+
+.session-report__back,
+.session-report__home,
+.session-report__delete {
+  transition: border-color var(--duration-fast) var(--ease-out-expo),
+    color var(--duration-fast) var(--ease-out-expo),
+    background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+.alert-log__seek {
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-fast) var(--ease-out-expo);
+}
+
+/* ── 파생 지표 · 성향 · 조언 ─────────────────────────────── */
+
+.section-sub {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  margin-left: var(--space-2);
+}
+
+/* 값이 라벨보다 크고 굵다. 훑을 때 숫자가 먼저 잡혀야 한다. */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.metric {
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.metric__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.metric__value {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 값에 딸린 맥락. 줄을 바꿔 값의 크기를 방해하지 않게 한다. */
+.metric__note {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.profile-headline {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+
+.profile-headline strong {
+  font-size: var(--text-xl);
+  color: var(--color-accent);
+  letter-spacing: var(--tracking-tight);
+}
+
+.profile-headline__note {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.weekday-bars {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.weekday-bars__row {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) 3rem;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.weekday-bars__day {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.weekday-bars__track {
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.weekday-bars__bar {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: var(--color-accent);
+}
+
+.weekday-bars__value {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.advice {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* 왼쪽 강조선으로 인용문처럼 보이게 한다. 카드로 감싸면 위의 지표와
+   무게가 같아져 결론이 결론으로 안 읽힌다. */
+.advice__item {
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-accent);
+  line-height: var(--leading-body);
+  color: var(--color-text);
+}
+
+.advice__disclaimer {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── 인쇄 / PDF ────────────────────────────────────────────
+   화면은 다크, 종이는 라이트다. 의미 토큰만 다시 매핑하면 아래 규칙들이
+   전부 따라온다 — 2계층 토큰을 쓰는 이유다. 이 블록은 인쇄에만 적용되므로
+   화면 테마는 그대로다(라이트 테마를 추가한 것이 아니다). */
+@media print {
+  .session-report {
+    --color-bg: white;
+    --color-surface: white;
+    --color-surface-alt: var(--navy-50);
+    --color-border: var(--navy-200);
+    --color-border-strong: var(--navy-600);
+    --color-text: var(--navy-950);
+    --color-text-muted: var(--navy-600);
+    --color-accent: var(--cyan-700);
+  }
+
+  /* 종이에 남길 이유가 없는 것들. 영상은 섹션째 지운다 —
+     video만 숨기면 "학습 영상" 제목만 덩그러니 남는다. */
+  .session-report__topbar-actions,
+  .session-report__section--video {
+    display: none;
+  }
+
+  /* 화면에서는 sticky다. 인쇄에서 sticky는 페이지마다 겹쳐 찍힐 수 있다. */
+  .session-report__topbar {
+    position: static;
+    padding: 0 0 var(--space-3);
+  }
+
+  .session-report__main {
+    max-width: none;
+    padding: var(--space-6) 0 0;
+  }
+
+  /* 인쇄는 애니메이션이 재생되지 않는 매체다. fill-mode가 from 상태를
+     붙들면 콘텐츠가 사라진 PDF가 나온다 — TS-017과 같은 함정이다.
+     연출을 끄고 최종 상태로 못박는다. */
+  .session-report [data-reveal],
+  .session-report .fade-in-content,
+  .session-report .focus-chart__bar {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* 브라우저는 기본적으로 배경색을 인쇄하지 않는다("배경 그래픽" 옵션).
+     여기 배경색은 장식이 아니라 데이터 그 자체이므로 강제로 남긴다. */
+  .session-report .focus-chart__bar,
+  .session-report .focus-breakdown__bar,
+  .session-report .focus-breakdown__track,
+  .session-report .reason-badge__dot {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* 한 덩어리로 읽혀야 하는 블록이 페이지 경계에서 잘리지 않게 */
+  .session-report__section,
+  .session-report .focus-chart,
+  .session-report .focus-breakdown__row,
+  .session-report .alert-log__row {
+    break-inside: avoid;
+  }
+
+  /* 알림 기록이 길면 여러 장으로 넘어간다. 각 장에서 제목이 다시 보이도록. */
+  .session-report__section-title {
+    break-after: avoid;
+  }
+
+  /* 새 섹션도 페이지 경계에서 잘리지 않게 */
+  .session-report .metric,
+  .session-report .advice__item,
+  .session-report .weekday-bars__row,
+  .session-report .profile-headline {
+    break-inside: avoid;
+  }
+
+  /* 카드 테두리는 종이에서 과하다. 배경 대신 선 하나로 줄인다. */
+  .session-report .metric {
+    padding: var(--space-2) 0;
+    border: none;
+    border-top: 1px solid var(--color-border);
+    border-radius: 0;
+  }
+
+  .session-report .metric-grid {
+    gap: 0 var(--space-6);
+  }
+
+  .session-report .weekday-bars__bar,
+  .session-report .weekday-bars__track {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

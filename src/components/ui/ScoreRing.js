@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { countUpFrame } from '../../lib/countUp';
+import { focusLevel } from '../../lib/focusLevel';
 import './ScoreRing.css';
 
 const SIZE_PX = { sm: 64, md: 120, lg: 200 };
@@ -43,13 +44,6 @@ function useCountUp(target) {
   }, [target]);
 
   return displayed;
-}
-
-export function focusLevel(value) {
-  if (value >= 80) return 'high';
-  if (value >= 50) return 'mid';
-  if (value >= 30) return 'low';
-  return 'poor';
 }
 
 export function ScoreRing({ value, size = 'md', label }) {
